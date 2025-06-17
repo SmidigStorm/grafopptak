@@ -6,14 +6,17 @@ WORKDIR /app
 # Kopier package files
 COPY package*.json ./
 
-# Installer dependencies
-RUN npm ci --omit=dev
+# Installer alle dependencies (inkludert dev for build)
+RUN npm ci
 
 # Kopier applikasjon
 COPY . .
 
 # Bygg Next.js
 RUN npm run build
+
+# Fjern dev dependencies etter build
+RUN npm prune --production
 
 # Eksponer port
 EXPOSE 3000

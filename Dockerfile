@@ -1,41 +1,21 @@
-# Development stage
-FROM node:22-alpine AS development
+FROM node:22-alpine
+
 WORKDIR /app
 
-# Install dependencies
+# Kopier package files
 COPY package*.json ./
+
+# Installer alle dependencies
 RUN npm ci
 
-# Copy app files
+# Kopier applikasjon
 COPY . .
 
-# Production build stage
-FROM node:22-alpine AS builder
-WORKDIR /app
-
-# Copy dependencies and source
-COPY package*.json ./
-RUN npm ci
-COPY . .
-
-# Build the application
+# Bygg Next.js
 RUN npm run build
 
-# Production stage
-FROM node:22-alpine AS production
-WORKDIR /app
-
-ENV NODE_ENV production
-
-# Copy built application
-COPY --from=builder /app/package*.json ./
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/node_modules ./node_modules
-
+# Eksponer port
 EXPOSE 3000
 
-ENV PORT 3000
-ENV HOST 0.0.0.0
-
+# Start applikasjon
 CMD ["npm", "start"]
