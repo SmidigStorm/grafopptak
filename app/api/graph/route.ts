@@ -4,9 +4,9 @@ import { getSession } from '@/lib/neo4j';
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const query = searchParams.get('q') || 'utdanning';
-  
+
   const session = getSession();
-  
+
   try {
     // Hent noder og relasjoner basert på søk
     const result = await session.run(
@@ -31,8 +31,8 @@ export async function GET(request: Request) {
     // Kombiner og formater noder
     const allNodes = [...nodes1, ...nodes2];
     const uniqueNodes = new Map();
-    
-    allNodes.forEach(node => {
+
+    allNodes.forEach((node) => {
       if (node && node.identity) {
         const id = node.identity.toString();
         if (!uniqueNodes.has(id)) {
@@ -51,8 +51,8 @@ export async function GET(request: Request) {
 
     // Formater relasjoner
     const formattedRelationships = relationships
-      .filter(rel => rel && rel.identity)
-      .map(rel => ({
+      .filter((rel: any) => rel && rel.identity)
+      .map((rel: any) => ({
         id: rel.identity.toString(),
         from: rel.start.toString(),
         to: rel.end.toString(),
@@ -71,10 +71,7 @@ export async function GET(request: Request) {
   } catch (error) {
     await session.close();
     console.error('Graph query error:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch graph data' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch graph data' }, { status: 500 });
   }
 }
 
