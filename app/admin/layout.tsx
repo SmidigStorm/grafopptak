@@ -48,11 +48,6 @@ const menuItems = [
     href: '/admin/regelsett',
   },
   {
-    title: 'Regelsett-maler',
-    icon: FileText,
-    href: '/admin/regelsett-maler',
-  },
-  {
     title: 'Regelbygging',
     icon: Hammer,
     href: '/admin/regelbygging',

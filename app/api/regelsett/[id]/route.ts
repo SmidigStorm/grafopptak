@@ -6,19 +6,47 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   const session = getSession();
 
   try {
-    const result = await session.run(
-      `
-      MATCH (r:Regelsett {id: $id})
-      RETURN r
-    `,
-      { id }
-    );
+    // Først hent regelsett
+    const regelSettResult = await session.run(`MATCH (r:Regelsett {id: $id}) RETURN r`, { id });
 
-    if (result.records.length === 0) {
+    if (regelSettResult.records.length === 0) {
       return NextResponse.json({ error: 'Regelsett ikke funnet' }, { status: 404 });
     }
 
-    const regelsett = result.records[0].get('r').properties;
+    // Så hent OpptaksVeier separat
+    const opptaksVeierResult = await session.run(
+      `
+      MATCH (r:Regelsett {id: $id})-[:HAR_OPPTAKSVEI]->(ov:OpptaksVei)
+      OPTIONAL MATCH (ov)-[:BASERT_PÅ]->(g:Grunnlag)
+      OPTIONAL MATCH (ov)-[:GIR_TILGANG_TIL]->(kvote:KvoteType)
+      OPTIONAL MATCH (ov)-[:BRUKER_RANGERING]->(r_type:RangeringType)
+      WITH ov, g, kvote, r_type
+      OPTIONAL MATCH (ov)-[:KREVER]->(k:Kravelement)
+      RETURN ov, g.navn as grunnlag, kvote.navn as kvote, r_type.navn as rangering,
+             collect(DISTINCT k.navn) as krav
+      ORDER BY ov.navn
+      `,
+      { id }
+    );
+
+    const regelSettData = regelSettResult.records[0].get('r').properties;
+
+    // Bygg OpptaksVeier fra separat query
+    const opptaksVeier = opptaksVeierResult.records.map((record) => ({
+      id: record.get('ov').properties.id,
+      navn: record.get('ov').properties.navn,
+      beskrivelse: record.get('ov').properties.beskrivelse,
+      aktiv: record.get('ov').properties.aktiv,
+      grunnlag: record.get('grunnlag'),
+      kvote: record.get('kvote'),
+      rangering: record.get('rangering'),
+      krav: record.get('krav').filter((k: string) => k !== null),
+    }));
+
+    const regelsett = {
+      ...regelSettData,
+      opptaksVeier,
+    };
 
     return NextResponse.json(regelsett);
   } catch (error) {
@@ -86,13 +114,12 @@ export async function DELETE(
   const session = getSession();
 
   try {
-    // Sjekk om regelsettet har tilknyttede implementeringer
+    // Sjekk om regelsettet har tilknyttede OpptaksVeier
     const checkResult = await session.run(
       `
       MATCH (r:Regelsett {id: $id})
-      OPTIONAL MATCH (r)-[:INNEHOLDER]->(impl)
-      WHERE impl:GrunnlagImplementering OR impl:KravImplementering OR impl:KvoteImplementering OR impl:RangeringImplementering
-      RETURN r, count(impl) as antallImplementeringer
+      OPTIONAL MATCH (r)-[:HAR_OPPTAKSVEI]->(ov:OpptaksVei)
+      RETURN r, count(ov) as antallOpptaksVeier
     `,
       { id }
     );
@@ -101,11 +128,11 @@ export async function DELETE(
       return NextResponse.json({ error: 'Regelsett ikke funnet' }, { status: 404 });
     }
 
-    const antallImplementeringer = checkResult.records[0].get('antallImplementeringer').toNumber();
+    const antallOpptaksVeier = checkResult.records[0].get('antallOpptaksVeier').toNumber();
 
-    if (antallImplementeringer > 0) {
+    if (antallOpptaksVeier > 0) {
       return NextResponse.json(
-        { error: 'Kan ikke slette regelsett som har tilknyttede implementeringer' },
+        { error: 'Kan ikke slette regelsett som har tilknyttede OpptaksVeier' },
         { status: 400 }
       );
     }

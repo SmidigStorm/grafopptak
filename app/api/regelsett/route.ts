@@ -7,11 +7,15 @@ export async function GET() {
   try {
     const result = await session.run(`
       MATCH (r:Regelsett)
-      RETURN r
+      OPTIONAL MATCH (r)-[:HAR_OPPTAKSVEI]->(ov:OpptaksVei)
+      RETURN r, count(ov) as antallOpptaksVeier
       ORDER BY r.opprettet DESC
     `);
 
-    const regelsett = result.records.map((record: any) => record.get('r').properties);
+    const regelsett = result.records.map((record: any) => ({
+      ...record.get('r').properties,
+      antallOpptaksVeier: record.get('antallOpptaksVeier').toNumber(),
+    }));
 
     return NextResponse.json(regelsett);
   } catch (error) {

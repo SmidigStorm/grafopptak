@@ -26,6 +26,24 @@ import { Textarea } from '@/components/ui/textarea';
 import { Plus, Settings, Edit, Eye } from 'lucide-react';
 import Link from 'next/link';
 
+// Helper for formatting Neo4j dates
+function formatNeo4jDate(dateObj: any): string {
+  if (!dateObj) return '-';
+
+  if (typeof dateObj === 'object' && dateObj.year) {
+    const year = dateObj.year.low || dateObj.year;
+    const month = dateObj.month.low || dateObj.month;
+    const day = dateObj.day.low || dateObj.day;
+    return `${day.toString().padStart(2, '0')}.${month.toString().padStart(2, '0')}.${year}`;
+  }
+
+  try {
+    return new Date(dateObj).toLocaleDateString('nb-NO');
+  } catch {
+    return '-';
+  }
+}
+
 interface Regelsett {
   id: string;
   navn: string;
@@ -35,6 +53,9 @@ interface Regelsett {
   beskrivelse?: string;
   aktiv: boolean;
   opprettet: string;
+  erMal?: boolean;
+  malType?: string;
+  antallOpptaksVeier?: number;
 }
 
 export default function RegelsettPage() {
@@ -193,6 +214,7 @@ export default function RegelsettPage() {
                   <TableHead>Navn</TableHead>
                   <TableHead>Versjon</TableHead>
                   <TableHead>Type</TableHead>
+                  <TableHead>OpptaksVeier</TableHead>
                   <TableHead>Gyldig fra</TableHead>
                   <TableHead>Beskrivelse</TableHead>
                   <TableHead>Status</TableHead>
@@ -207,7 +229,7 @@ export default function RegelsettPage() {
                     <TableCell className="text-sm">
                       {item.erMal ? (
                         <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                          📋 Mal: {item.malType}
+                          📋 Mal: {item.malType || 'Ukjent'}
                         </span>
                       ) : (
                         <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
@@ -216,8 +238,11 @@ export default function RegelsettPage() {
                       )}
                     </TableCell>
                     <TableCell className="text-sm">
-                      {new Date(item.gyldigFra).toLocaleDateString('nb-NO')}
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                        🛣️ {item.antallOpptaksVeier || 0}
+                      </span>
                     </TableCell>
+                    <TableCell className="text-sm">{formatNeo4jDate(item.gyldigFra)}</TableCell>
                     <TableCell className="max-w-xs truncate">{item.beskrivelse || '-'}</TableCell>
                     <TableCell>
                       <span
