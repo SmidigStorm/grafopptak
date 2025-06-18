@@ -1,4 +1,5 @@
 import { getSession } from '../lib/neo4j';
+import { seedKarakterer } from './seed-karakterer';
 
 async function seedAll() {
   const session = getSession();
@@ -16,6 +17,7 @@ async function seedAll() {
     await session.run(`MATCH (n:Grunnlag) DETACH DELETE n`);
     await session.run(`MATCH (n:KvoteType) DETACH DELETE n`);
     await session.run(`MATCH (n:RangeringType) DETACH DELETE n`);
+    await session.run(`MATCH (n:RegelsettMal) DETACH DELETE n`);
     await session.run(`MATCH (n:Institusjon) DETACH DELETE n`);
     await session.run(`MATCH (n:Utdanningstilbud) DETACH DELETE n`);
     await session.run(`MATCH (n:Person) DETACH DELETE n`);
@@ -457,6 +459,127 @@ async function seedAll() {
     `);
     console.log('✅ Opprettet rangeringstyper');
 
+    // ========== REGELSETT-MALER ==========
+    console.log('📋 Oppretter regelsett-maler...');
+
+    // Opprett RegelsettMal for Ingeniørutdanning
+    await session.run(`
+      CREATE (ingeniorMal:RegelsettMal {
+        id: randomUUID(),
+        navn: 'Ingeniørutdanning',
+        beskrivelse: 'Standard regelsettmal for ingeniørutdanninger med strengere realfagskrav',
+        versjon: '1.0',
+        opprettet: datetime(),
+        aktiv: true
+      })
+    `);
+
+    // Koble ingeniørutdanning til standarder og opprett tre-struktur
+    await session.run(`
+      MATCH (ingeniorMal:RegelsettMal {navn: 'Ingeniørutdanning'})
+      MATCH (gsk:Kravelement {type: 'gsk'})
+      MATCH (matR1:Kravelement {type: 'matematikk-r1'})
+      MATCH (matR2:Kravelement {type: 'matematikk-r2'})
+      
+      MATCH (grunnlagVgs:Grunnlag {type: 'vitnemaal-vgs'})
+      MATCH (grunnlagFagbrev:Grunnlag {type: 'fagbrev'})
+      MATCH (grunnlagFagskole:Grunnlag {type: 'fagskole'})
+      
+      MATCH (ordinaer:KvoteType {type: 'ordinaer'})
+      MATCH (forstegangsvitnemaal:KvoteType {type: 'forstegangsvitnemaal'})
+      
+      MATCH (karaktersnitt:RangeringType {type: 'karaktersnitt-realfag'})
+      MATCH (fagbrevRangering:RangeringType {type: 'fagbrev-realfag'})
+
+      // Koble til regelsettmal
+      CREATE (ingeniorMal)-[:INNEHOLDER]->(gsk)
+      CREATE (ingeniorMal)-[:INNEHOLDER]->(matR1)
+      CREATE (ingeniorMal)-[:INNEHOLDER]->(matR2)
+      
+      CREATE (ingeniorMal)-[:INNEHOLDER]->(grunnlagVgs)
+      CREATE (ingeniorMal)-[:INNEHOLDER]->(grunnlagFagbrev)
+      CREATE (ingeniorMal)-[:INNEHOLDER]->(grunnlagFagskole)
+      
+      CREATE (ingeniorMal)-[:INNEHOLDER]->(ordinaer)
+      CREATE (ingeniorMal)-[:INNEHOLDER]->(forstegangsvitnemaal)
+      
+      CREATE (ingeniorMal)-[:INNEHOLDER]->(karaktersnitt)
+      CREATE (ingeniorMal)-[:INNEHOLDER]->(fagbrevRangering)
+
+      // Opprett tre-struktur: Videregående vei
+      CREATE (grunnlagVgs)-[:KREVER]->(gsk)
+      CREATE (grunnlagVgs)-[:KREVER]->(matR1)
+      CREATE (grunnlagVgs)-[:KREVER]->(matR2)
+      CREATE (grunnlagVgs)-[:GIR_TILGANG_TIL]->(ordinaer)
+      CREATE (grunnlagVgs)-[:GIR_TILGANG_TIL]->(forstegangsvitnemaal)
+      CREATE (grunnlagVgs)-[:BRUKER_RANGERING]->(karaktersnitt)
+
+      // Opprett tre-struktur: Fagbrev vei  
+      CREATE (grunnlagFagbrev)-[:KREVER]->(matR1)
+      CREATE (grunnlagFagbrev)-[:GIR_TILGANG_TIL]->(ordinaer)
+      CREATE (grunnlagFagbrev)-[:BRUKER_RANGERING]->(fagbrevRangering)
+
+      // Opprett tre-struktur: Fagskole vei
+      CREATE (grunnlagFagskole)-[:KREVER]->(matR1)  
+      CREATE (grunnlagFagskole)-[:GIR_TILGANG_TIL]->(ordinaer)
+      CREATE (grunnlagFagskole)-[:BRUKER_RANGERING]->(karaktersnitt)
+    `);
+
+    // Opprett RegelsettMal for Lærerutdanning
+    await session.run(`
+      CREATE (laererMal:RegelsettMal {
+        id: randomUUID(),
+        navn: 'Lærerutdanning',
+        beskrivelse: 'Standard regelsettmal for lærerutdanninger med karakterkrav',
+        versjon: '1.0',
+        opprettet: datetime(),
+        aktiv: true
+      })
+    `);
+
+    // Koble lærerutdanning til standarder og opprett tre-struktur
+    await session.run(`
+      MATCH (laererMal:RegelsettMal {navn: 'Lærerutdanning'})
+      MATCH (gsk:Kravelement {type: 'gsk'})
+      MATCH (norskSpraak:Kravelement {type: 'norsk-spraak'})
+      
+      MATCH (grunnlagVgs:Grunnlag {type: 'vitnemaal-vgs'})
+      MATCH (grunnlagRealkompetanse:Grunnlag {type: 'realkompetanse'})
+      
+      MATCH (ordinaer:KvoteType {type: 'ordinaer'})
+      MATCH (forstegangsvitnemaal:KvoteType {type: 'forstegangsvitnemaal'})
+      
+      MATCH (karaktersnitt:RangeringType {type: 'karaktersnitt-realfag'})
+      MATCH (arbeidserfaring:RangeringType {type: 'erfaring-fagkompetanse'})
+
+      // Koble til regelsettmal
+      CREATE (laererMal)-[:INNEHOLDER]->(gsk)
+      CREATE (laererMal)-[:INNEHOLDER]->(norskSpraak)
+      
+      CREATE (laererMal)-[:INNEHOLDER]->(grunnlagVgs)
+      CREATE (laererMal)-[:INNEHOLDER]->(grunnlagRealkompetanse)
+      
+      CREATE (laererMal)-[:INNEHOLDER]->(ordinaer)
+      CREATE (laererMal)-[:INNEHOLDER]->(forstegangsvitnemaal)
+      
+      CREATE (laererMal)-[:INNEHOLDER]->(karaktersnitt)
+      CREATE (laererMal)-[:INNEHOLDER]->(arbeidserfaring)
+
+      // Opprett tre-struktur: Videregående vei
+      CREATE (grunnlagVgs)-[:KREVER]->(gsk)
+      CREATE (grunnlagVgs)-[:KREVER]->(norskSpraak)
+      CREATE (grunnlagVgs)-[:GIR_TILGANG_TIL]->(ordinaer)
+      CREATE (grunnlagVgs)-[:GIR_TILGANG_TIL]->(forstegangsvitnemaal)
+      CREATE (grunnlagVgs)-[:BRUKER_RANGERING]->(karaktersnitt)
+
+      // Opprett tre-struktur: Realkompetanse vei
+      CREATE (grunnlagRealkompetanse)-[:KREVER]->(norskSpraak)
+      CREATE (grunnlagRealkompetanse)-[:GIR_TILGANG_TIL]->(ordinaer)
+      CREATE (grunnlagRealkompetanse)-[:BRUKER_RANGERING]->(arbeidserfaring)
+    `);
+
+    console.log('✅ Opprettet regelsett-maler');
+
     // ========== INSTITUSJONER ==========
     console.log('🏢 Oppretter institusjoner...');
 
@@ -694,6 +817,31 @@ async function seedAll() {
     console.log(`     Kvotetyper: ${kvotetypeCount.records[0].get('antall').toNumber()}`);
     console.log(`     Rangeringstyper: ${rangeringstypeCount.records[0].get('antall').toNumber()}`);
 
+    // Regelsett-maler
+    const regelsettMalerSummary = await session.run(`
+      MATCH (rm:RegelsettMal)
+      OPTIONAL MATCH (rm)-[:INNEHOLDER]->(ke:Kravelement)
+      OPTIONAL MATCH (rm)-[:INNEHOLDER]->(g:Grunnlag)
+      OPTIONAL MATCH (rm)-[:INNEHOLDER]->(kt:KvoteType)
+      OPTIONAL MATCH (rm)-[:INNEHOLDER]->(rt:RangeringType)
+      
+      RETURN rm.navn as regelsettMal,
+             count(DISTINCT ke) as antallKravelementer,
+             count(DISTINCT g) as antallGrunnlag,
+             count(DISTINCT kt) as antallKvoteTyper,
+             count(DISTINCT rt) as antallRangeringTyper
+      ORDER BY rm.navn
+    `);
+
+    console.log('\n   📋 Regelsett-maler:');
+    regelsettMalerSummary.records.forEach((record) => {
+      console.log(`     ${record.get('regelsettMal')}:`);
+      console.log(`       Kravelementer: ${record.get('antallKravelementer').toNumber()}`);
+      console.log(`       Grunnlag: ${record.get('antallGrunnlag').toNumber()}`);
+      console.log(`       Kvotetyper: ${record.get('antallKvoteTyper').toNumber()}`);
+      console.log(`       Rangeringstyper: ${record.get('antallRangeringTyper').toNumber()}`);
+    });
+
     // Nye entiteter
     const institusjonerCount = await session.run('MATCH (i:Institusjon) RETURN count(i) as antall');
     const utdanningstilbudCount = await session.run(
@@ -709,6 +857,12 @@ async function seedAll() {
     console.log(`     Søkere: ${sokereCount.records[0].get('antall').toNumber()}`);
 
     console.log('\n🎉 All seeding fullført!');
+
+    // Seed karakterer hvis kalt direkte
+    if (require.main === module) {
+      console.log('\n🎯 Starter karakterseeding...');
+      await seedKarakterer();
+    }
   } catch (error) {
     console.error('❌ Feil under seeding:', error);
     throw error;

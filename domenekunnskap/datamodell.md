@@ -127,11 +127,14 @@ CREATE CONSTRAINT person_epost FOR (p:Person) REQUIRE p.epost IS UNIQUE;
 **Properties:**
 
 - `id` (string, required, unique): Unik identifikator (f.eks. UUID)
-- `type` (string, required): Type dokument ("vitnemaal", "fagbrev", "karakterutskrift", "spraaktest", "militaerattest", "annet")
+- `type` (string, required): Type dokument
+  - Primærtyper med karakterer: "vitnemaal", "fagbrev", "karakterutskrift"
+  - Andre typer: "spraaktest", "militaerattest", "politiattest", "annet"
 - `navn` (string, required): Beskrivende navn (f.eks. "Vitnemål videregående skole")
 - `utstedt` (date): Dato dokumentet ble utstedt
-- `utsteder` (string): Hvem som utstedte dokumentet (f.eks. "Oslo katedralskole", "Folkeuniversitetet")
-- `gyldigTil` (date): Utløpsdato (hvis relevant, f.eks. språktester)
+- `utsteder` (string): Hvem som utstedte dokumentet (f.eks. "Oslo katedralskole", "NTNU", "Fagopplæring i Viken")
+- `utdanningsnivaa` (string): Nivå for karakterdokumenter ("videregående", "høyere utdanning", "fagopplæring")
+- `gyldigTil` (date): Utløpsdato (hvis relevant, f.eks. språktester, politiattest)
 - `opprettet` (datetime): Når dokumentet ble registrert
 - `aktiv` (boolean): Om dokumentet er aktivt
 
@@ -529,16 +532,45 @@ CREATE (vitnemal:Dokumentasjon {
   type: "vitnemaal"
 });
 
-CREATE (politiattest:Dokumentasjon {
-  id: "ole-politiattest",
-  navn: "Politiattest",
-  type: "politiattest",
-  utstedt: date("2025-06-01")
+CREATE (karakterutskrift:Dokumentasjon {
+  id: "ole-karakterutskrift-ntnu",
+  navn: "Karakterutskrift NTNU",
+  type: "karakterutskrift"
 });
 
-// Ole har S1 med karakter 5 og S2 med karakter 4
-CREATE (vitnemal)-[:INNEHOLDER {karakter: "5"}]->(s1);
-CREATE (vitnemal)-[:INNEHOLDER {karakter: "4"}]->(s2);
+CREATE (fagbrev:Dokumentasjon {
+  id: "ole-fagbrev-elektriker",
+  navn: "Fagbrev elektriker",
+  type: "fagbrev"
+});
+
+// Ole har S1 med karakter 5 og S2 med karakter 4 fra ordinær undervisning
+CREATE (vitnemal)-[:INNEHOLDER {
+  karakter: "5",
+  karaktersystem: "1-6",
+  dato: date("2023-06-15")
+}]->(s1);
+
+CREATE (vitnemal)-[:INNEHOLDER {
+  karakter: "4",
+  karaktersystem: "1-6",
+  dato: date("2023-06-15")
+}]->(s2);
+
+// Ole tok S2 på nytt som privatist og forbedret karakteren
+CREATE (vitnemal)-[:INNEHOLDER {
+  karakter: "5",
+  karaktersystem: "1-6",
+  dato: date("2024-01-20"),
+  kommentar: "privatist forbedring"
+}]->(s2);
+
+// Fagbrev med bestått/ikke bestått
+CREATE (fagbrev)-[:INNEHOLDER {
+  karakter: "bestått",
+  karaktersystem: "bestått/ikke bestått",
+  dato: date("2022-11-30")
+}]->(:Fagkode {kode: "ELE2001"});
 ```
 
 ## 🌳 Regelsett som tre-struktur
@@ -596,6 +628,54 @@ Et regelsett bygges opp som en tre-struktur hvor:
 
 ```
 GrunnlagImplementering -[:KREVER]-> KravImplementering -[:IMPLEMENTERER]-> Kravelement
+```
+
+## 🎯 Karakterhåndtering og historikk
+
+### Karaktersystemer
+
+Systemet støtter to karaktersystemer:
+
+1. **Tallkarakterer (1-6)**: Brukes for videregående skole og høyere utdanning
+2. **Bestått/Ikke bestått**: Brukes primært for fagbrev og enkelte høyskolefag
+
+### Historikk og forbedringsforsøk
+
+Systemet støtter full historikk for karakterer:
+
+- Samme person kan ha flere karakterer for samme fagkode
+- Dato brukes for å skille mellom ulike forsøk
+- Ved opptak brukes normalt beste karakter (nyeste dato ved lik karakter)
+
+### Query-eksempler for karakterer
+
+**Finn beste karakter for en fagkode:**
+
+```cypher
+MATCH (p:Person)-[:EIER]->(d:Dokumentasjon)-[r:INNEHOLDER]->(fk:Fagkode {kode: "MAT1002-S2"})
+WHERE r.karaktersystem = "1-6"
+RETURN p, d, fk, r.karakter, r.dato
+ORDER BY toInteger(r.karakter) DESC, r.dato DESC
+LIMIT 1;
+```
+
+**Finn all karakterhistorikk for en person:**
+
+```cypher
+MATCH (p:Person {id: $personId})-[:EIER]->(d:Dokumentasjon)-[r:INNEHOLDER]->(fk:Fagkode)
+RETURN d.navn, d.type, fk.kode, fk.navn, r.karakter, r.karaktersystem, r.dato, r.kommentar
+ORDER BY r.dato DESC, fk.kode;
+```
+
+**Sjekk om person oppfyller karakterkrav:**
+
+```cypher
+// Sjekk om person har matematikk R1 med minst karakter 4
+MATCH (p:Person {id: $personId})-[:EIER]->(d:Dokumentasjon)-[r:INNEHOLDER]->(fk:Fagkode)
+WHERE fk.kode IN ["REA3022", "MAT1001-S1", "MAT1002-S2"] // R1 eller S1+S2
+  AND r.karaktersystem = "1-6"
+  AND toInteger(r.karakter) >= 4
+RETURN count(DISTINCT fk) > 0 as oppfyllerKrav;
 ```
 
 ## 📊 Query-eksempler
@@ -784,9 +864,19 @@ RETURN u, ki.spesifikkeKrav;
 
 **Properties:**
 
-- `karakter` (string): Karakter oppnådd i faget (1-6, eller bestått/ikke bestått)
+- `karakter` (string, required): Karakter oppnådd i faget
+  - For tallkarakterer: "1", "2", "3", "4", "5", "6"
+  - For bestått/ikke bestått: "bestått", "ikke bestått"
+- `karaktersystem` (string, required): Type karaktersystem ("1-6", "bestått/ikke bestått")
+- `dato` (date, required): Når karakteren ble oppnådd
+- `kommentar` (string): Tilleggskommentar (f.eks. "privatist", "forbedring")
 
-**Beskrivelse:** En dokumentasjon inneholder fagkoder med oppnådde karakterer
+**Beskrivelse:** En dokumentasjon inneholder fagkoder med oppnådde karakterer. Støtter historikk ved at samme dokumentasjon kan ha flere relasjoner til samme fagkode med ulike datoer.
+
+**Constraints:**
+
+- Kombinasjonen av dokumentasjon, fagkode og dato må være unik
+- Karakter må være gyldig for angitt karaktersystem
 
 ### Fagkode KVALIFISERER_FOR Faggruppe
 

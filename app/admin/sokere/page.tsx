@@ -11,7 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Plus, Edit, Trash2, Users } from 'lucide-react';
+import { Plus, Edit, Trash2, Users, FileText } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -35,6 +35,8 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
+import DokumentasjonModal from '@/components/dokumentasjon-modal';
+import { formatDate } from '@/lib/utils';
 
 interface Soker {
   id: string;
@@ -53,52 +55,6 @@ interface Soker {
   antallSøknader: number;
 }
 
-const formatDate = (dateValue: any): string => {
-  if (!dateValue) return '';
-
-  let year, month, day;
-
-  // Håndter Neo4j date object med low/high struktur
-  if (
-    dateValue &&
-    typeof dateValue === 'object' &&
-    dateValue.year &&
-    dateValue.year.low !== undefined
-  ) {
-    year = dateValue.year.low;
-    month = dateValue.month.low;
-    day = dateValue.day.low;
-  }
-  // Håndter Neo4j date object (enkel struktur)
-  else if (
-    dateValue &&
-    typeof dateValue === 'object' &&
-    dateValue.year &&
-    typeof dateValue.year === 'number'
-  ) {
-    year = dateValue.year;
-    month = dateValue.month;
-    day = dateValue.day;
-  }
-  // Håndter ISO string eller Date object
-  else {
-    const date = typeof dateValue === 'string' ? new Date(dateValue) : dateValue;
-    if (date instanceof Date && !isNaN(date.getTime())) {
-      year = date.getFullYear();
-      month = date.getMonth() + 1;
-      day = date.getDate();
-    } else {
-      return '';
-    }
-  }
-
-  // Formater med ledende nuller (norsk standard)
-  const paddedDay = day.toString().padStart(2, '0');
-  const paddedMonth = month.toString().padStart(2, '0');
-
-  return `${paddedDay}.${paddedMonth}.${year}`;
-};
-
 export default function SokerePage() {
   const [sokere, setSokere] = useState<Soker[]>([]);
   const [loading, setLoading] = useState(true);
@@ -108,6 +64,10 @@ export default function SokerePage() {
   const [deleteConfirm, setDeleteConfirm] = useState<{
     id: string;
     navn: string;
+  } | null>(null);
+  const [showDokumentasjon, setShowDokumentasjon] = useState<{
+    sokerId: string;
+    sokerNavn: string;
   } | null>(null);
   const [nySoker, setNySoker] = useState({
     fornavn: '',
@@ -456,6 +416,19 @@ export default function SokerePage() {
                         <Button
                           variant="outline"
                           size="sm"
+                          title="Vis dokumentasjon"
+                          onClick={() =>
+                            setShowDokumentasjon({
+                              sokerId: soker.id,
+                              sokerNavn: `${soker.fornavn} ${soker.etternavn}`,
+                            })
+                          }
+                        >
+                          <FileText className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
                           title="Rediger"
                           onClick={() => {
                             setSelectedSoker(soker);
@@ -617,6 +590,16 @@ export default function SokerePage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Dokumentasjon Modal */}
+      {showDokumentasjon && (
+        <DokumentasjonModal
+          isOpen={!!showDokumentasjon}
+          onClose={() => setShowDokumentasjon(null)}
+          sokerId={showDokumentasjon.sokerId}
+          sokerNavn={showDokumentasjon.sokerNavn}
+        />
+      )}
     </div>
   );
 }

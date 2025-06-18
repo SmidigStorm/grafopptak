@@ -24,6 +24,7 @@ import {
   Hammer,
 } from 'lucide-react';
 import Link from 'next/link';
+import { ThemeToggle } from '@/components/theme-toggle';
 
 const menuItems = [
   {
@@ -45,6 +46,11 @@ const menuItems = [
     title: 'Regelsett',
     icon: FileText,
     href: '/admin/regelsett',
+  },
+  {
+    title: 'Regelsett-maler',
+    icon: FileText,
+    href: '/admin/regelsett-maler',
   },
   {
     title: 'Regelbygging',
@@ -102,6 +108,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <div className="flex h-14 items-center px-4">
               <SidebarTrigger />
               <div className="ml-auto flex items-center space-x-4">
+                <ThemeToggle />
                 <span className="text-sm text-muted-foreground">Administrator</span>
               </div>
             </div>
