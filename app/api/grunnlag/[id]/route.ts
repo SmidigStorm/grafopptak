@@ -1,20 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Neo4jDatabase } from '@/lib/neo4j';
+import { getSession } from '@/lib/neo4j';
 
-const db = new Neo4jDatabase({
-  uri: process.env.NEO4J_URI || 'bolt://localhost:7687',
-  user: process.env.NEO4J_USER || 'neo4j',
-  password: process.env.NEO4J_PASSWORD || 'grafopptak123',
-});
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const session = getSession();
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
   try {
     const { id } = await params;
-    
-    const result = await db.runQuery(
+
+    const result = await session.run(
       `
       MATCH (g:Grunnlag {id: $id})
       RETURN g
@@ -32,15 +25,16 @@ export async function GET(
   } catch (error) {
     console.error('Feil ved henting av grunnlag:', error);
     return NextResponse.json({ error: 'Feil ved henting av grunnlag' }, { status: 500 });
+  } finally {
+    await session.close();
   }
 }
 
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const session = getSession();
+
   try {
-    const { id } = await params;
     const body = await request.json();
     const { navn, type, beskrivelse, aktiv } = body;
 
@@ -48,7 +42,7 @@ export async function PUT(
       return NextResponse.json({ error: 'Navn og type er påkrevd' }, { status: 400 });
     }
 
-    const result = await db.runQuery(
+    const result = await session.run(
       `
       MATCH (g:Grunnlag {id: $id})
       SET g.navn = $navn,
@@ -71,6 +65,8 @@ export async function PUT(
   } catch (error) {
     console.error('Feil ved oppdatering av grunnlag:', error);
     return NextResponse.json({ error: 'Feil ved oppdatering av grunnlag' }, { status: 500 });
+  } finally {
+    await session.close();
   }
 }
 
@@ -78,11 +74,12 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  try {
-    const { id } = await params;
+  const { id } = await params;
+  const session = getSession();
 
+  try {
     // Sjekk om grunnlaget er i bruk
-    const usageCheck = await db.runQuery(
+    const usageCheck = await session.run(
       `
       MATCH (g:Grunnlag {id: $id})
       OPTIONAL MATCH (g)-[r]-()
@@ -100,7 +97,7 @@ export async function DELETE(
       );
     }
 
-    const result = await db.runQuery(
+    const result = await session.run(
       `
       MATCH (g:Grunnlag {id: $id})
       DELETE g
@@ -119,5 +116,7 @@ export async function DELETE(
   } catch (error) {
     console.error('Feil ved sletting av grunnlag:', error);
     return NextResponse.json({ error: 'Feil ved sletting av grunnlag' }, { status: 500 });
+  } finally {
+    await session.close();
   }
 }

@@ -1,3 +1,6 @@
+'use client';
+
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
@@ -8,9 +11,91 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Plus, Edit, Eye } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Plus, Settings, Edit, Eye } from 'lucide-react';
+import Link from 'next/link';
+
+interface Regelsett {
+  id: string;
+  navn: string;
+  versjon: string;
+  gyldigFra: string;
+  gyldigTil?: string;
+  beskrivelse?: string;
+  aktiv: boolean;
+  opprettet: string;
+}
 
 export default function RegelsettPage() {
+  const [regelsett, setRegelsett] = useState<Regelsett[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showNyttRegelsett, setShowNyttRegelsett] = useState(false);
+  const [nyttRegelsett, setNyttRegelsett] = useState({
+    navn: '',
+    versjon: '1.0',
+    beskrivelse: '',
+  });
+
+  const fetchRegelsett = async () => {
+    try {
+      const response = await fetch('/api/regelsett');
+      const data = await response.json();
+
+      // Sjekk om data er et array, hvis ikke sett tom array
+      if (Array.isArray(data)) {
+        setRegelsett(data);
+      } else {
+        console.error('Uventet respons fra API:', data);
+        setRegelsett([]);
+      }
+    } catch (error) {
+      console.error('Feil ved henting av regelsett:', error);
+      setRegelsett([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchRegelsett();
+  }, []);
+
+  const opprettRegelsett = async () => {
+    try {
+      const response = await fetch('/api/regelsett', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...nyttRegelsett,
+          gyldigFra: new Date().toISOString().split('T')[0],
+        }),
+      });
+
+      if (response.ok) {
+        setShowNyttRegelsett(false);
+        setNyttRegelsett({ navn: '', versjon: '1.0', beskrivelse: '' });
+        fetchRegelsett();
+      } else {
+        console.error('Feil ved opprettelse av regelsett');
+      }
+    } catch (error) {
+      console.error('Feil ved opprettelse av regelsett:', error);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -18,74 +103,140 @@ export default function RegelsettPage() {
           <h1 className="text-3xl font-bold tracking-tight">Regelsett</h1>
           <p className="text-muted-foreground">Administrer regelsett for utdanningstilbud</p>
         </div>
-        <Button>
-          <Plus className="h-4 w-4 mr-2" />
-          Nytt regelsett
-        </Button>
+        <Dialog open={showNyttRegelsett} onOpenChange={setShowNyttRegelsett}>
+          <DialogTrigger asChild>
+            <Button>
+              <Plus className="h-4 w-4 mr-2" />
+              Nytt regelsett
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Opprett nytt regelsett</DialogTitle>
+              <DialogDescription>
+                Opprett et nytt regelsett for et utdanningstilbud.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="regelsett-navn" className="text-right">
+                  Navn
+                </Label>
+                <Input
+                  id="regelsett-navn"
+                  value={nyttRegelsett.navn}
+                  onChange={(e) => setNyttRegelsett({ ...nyttRegelsett, navn: e.target.value })}
+                  className="col-span-3"
+                  placeholder="f.eks. Regelsett for Bachelor i sykepleie"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="regelsett-versjon" className="text-right">
+                  Versjon
+                </Label>
+                <Input
+                  id="regelsett-versjon"
+                  value={nyttRegelsett.versjon}
+                  onChange={(e) => setNyttRegelsett({ ...nyttRegelsett, versjon: e.target.value })}
+                  className="col-span-3"
+                  placeholder="f.eks. 1.0"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="regelsett-beskrivelse" className="text-right">
+                  Beskrivelse
+                </Label>
+                <Textarea
+                  id="regelsett-beskrivelse"
+                  value={nyttRegelsett.beskrivelse}
+                  onChange={(e) =>
+                    setNyttRegelsett({ ...nyttRegelsett, beskrivelse: e.target.value })
+                  }
+                  className="col-span-3"
+                  placeholder="Valgfri beskrivelse"
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button
+                type="submit"
+                onClick={opprettRegelsett}
+                disabled={!nyttRegelsett.navn || !nyttRegelsett.versjon}
+              >
+                Opprett regelsett
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Eksisterende regelsett</CardTitle>
-          <CardDescription>Oversikt over alle regelsett i systemet</CardDescription>
+          <CardTitle>Alle regelsett</CardTitle>
+          <CardDescription>Oversikt over alle opprettede regelsett i systemet</CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Navn</TableHead>
-                <TableHead>Utdanningstilbud</TableHead>
-                <TableHead>Antall grunnlag</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Sist endret</TableHead>
-                <TableHead>Handlinger</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              <TableRow>
-                <TableCell className="font-medium">Sykepleie NTNU H25</TableCell>
-                <TableCell>Bachelor i sykepleie - NTNU</TableCell>
-                <TableCell>4</TableCell>
-                <TableCell>
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                    Aktiv
-                  </span>
-                </TableCell>
-                <TableCell>2 timer siden</TableCell>
-                <TableCell>
-                  <div className="flex space-x-2">
-                    <Button variant="outline" size="sm">
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                    <Button variant="outline" size="sm">
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell className="font-medium">Informatikk UiO H25</TableCell>
-                <TableCell>Master i informatikk - UiO</TableCell>
-                <TableCell>3</TableCell>
-                <TableCell>
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                    Utkast
-                  </span>
-                </TableCell>
-                <TableCell>1 dag siden</TableCell>
-                <TableCell>
-                  <div className="flex space-x-2">
-                    <Button variant="outline" size="sm">
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                    <Button variant="outline" size="sm">
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
+          {loading ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <p>Laster regelsett...</p>
+            </div>
+          ) : regelsett.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <Settings className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
+              <p>Ingen regelsett funnet</p>
+              <p className="text-sm">Opprett ditt første regelsett for å komme i gang</p>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Navn</TableHead>
+                  <TableHead>Versjon</TableHead>
+                  <TableHead>Gyldig fra</TableHead>
+                  <TableHead>Beskrivelse</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Handlinger</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {regelsett.map((item) => (
+                  <TableRow key={item.id}>
+                    <TableCell className="font-medium">{item.navn}</TableCell>
+                    <TableCell className="font-mono text-sm">{item.versjon}</TableCell>
+                    <TableCell className="text-sm">
+                      {new Date(item.gyldigFra).toLocaleDateString('nb-NO')}
+                    </TableCell>
+                    <TableCell className="max-w-xs truncate">{item.beskrivelse || '-'}</TableCell>
+                    <TableCell>
+                      <span
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          item.aktiv
+                            ? 'bg-green-100 text-green-800'
+                            : 'bg-yellow-100 text-yellow-800'
+                        }`}
+                      >
+                        {item.aktiv ? 'Aktiv' : 'Inaktiv'}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex space-x-2">
+                        <Link href={`/admin/regelsett/${item.id}`}>
+                          <Button variant="outline" size="sm" title="Vis regelsett">
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        </Link>
+                        <Link href={`/admin/regelsett/${item.id}/edit`}>
+                          <Button variant="outline" size="sm" title="Rediger regelsett">
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                        </Link>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
     </div>

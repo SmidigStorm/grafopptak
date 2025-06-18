@@ -1,21 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Neo4jDatabase } from '@/lib/neo4j';
-
-const db = new Neo4jDatabase({
-  uri: process.env.NEO4J_URI || 'bolt://localhost:7687',
-  user: process.env.NEO4J_USER || 'neo4j',
-  password: process.env.NEO4J_PASSWORD || 'grafopptak123',
-});
+import { getSession } from '@/lib/neo4j';
 
 export async function GET() {
+  const session = getSession();
+
   try {
-    const result = await db.runQuery(
-      `
+    const result = await session.run(`
       MATCH (ke:Kravelement)
       RETURN ke
       ORDER BY ke.navn
-      `
-    );
+    `);
 
     const kravelementer = result.records.map((record: any) => record.get('ke').properties);
 
@@ -23,10 +17,14 @@ export async function GET() {
   } catch (error) {
     console.error('Feil ved henting av kravelementer:', error);
     return NextResponse.json({ error: 'Feil ved henting av kravelementer' }, { status: 500 });
+  } finally {
+    await session.close();
   }
 }
 
 export async function POST(request: NextRequest) {
+  const session = getSession();
+
   try {
     const body = await request.json();
     const { navn, type, beskrivelse } = body;
@@ -35,7 +33,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Navn og type er påkrevd' }, { status: 400 });
     }
 
-    const result = await db.runQuery(
+    const result = await session.run(
       `
       CREATE (ke:Kravelement {
         id: randomUUID(),
@@ -46,7 +44,7 @@ export async function POST(request: NextRequest) {
         opprettet: datetime()
       })
       RETURN ke
-      `,
+    `,
       { navn, type, beskrivelse: beskrivelse || '' }
     );
 
@@ -56,5 +54,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Feil ved opprettelse av kravelement:', error);
     return NextResponse.json({ error: 'Feil ved opprettelse av kravelement' }, { status: 500 });
+  } finally {
+    await session.close();
   }
 }
