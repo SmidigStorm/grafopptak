@@ -44,6 +44,7 @@ interface Fagkode {
   aktiv: boolean;
   gyldigFra: string;
   gyldigTil?: string;
+  faggrupper?: string[];
 }
 
 interface Faggruppe {
@@ -63,6 +64,7 @@ export default function FagkoderPage() {
   const [showNyFaggruppe, setShowNyFaggruppe] = useState(false);
   const [showEditFagkode, setShowEditFagkode] = useState(false);
   const [showEditFaggruppe, setShowEditFaggruppe] = useState(false);
+  const [showLinkFagkode, setShowLinkFagkode] = useState(false);
   const [selectedFagkode, setSelectedFagkode] = useState<Fagkode | null>(null);
   const [selectedFaggruppe, setSelectedFaggruppe] = useState<Faggruppe | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<{
@@ -226,6 +228,45 @@ export default function FagkoderPage() {
       }
     } catch (error) {
       console.error('Feil ved sletting av faggruppe:', error);
+    }
+  };
+
+  const kobleFagkodeTilFaggruppe = async (fagkodeId: string, faggruppeId: string) => {
+    try {
+      const response = await fetch(`/api/faggrupper/${faggruppeId}/fagkoder`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ fagkodeId }),
+      });
+
+      if (response.ok) {
+        fetchData(); // Refresh data
+      } else {
+        console.error('Feil ved kobling av fagkode til faggruppe');
+      }
+    } catch (error) {
+      console.error('Feil ved kobling av fagkode til faggruppe:', error);
+    }
+  };
+
+  const fjernFagkodeFraFaggruppe = async (fagkodeId: string, faggruppeId: string) => {
+    try {
+      const response = await fetch(
+        `/api/faggrupper/${faggruppeId}/fagkoder?fagkodeId=${fagkodeId}`,
+        {
+          method: 'DELETE',
+        }
+      );
+
+      if (response.ok) {
+        fetchData(); // Refresh data
+      } else {
+        console.error('Feil ved fjerning av fagkode fra faggruppe');
+      }
+    } catch (error) {
+      console.error('Feil ved fjerning av fagkode fra faggruppe:', error);
     }
   };
 
@@ -450,6 +491,7 @@ export default function FagkoderPage() {
                 <TableRow>
                   <TableHead>Kode</TableHead>
                   <TableHead>Navn</TableHead>
+                  <TableHead>Faggrupper</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Handlinger</TableHead>
                 </TableRow>
@@ -457,7 +499,7 @@ export default function FagkoderPage() {
               <TableBody>
                 {fagkoder.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
                       Ingen fagkoder funnet
                     </TableCell>
                   </TableRow>
@@ -466,6 +508,22 @@ export default function FagkoderPage() {
                     <TableRow key={fagkode.id}>
                       <TableCell className="font-mono">{fagkode.kode}</TableCell>
                       <TableCell>{fagkode.navn}</TableCell>
+                      <TableCell>
+                        {fagkode.faggrupper && fagkode.faggrupper.length > 0 ? (
+                          <div className="flex flex-wrap gap-1">
+                            {fagkode.faggrupper.map((fg, index) => (
+                              <span
+                                key={index}
+                                className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800"
+                              >
+                                {fg}
+                              </span>
+                            ))}
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground text-sm">Ingen</span>
+                        )}
+                      </TableCell>
                       <TableCell>
                         <span
                           className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
@@ -479,6 +537,17 @@ export default function FagkoderPage() {
                       </TableCell>
                       <TableCell>
                         <div className="flex space-x-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            title="Koble til faggruppe"
+                            onClick={() => {
+                              setSelectedFagkode(fagkode);
+                              setShowLinkFagkode(true);
+                            }}
+                          >
+                            <LinkIcon className="h-4 w-4" />
+                          </Button>
                           <Button
                             variant="outline"
                             size="sm"
@@ -651,6 +720,67 @@ export default function FagkoderPage() {
             <Button type="submit" onClick={oppdaterFaggruppe} disabled={!selectedFaggruppe?.navn}>
               Lagre endringer
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Link Fagkode Dialog */}
+      <Dialog open={showLinkFagkode} onOpenChange={setShowLinkFagkode}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Koble fagkode til faggrupper</DialogTitle>
+            <DialogDescription>
+              Velg hvilke faggrupper fagkoden &quot;{selectedFagkode?.navn}&quot; skal kvalifisere
+              for.
+            </DialogDescription>
+          </DialogHeader>
+          {selectedFagkode && (
+            <div className="grid gap-4 py-4">
+              <div className="max-h-60 overflow-y-auto">
+                {faggrupper.map((faggruppe) => {
+                  const isLinked = selectedFagkode.faggrupper?.includes(faggruppe.navn) || false;
+                  return (
+                    <div
+                      key={faggruppe.id}
+                      className="flex items-center justify-between p-3 border rounded"
+                    >
+                      <div>
+                        <h4 className="font-medium">{faggruppe.navn}</h4>
+                        {faggruppe.beskrivelse && (
+                          <p className="text-sm text-muted-foreground">{faggruppe.beskrivelse}</p>
+                        )}
+                      </div>
+                      <div>
+                        {isLinked ? (
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() =>
+                              fjernFagkodeFraFaggruppe(selectedFagkode.id, faggruppe.id)
+                            }
+                          >
+                            Fjern
+                          </Button>
+                        ) : (
+                          <Button
+                            variant="default"
+                            size="sm"
+                            onClick={() =>
+                              kobleFagkodeTilFaggruppe(selectedFagkode.id, faggruppe.id)
+                            }
+                          >
+                            Koble til
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button onClick={() => setShowLinkFagkode(false)}>Lukk</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
