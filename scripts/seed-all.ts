@@ -592,6 +592,10 @@ async function seedAll() {
         institusjonsnummer: '0150',
         adresse: 'Problemveien 7, 0313 Oslo',
         nettside: 'https://www.uio.no',
+        latitude: 59.9373,
+        longitude: 10.7199,
+        by: 'Oslo',
+        fylke: 'Oslo',
         aktiv: true
       })
       CREATE (ntnu:Institusjon {
@@ -602,6 +606,38 @@ async function seedAll() {
         institusjonsnummer: '0194',
         adresse: 'Høgskoleringen 1, 7491 Trondheim',
         nettside: 'https://www.ntnu.no',
+        latitude: 63.4178,
+        longitude: 10.4018,
+        by: 'Trondheim',
+        fylke: 'Trøndelag',
+        aktiv: true
+      })
+      CREATE (uib:Institusjon {
+        id: randomUUID(),
+        navn: 'Universitetet i Bergen',
+        kortNavn: 'UiB',
+        type: 'Universitet',
+        institusjonsnummer: '0163',
+        adresse: 'Muséplass 1, 5007 Bergen',
+        nettside: 'https://www.uib.no',
+        latitude: 60.3862,
+        longitude: 5.3204,
+        by: 'Bergen',
+        fylke: 'Vestland',
+        aktiv: true
+      })
+      CREATE (uit:Institusjon {
+        id: randomUUID(),
+        navn: 'UiT Norges arktiske universitet',
+        kortNavn: 'UiT',
+        type: 'Universitet',
+        institusjonsnummer: '0174',
+        adresse: 'Hansine Hansens veg 18, 9019 Tromsø',
+        nettside: 'https://www.uit.no',
+        latitude: 69.6489,
+        longitude: 18.9551,
+        by: 'Tromsø',
+        fylke: 'Troms og Finnmark',
         aktiv: true
       })
       CREATE (oslomet:Institusjon {
@@ -612,6 +648,10 @@ async function seedAll() {
         institusjonsnummer: '0202',
         adresse: 'Pilestredet 35, 0166 Oslo',
         nettside: 'https://www.oslomet.no',
+        latitude: 59.9200,
+        longitude: 10.7350,
+        by: 'Oslo',
+        fylke: 'Oslo',
         aktiv: true
       })
       CREATE (kristiania:Institusjon {
@@ -622,16 +662,94 @@ async function seedAll() {
         institusjonsnummer: '1502',
         adresse: 'Prinsensgate 7-9, 0152 Oslo',
         nettside: 'https://www.kristiania.no',
+        latitude: 59.9150,
+        longitude: 10.7500,
+        by: 'Oslo',
+        fylke: 'Oslo',
         aktiv: true
       })
-      CREATE (viken:Institusjon {
+      CREATE (uia:Institusjon {
         id: randomUUID(),
-        navn: 'Viken videregående skole',
-        kortNavn: 'Viken VGS',
-        type: 'Videregående skole',
-        institusjonsnummer: '3001',
-        adresse: 'Skolegata 1, 3000 Drammen',
-        nettside: 'https://viken.no',
+        navn: 'Universitetet i Agder',
+        kortNavn: 'UiA',
+        type: 'Universitet',
+        institusjonsnummer: '0232',
+        adresse: 'Universitetsveien 25, 4630 Kristiansand',
+        nettside: 'https://www.uia.no',
+        latitude: 58.1467,
+        longitude: 7.9956,
+        by: 'Kristiansand',
+        fylke: 'Agder',
+        aktiv: true
+      })
+      CREATE (uis:Institusjon {
+        id: randomUUID(),
+        navn: 'Universitetet i Stavanger',
+        kortNavn: 'UiS',
+        type: 'Universitet',
+        institusjonsnummer: '0215',
+        adresse: 'Kjell Arholms gate 41, 4021 Stavanger',
+        nettside: 'https://www.uis.no',
+        latitude: 58.8700,
+        longitude: 5.6900,
+        by: 'Stavanger',
+        fylke: 'Rogaland',
+        aktiv: true
+      })
+      CREATE (hvl:Institusjon {
+        id: randomUUID(),
+        navn: 'Høgskulen på Vestlandet',
+        kortNavn: 'HVL',
+        type: 'Høgskole',
+        institusjonsnummer: '0217',
+        adresse: 'Inndalsveien 28, 5063 Bergen',
+        nettside: 'https://www.hvl.no',
+        latitude: 60.3700,
+        longitude: 5.3500,
+        by: 'Bergen',
+        fylke: 'Vestland',
+        aktiv: true
+      })
+      CREATE (inn:Institusjon {
+        id: randomUUID(),
+        navn: 'Høgskolen i Innlandet',
+        kortNavn: 'HiNN',
+        type: 'Høgskole',
+        institusjonsnummer: '0283',
+        adresse: 'Terningen Arena, 2418 Elverum',
+        nettside: 'https://www.inn.no',
+        latitude: 60.8811,
+        longitude: 11.5644,
+        by: 'Elverum',
+        fylke: 'Innlandet',
+        aktiv: true
+      })
+      CREATE (himolde:Institusjon {
+        id: randomUUID(),
+        navn: 'Høgskolen i Molde',
+        kortNavn: 'HiMolde',
+        type: 'Høgskole',
+        institusjonsnummer: '0181',
+        adresse: 'Britvegen 2, 6410 Molde',
+        nettside: 'https://www.himolde.no',
+        latitude: 62.7372,
+        longitude: 7.1574,
+        by: 'Molde',
+        fylke: 'Møre og Romsdal',
+        aktiv: true
+      })
+      CREATE (bi:Institusjon {
+        id: randomUUID(),
+        navn: 'BI Norges Handelshøyskole',
+        kortNavn: 'BI',
+        type: 'Privat høgskole',
+        institusjonsnummer: '1541',
+        adresse: 'Nydalsveien 37, 0484 Oslo',
+        nettside: 'https://www.bi.no',
+        latitude: 59.9500,
+        longitude: 10.7700,
+        by: 'Oslo',
+        fylke: 'Oslo',
         aktiv: true
       })
     `);
