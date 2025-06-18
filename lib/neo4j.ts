@@ -23,3 +23,33 @@ export async function closeDriver(): Promise<void> {
     driver = null;
   }
 }
+
+export class Neo4jDatabase {
+  private driver: Driver;
+
+  constructor(config: { uri: string; user: string; password: string }) {
+    this.driver = neo4j.driver(config.uri, neo4j.auth.basic(config.user, config.password));
+  }
+
+  async verifyConnectivity(): Promise<void> {
+    await this.driver.verifyConnectivity();
+  }
+
+  async runQuery(query: string, params: any = {}): Promise<any> {
+    const session = this.driver.session();
+    try {
+      const result = await session.run(query, params);
+      return result;
+    } finally {
+      await session.close();
+    }
+  }
+
+  session(): Session {
+    return this.driver.session();
+  }
+
+  async close(): Promise<void> {
+    await this.driver.close();
+  }
+}

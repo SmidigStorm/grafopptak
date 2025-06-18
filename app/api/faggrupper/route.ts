@@ -66,8 +66,20 @@ export async function POST(request: NextRequest) {
     const faggruppe = result.records[0].get('fg').properties;
 
     return NextResponse.json(faggruppe, { status: 201 });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error creating faggruppe:', error);
+
+    // Check if it's a constraint violation (duplicate navn)
+    if (
+      error.code === 'Neo.ClientError.Schema.ConstraintValidationFailed' &&
+      error.message.includes('navn')
+    ) {
+      return NextResponse.json(
+        { error: 'En faggruppe med dette navnet eksisterer allerede' },
+        { status: 400 }
+      );
+    }
+
     return NextResponse.json({ error: 'Failed to create faggruppe' }, { status: 500 });
   } finally {
     await session.close();

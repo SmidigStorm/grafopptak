@@ -70,8 +70,20 @@ export async function POST(request: NextRequest) {
     const fagkode = result.records[0].get('fk').properties;
 
     return NextResponse.json(fagkode, { status: 201 });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error creating fagkode:', error);
+
+    // Check if it's a constraint violation (duplicate kode)
+    if (
+      error.code === 'Neo.ClientError.Schema.ConstraintValidationFailed' &&
+      error.message.includes('kode')
+    ) {
+      return NextResponse.json(
+        { error: 'En fagkode med denne koden eksisterer allerede' },
+        { status: 400 }
+      );
+    }
+
     return NextResponse.json({ error: 'Failed to create fagkode' }, { status: 500 });
   } finally {
     await session.close();

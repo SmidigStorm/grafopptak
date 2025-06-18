@@ -17,7 +17,12 @@ export class DatabaseAdmin {
       const constraintsResult = await session.run('SHOW CONSTRAINTS');
       for (const record of constraintsResult.records) {
         const constraintName = record.get('name');
-        await session.run(`DROP CONSTRAINT ${constraintName}`);
+        try {
+          await session.run(`DROP CONSTRAINT ${constraintName} IF EXISTS`);
+        } catch (constraintError) {
+          // Ignorer feil hvis constraint ikke finnes
+          console.log(`⚠️ Constraint ${constraintName} kunne ikke slettes (finnes kanskje ikke)`);
+        }
       }
       console.log('✅ Slettet alle constraints');
 
@@ -45,6 +50,9 @@ export class DatabaseAdmin {
       );
       await session.run(
         'CREATE CONSTRAINT faggruppe_id IF NOT EXISTS FOR (fg:Faggruppe) REQUIRE fg.id IS UNIQUE'
+      );
+      await session.run(
+        'CREATE CONSTRAINT faggruppe_navn IF NOT EXISTS FOR (fg:Faggruppe) REQUIRE fg.navn IS UNIQUE'
       );
 
       // Institusjoner og utdanningstilbud
