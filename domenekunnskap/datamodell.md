@@ -16,19 +16,16 @@ graph TD
     Dokumentasjon -->|INNEHOLDER| Fagkode
     Fagkode -->|KVALIFISERER_FOR| Faggruppe
 
-    %% Regelsett-maler og standarder
-    RegelsettMal -->|INNEHOLDER| Grunnlag
-    RegelsettMal -->|INNEHOLDER| Kravelement
-    RegelsettMal -->|INNEHOLDER| KvoteType
-    RegelsettMal -->|INNEHOLDER| RangeringType
+    %% Standard-elementer (brukes av regelsett)
+    Regelsett -->|INNEHOLDER| Grunnlag
+    Regelsett -->|INNEHOLDER| Kravelement
+    Regelsett -->|INNEHOLDER| KvoteType
+    Regelsett -->|INNEHOLDER| RangeringType
 
     %% Kobling mellom krav og oppfyllelse (tre forskjellige måter)
     Kravelement -->|OPPFYLLES_AV| Faggruppe
     Kravelement -->|OPPFYLLES_AV| Dokumentasjon
     Kravelement -->|OPPFYLLES_AV| Fagkode
-
-    %% Utdanningstilbud-spesifikke implementeringer
-    Regelsett -->|BASERES_PÅ| RegelsettMal
     Regelsett -->|INNEHOLDER| GrunnlagImplementering
     Regelsett -->|INNEHOLDER| KravImplementering
     Regelsett -->|INNEHOLDER| KvoteImplementering
@@ -198,6 +195,9 @@ CREATE CONSTRAINT soknad_id FOR (s:Søknad) REQUIRE s.id IS UNIQUE;
 - `id` (string, required, unique): Unik identifikator (f.eks. "ntnu-sykepleie-h25-regelsett")
 - `navn` (string, required): Navn på regelsettet (f.eks. "Regelsett for Bachelor i sykepleie")
 - `versjon` (string): Versjon (f.eks. "1.0", "2.1")
+- `erMal` (boolean): Om dette er et mal-regelsett som andre kan basere seg på
+- `malType` (string): Type mal hvis erMal=true (f.eks. "ingeniørutdanning", "lærerutdanning")
+- `basertPå` (string): ID til mal-regelsett dette er basert på (hvis relevant)
 - `gyldigFra` (date): Fra hvilken dato regelsettet gjelder
 - `gyldigTil` (date, optional): Til hvilken dato (hvis midlertidig)
 - `beskrivelse` (string): Beskrivelse av regelsettet
@@ -208,25 +208,6 @@ CREATE CONSTRAINT soknad_id FOR (s:Søknad) REQUIRE s.id IS UNIQUE;
 
 ```cypher
 CREATE CONSTRAINT regelsett_id FOR (r:Regelsett) REQUIRE r.id IS UNIQUE;
-```
-
-### 📋 RegelsettMal
-
-**Node label:** `RegelsettMal`
-
-**Properties:**
-
-- `id` (string, required, unique): Unik identifikator (f.eks. "ingeniorutdanning-mal")
-- `navn` (string, required): Navn på malen (f.eks. "Ingeniørutdanning")
-- `beskrivelse` (string): Beskrivelse av malen
-- `versjon` (string): Versjon av malen
-- `opprettet` (datetime): Når malen ble opprettet
-- `aktiv` (boolean): Om malen er aktiv
-
-**Constraints:**
-
-```cypher
-CREATE CONSTRAINT regelsettmal_id FOR (rm:RegelsettMal) REQUIRE rm.id IS UNIQUE;
 ```
 
 ### 🏗️ Grunnlag (Standard)
@@ -585,7 +566,7 @@ Et regelsett bygges opp som en tre-struktur hvor:
 **Eksempel på tre-struktur med Type/Implementering:**
 
 ```
-📋 RegelsettMal: "Ingeniørutdanning"
+📜 Regelsett: "Ingeniørutdanning Standard" (erMal: true)
 ├── 🏗️ Grunnlag: "Førstegangsvitnemål videregående" (standard)
 ├── 🏗️ Grunnlag: "Ordinært vitnemål videregående" (standard)
 ├── ✅ Kravelement: "GSK" (standard)
@@ -771,12 +752,6 @@ RETURN u, ki.spesifikkeKrav;
 
 **Beskrivelse:** Et utdanningstilbud har et regelsett som definerer opptakskrav
 
-### Regelsett BASERES_PÅ RegelsettMal
-
-**Properties:** (ingen)
-
-**Beskrivelse:** Et regelsett baseres på en regelsettmal
-
 ### Regelsett INNEHOLDER GrunnlagImplementering
 
 **Properties:** (ingen)
@@ -800,30 +775,6 @@ RETURN u, ki.spesifikkeKrav;
 **Properties:** (ingen)
 
 **Beskrivelse:** Et regelsett inneholder rangeringimplementeringer
-
-### RegelsettMal INNEHOLDER Grunnlag
-
-**Properties:** (ingen)
-
-**Beskrivelse:** En regelsettmal inneholder standard grunnlag
-
-### RegelsettMal INNEHOLDER Kravelement
-
-**Properties:** (ingen)
-
-**Beskrivelse:** En regelsettmal inneholder standard kravelementer
-
-### RegelsettMal INNEHOLDER KvoteType
-
-**Properties:** (ingen)
-
-**Beskrivelse:** En regelsettmal inneholder standard kvotetyper
-
-### RegelsettMal INNEHOLDER RangeringType
-
-**Properties:** (ingen)
-
-**Beskrivelse:** En regelsettmal inneholder standard rangeringstyper
 
 ### GrunnlagImplementering IMPLEMENTERER Grunnlag
 

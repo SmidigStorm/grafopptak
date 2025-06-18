@@ -17,7 +17,7 @@ async function seedAll() {
     await session.run(`MATCH (n:Grunnlag) DETACH DELETE n`);
     await session.run(`MATCH (n:KvoteType) DETACH DELETE n`);
     await session.run(`MATCH (n:RangeringType) DETACH DELETE n`);
-    await session.run(`MATCH (n:RegelsettMal) DETACH DELETE n`);
+    await session.run(`MATCH (n:Regelsett) DETACH DELETE n`);
     await session.run(`MATCH (n:Institusjon) DETACH DELETE n`);
     await session.run(`MATCH (n:Utdanningstilbud) DETACH DELETE n`);
     await session.run(`MATCH (n:Person) DETACH DELETE n`);
@@ -475,16 +475,18 @@ async function seedAll() {
     `);
     console.log('✅ Opprettet rangeringstyper');
 
-    // ========== REGELSETT-MALER ==========
-    console.log('📋 Oppretter regelsett-maler...');
+    // ========== REGELSETT (MALER) ==========
+    console.log('📜 Oppretter regelsett-maler...');
 
-    // Opprett RegelsettMal for Ingeniørutdanning
+    // Opprett Regelsett-mal for Ingeniørutdanning
     await session.run(`
-      CREATE (ingeniorMal:RegelsettMal {
+      CREATE (ingeniorMal:Regelsett {
         id: randomUUID(),
-        navn: 'Ingeniørutdanning',
-        beskrivelse: 'Standard regelsettmal for ingeniørutdanninger med strengere realfagskrav',
+        navn: 'Ingeniørutdanning Standard',
+        beskrivelse: 'Standard regelsett for ingeniørutdanninger med strengere realfagskrav',
         versjon: '1.0',
+        erMal: true,
+        malType: 'ingeniørutdanning',
         opprettet: datetime(),
         aktiv: true
       })
@@ -492,7 +494,7 @@ async function seedAll() {
 
     // Koble ingeniørutdanning til standarder og opprett tre-struktur
     await session.run(`
-      MATCH (ingeniorMal:RegelsettMal {navn: 'Ingeniørutdanning'})
+      MATCH (ingeniorMal:Regelsett {navn: 'Ingeniørutdanning Standard'})
       MATCH (gsk:Kravelement {type: 'gsk'})
       MATCH (matR1:Kravelement {type: 'matematikk-r1'})
       MATCH (matR2:Kravelement {type: 'matematikk-r2'})
@@ -551,13 +553,15 @@ async function seedAll() {
       CREATE (grunnlagFagskole)-[:BRUKER_RANGERING]->(karaktersnitt)
     `);
 
-    // Opprett RegelsettMal for Lærerutdanning
+    // Opprett Regelsett-mal for Lærerutdanning
     await session.run(`
-      CREATE (laererMal:RegelsettMal {
+      CREATE (laererMal:Regelsett {
         id: randomUUID(),
-        navn: 'Lærerutdanning',
-        beskrivelse: 'Standard regelsettmal for lærerutdanninger med karakterkrav',
+        navn: 'Lærerutdanning Standard',
+        beskrivelse: 'Standard regelsett for lærerutdanninger med karakterkrav',
         versjon: '1.0',
+        erMal: true,
+        malType: 'lærerutdanning',
         opprettet: datetime(),
         aktiv: true
       })
@@ -565,7 +569,7 @@ async function seedAll() {
 
     // Koble lærerutdanning til standarder og opprett tre-struktur
     await session.run(`
-      MATCH (laererMal:RegelsettMal {navn: 'Lærerutdanning'})
+      MATCH (laererMal:Regelsett {navn: 'Lærerutdanning Standard'})
       MATCH (gsk:Kravelement {type: 'gsk'})
       MATCH (norskSpraak:Kravelement {type: 'norsk-spraak'})
       
@@ -972,7 +976,7 @@ async function seedAll() {
 
     // Regelsett-maler
     const regelsettMalerSummary = await session.run(`
-      MATCH (rm:RegelsettMal)
+      MATCH (rm:Regelsett {erMal: true})
       OPTIONAL MATCH (rm)-[:INNEHOLDER]->(ke:Kravelement)
       OPTIONAL MATCH (rm)-[:INNEHOLDER]->(g:Grunnlag)
       OPTIONAL MATCH (rm)-[:INNEHOLDER]->(kt:KvoteType)
@@ -986,7 +990,7 @@ async function seedAll() {
       ORDER BY rm.navn
     `);
 
-    console.log('\n   📋 Regelsett-maler:');
+    console.log('\n   📜 Regelsett-maler:');
     regelsettMalerSummary.records.forEach((record) => {
       console.log(`     ${record.get('regelsettMal')}:`);
       console.log(`       Kravelementer: ${record.get('antallKravelementer').toNumber()}`);

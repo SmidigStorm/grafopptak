@@ -90,9 +90,7 @@ export class DatabaseAdmin {
       );
 
       // Regelsett-komponenter
-      await session.run(
-        'CREATE CONSTRAINT regelsettmal_id IF NOT EXISTS FOR (rm:RegelsettMal) REQUIRE rm.id IS UNIQUE'
-      );
+      // Fjernet RegelsettMal constraint - bruker nå Regelsett med erMal:true
       await session.run(
         'CREATE CONSTRAINT regelsett_id IF NOT EXISTS FOR (r:Regelsett) REQUIRE r.id IS UNIQUE'
       );
@@ -146,7 +144,6 @@ export class DatabaseAdmin {
         'Person',
         'Søknad',
         'Dokumentasjon',
-        'RegelsettMal',
         'Regelsett',
         'Grunnlag',
         'Kravelement',
