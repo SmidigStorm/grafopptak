@@ -31,7 +31,7 @@ services:
       dockerfile: Dockerfile
     container_name: grafopptak-app-prod
     ports:
-      - "3001:3000"  # App på port 3001 eksternt
+      - "3001:3001"  # App på port 3001 eksternt
     env_file:
       - .env.production
     environment:

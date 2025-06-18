@@ -8,7 +8,7 @@ async function seedAll() {
 
     // ========== RESET ==========
     console.log('🗑️ Sletter eksisterende data...');
-    
+
     // Slett alle data-noder (men behold constraints)
     await session.run(`MATCH (n:Fagkode) DETACH DELETE n`);
     await session.run(`MATCH (n:Faggruppe) DETACH DELETE n`);
@@ -16,11 +16,14 @@ async function seedAll() {
     await session.run(`MATCH (n:Grunnlag) DETACH DELETE n`);
     await session.run(`MATCH (n:KvoteType) DETACH DELETE n`);
     await session.run(`MATCH (n:RangeringType) DETACH DELETE n`);
+    await session.run(`MATCH (n:Institusjon) DETACH DELETE n`);
+    await session.run(`MATCH (n:Utdanningstilbud) DETACH DELETE n`);
+    await session.run(`MATCH (n:Person) DETACH DELETE n`);
     console.log('✅ Slettet eksisterende data');
 
     // ========== FAGGRUPPER ==========
     console.log('📁 Oppretter faggrupper...');
-    
+
     const faggrupper = await session.run(`
       CREATE (mathR1:Faggruppe {
         id: randomUUID(),
@@ -56,7 +59,7 @@ async function seedAll() {
 
     // ========== FAGKODER ==========
     console.log('📋 Oppretter fagkoder...');
-    
+
     // Matematikk fagkoder
     await session.run(`
       CREATE (rea3022:Fagkode {
@@ -198,7 +201,7 @@ async function seedAll() {
 
     // ========== FAGKODE-FAGGRUPPE KOBLINGER ==========
     console.log('🔗 Kobler fagkoder til faggrupper...');
-    
+
     // Matematikk R1-nivå
     await session.run(`
       MATCH (mathR1:Faggruppe {navn: 'Matematikk R1-nivå'})
@@ -254,7 +257,7 @@ async function seedAll() {
 
     // ========== KRAVELEMENTER ==========
     console.log('🎯 Oppretter kravelementer...');
-    
+
     await session.run(`
       CREATE (krav1:Kravelement {
         id: randomUUID(),
@@ -317,7 +320,7 @@ async function seedAll() {
 
     // ========== GRUNNLAG ==========
     console.log('🏗️ Oppretter grunnlag...');
-    
+
     await session.run(`
       CREATE (grunnlag1:Grunnlag {
         id: randomUUID(),
@@ -364,7 +367,7 @@ async function seedAll() {
 
     // ========== KVOTETYPER ==========
     console.log('📊 Oppretter kvotetyper...');
-    
+
     await session.run(`
       CREATE (kvote1:KvoteType {
         id: randomUUID(),
@@ -395,7 +398,7 @@ async function seedAll() {
 
     // ========== RANGERINGSTYPER ==========
     console.log('📈 Oppretter rangeringstyper...');
-    
+
     await session.run(`
       CREATE (rangering1:RangeringType {
         id: randomUUID(),
@@ -454,27 +457,256 @@ async function seedAll() {
     `);
     console.log('✅ Opprettet rangeringstyper');
 
+    // ========== INSTITUSJONER ==========
+    console.log('🏢 Oppretter institusjoner...');
+
+    await session.run(`
+      CREATE (uio:Institusjon {
+        id: randomUUID(),
+        navn: 'Universitetet i Oslo',
+        kortNavn: 'UiO',
+        type: 'Universitet',
+        institusjonsnummer: '0150',
+        adresse: 'Problemveien 7, 0313 Oslo',
+        nettside: 'https://www.uio.no',
+        aktiv: true
+      })
+      CREATE (ntnu:Institusjon {
+        id: randomUUID(),
+        navn: 'Norges teknisk-naturvitenskapelige universitet',
+        kortNavn: 'NTNU',
+        type: 'Universitet',
+        institusjonsnummer: '0194',
+        adresse: 'Høgskoleringen 1, 7491 Trondheim',
+        nettside: 'https://www.ntnu.no',
+        aktiv: true
+      })
+      CREATE (oslomet:Institusjon {
+        id: randomUUID(),
+        navn: 'OsloMet - storbyuniversitetet',
+        kortNavn: 'OsloMet',
+        type: 'Høgskole',
+        institusjonsnummer: '0202',
+        adresse: 'Pilestredet 35, 0166 Oslo',
+        nettside: 'https://www.oslomet.no',
+        aktiv: true
+      })
+      CREATE (kristiania:Institusjon {
+        id: randomUUID(),
+        navn: 'Høyskolen Kristiania',
+        kortNavn: 'Kristiania',
+        type: 'Privat høgskole',
+        institusjonsnummer: '1502',
+        adresse: 'Prinsensgate 7-9, 0152 Oslo',
+        nettside: 'https://www.kristiania.no',
+        aktiv: true
+      })
+      CREATE (viken:Institusjon {
+        id: randomUUID(),
+        navn: 'Viken videregående skole',
+        kortNavn: 'Viken VGS',
+        type: 'Videregående skole',
+        institusjonsnummer: '3001',
+        adresse: 'Skolegata 1, 3000 Drammen',
+        nettside: 'https://viken.no',
+        aktiv: true
+      })
+    `);
+    console.log('✅ Opprettet institusjoner');
+
+    // ========== UTDANNINGSTILBUD ==========
+    console.log('🎓 Oppretter utdanningstilbud...');
+
+    await session.run(`
+      MATCH (uio:Institusjon {kortNavn: 'UiO'})
+      MATCH (ntnu:Institusjon {kortNavn: 'NTNU'})
+      MATCH (oslomet:Institusjon {kortNavn: 'OsloMet'})
+      MATCH (kristiania:Institusjon {kortNavn: 'Kristiania'})
+      
+      CREATE (informatikk:Utdanningstilbud {
+        id: randomUUID(),
+        navn: 'Bachelor i informatikk',
+        studienivaa: 'Bachelor',
+        studiepoeng: 180,
+        varighet: '3 år',
+        semester: 'Høst',
+        aar: 2024,
+        studiested: 'Oslo',
+        undervisningssprak: 'Norsk',
+        maxAntallStudenter: 200,
+        beskrivelse: 'Tredelt bachelorprogram i informatikk med spesialisering innen programmering, algoritmer og datastrukturer.',
+        aktiv: true
+      })
+      CREATE (bygg:Utdanningstilbud {
+        id: randomUUID(),
+        navn: 'Sivilingeniør i bygg- og miljøteknikk',
+        studienivaa: 'Master',
+        studiepoeng: 300,
+        varighet: '5 år',
+        semester: 'Høst',
+        aar: 2024,
+        studiested: 'Trondheim',
+        undervisningssprak: 'Norsk',
+        maxAntallStudenter: 150,
+        beskrivelse: 'Integrert masterprogram innen bygg- og miljøteknikk med fokus på bærekraftige løsninger.',
+        aktiv: true
+      })
+      CREATE (sykepleie:Utdanningstilbud {
+        id: randomUUID(),
+        navn: 'Bachelor i sykepleie',
+        studienivaa: 'Bachelor',
+        studiepoeng: 180,
+        varighet: '3 år',
+        semester: 'Begge',
+        aar: 2024,
+        studiested: 'Oslo',
+        undervisningssprak: 'Norsk',
+        maxAntallStudenter: 120,
+        beskrivelse: 'Profesjonsutdanning som kvalifiserer for autorisasjon som sykepleier.',
+        aktiv: true
+      })
+      CREATE (markedsforing:Utdanningstilbud {
+        id: randomUUID(),
+        navn: 'Bachelor i markedsføring og merkevareledelse',
+        studienivaa: 'Bachelor',
+        studiepoeng: 180,
+        varighet: '3 år',
+        semester: 'Høst',
+        aar: 2024,
+        studiested: 'Oslo',
+        undervisningssprak: 'Engelsk',
+        maxAntallStudenter: 80,
+        beskrivelse: 'Moderne markedsføringsutdanning med fokus på digital markedsføring og merkevarebygging.',
+        aktiv: true
+      })
+      
+      CREATE (uio)-[:TILBYR]->(informatikk)
+      CREATE (ntnu)-[:TILBYR]->(bygg)
+      CREATE (oslomet)-[:TILBYR]->(sykepleie)
+      CREATE (kristiania)-[:TILBYR]->(markedsforing)
+    `);
+    console.log('✅ Opprettet utdanningstilbud');
+
+    // ========== SØKERE ==========
+    console.log('👥 Oppretter søkere...');
+
+    await session.run(`
+      CREATE (anna:Person {
+        id: randomUUID(),
+        fornavn: 'Anna',
+        etternavn: 'Hansen',
+        fodselsdato: date('2003-05-15'),
+        fodselsnummer: '15050312345',
+        epost: 'anna.hansen@example.no',
+        telefon: '12345678',
+        adresse: 'Storgata 15\\n0180 Oslo',
+        postnummer: '0180',
+        poststed: 'Oslo',
+        statsborgerskap: 'Norge',
+        aktiv: true
+      })
+      CREATE (erik:Person {
+        id: randomUUID(),
+        fornavn: 'Erik',
+        etternavn: 'Johnsen',
+        fodselsdato: date('2002-09-23'),
+        fodselsnummer: '23090234567',
+        epost: 'erik.johnsen@example.no',
+        telefon: '23456789',
+        adresse: 'Elvegata 42\\n7030 Trondheim',
+        postnummer: '7030',
+        poststed: 'Trondheim',
+        statsborgerskap: 'Norge',
+        aktiv: true
+      })
+      CREATE (maria:Person {
+        id: randomUUID(),
+        fornavn: 'Maria',
+        etternavn: 'Andersen',
+        fodselsdato: date('1998-12-08'),
+        fodselsnummer: '08129812345',
+        epost: 'maria.andersen@example.no',
+        telefon: '34567890',
+        adresse: 'Fjellveien 8\\n5020 Bergen',
+        postnummer: '5020',
+        poststed: 'Bergen',
+        statsborgerskap: 'Norge',
+        aktiv: true
+      })
+      CREATE (lars:Person {
+        id: randomUUID(),
+        fornavn: 'Lars',
+        etternavn: 'Olsen',
+        fodselsdato: date('1995-07-14'),
+        fodselsnummer: '14079512345',
+        epost: 'lars.olsen@example.no',
+        telefon: '45678901',
+        adresse: 'Industriveien 99\\n4020 Stavanger',
+        postnummer: '4020',
+        poststed: 'Stavanger',
+        statsborgerskap: 'Norge',
+        aktiv: true
+      })
+      CREATE (sophie:Person {
+        id: randomUUID(),
+        fornavn: 'Sophie',
+        etternavn: 'Müller',
+        fodselsdato: date('2001-03-25'),
+        fodselsnummer: '25030123456',
+        epost: 'sophie.muller@example.de',
+        telefon: '56789012',
+        adresse: 'Universitetsveien 12\\n0315 Oslo',
+        postnummer: '0315',
+        poststed: 'Oslo',
+        statsborgerskap: 'Tyskland',
+        aktiv: true
+      })
+    `);
+    console.log('✅ Opprettet søkere');
+
     // ========== SAMMENDRAG ==========
     console.log('\n📊 Sammendrag av opprettet data:');
 
     // Faggrupper
-    const faggrupperSummary = await session.run('MATCH (fg:Faggruppe) OPTIONAL MATCH (fk:Fagkode)-[:KVALIFISERER_FOR]->(fg) RETURN fg.navn as faggruppe, count(fk) as antallFagkoder ORDER BY fg.navn');
+    const faggrupperSummary = await session.run(
+      'MATCH (fg:Faggruppe) OPTIONAL MATCH (fk:Fagkode)-[:KVALIFISERER_FOR]->(fg) RETURN fg.navn as faggruppe, count(fk) as antallFagkoder ORDER BY fg.navn'
+    );
     console.log('\n   📁 Faggrupper:');
     faggrupperSummary.records.forEach((record) => {
-      console.log(`     ${record.get('faggruppe')}: ${record.get('antallFagkoder').toNumber()} fagkoder`);
+      console.log(
+        `     ${record.get('faggruppe')}: ${record.get('antallFagkoder').toNumber()} fagkoder`
+      );
     });
 
     // Regelsett-elementer
-    const kravelementerCount = await session.run('MATCH (ke:Kravelement) RETURN count(ke) as antall');
+    const kravelementerCount = await session.run(
+      'MATCH (ke:Kravelement) RETURN count(ke) as antall'
+    );
     const grunnlagCount = await session.run('MATCH (g:Grunnlag) RETURN count(g) as antall');
     const kvotetypeCount = await session.run('MATCH (kt:KvoteType) RETURN count(kt) as antall');
-    const rangeringstypeCount = await session.run('MATCH (rt:RangeringType) RETURN count(rt) as antall');
-    
+    const rangeringstypeCount = await session.run(
+      'MATCH (rt:RangeringType) RETURN count(rt) as antall'
+    );
+
     console.log('\n   📋 Regelsett-elementer:');
     console.log(`     Kravelementer: ${kravelementerCount.records[0].get('antall').toNumber()}`);
     console.log(`     Grunnlag: ${grunnlagCount.records[0].get('antall').toNumber()}`);
     console.log(`     Kvotetyper: ${kvotetypeCount.records[0].get('antall').toNumber()}`);
     console.log(`     Rangeringstyper: ${rangeringstypeCount.records[0].get('antall').toNumber()}`);
+
+    // Nye entiteter
+    const institusjonerCount = await session.run('MATCH (i:Institusjon) RETURN count(i) as antall');
+    const utdanningstilbudCount = await session.run(
+      'MATCH (u:Utdanningstilbud) RETURN count(u) as antall'
+    );
+    const sokereCount = await session.run('MATCH (p:Person) RETURN count(p) as antall');
+
+    console.log('\n   🏢 Andre entiteter:');
+    console.log(`     Institusjoner: ${institusjonerCount.records[0].get('antall').toNumber()}`);
+    console.log(
+      `     Utdanningstilbud: ${utdanningstilbudCount.records[0].get('antall').toNumber()}`
+    );
+    console.log(`     Søkere: ${sokereCount.records[0].get('antall').toNumber()}`);
 
     console.log('\n🎉 All seeding fullført!');
   } catch (error) {
