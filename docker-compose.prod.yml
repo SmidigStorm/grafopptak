@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  neo4j-prod:
+    image: neo4j:5-community
+    container_name: grafopptak-neo4j-prod
+    ports:
+      - "7688:7687"  # Bolt på annen port
+      - "7475:7474"  # HTTP på annen port
+    environment:
+      - NEO4J_AUTH=neo4j/grafopptak123
+      - NEO4J_PLUGINS=["apoc"]
+      - NEO4J_dbms_memory_pagecache_size=512M
+      - NEO4J_dbms_memory_heap_initial__size=512M
+      - NEO4J_dbms_memory_heap_max__size=1G
+    volumes:
+      - neo4j_prod_data:/data
+      - neo4j_prod_logs:/logs
+      - neo4j_prod_conf:/conf
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "neo4j", "status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  app-prod:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: grafopptak-app-prod
+    ports:
+      - "3001:3000"  # App på port 3001 eksternt
+    env_file:
+      - .env.production
+    environment:
+      - NODE_ENV=production
+      - NEO4J_URI=bolt://neo4j-prod:7687
+      - NEO4J_USER=neo4j
+      - NEO4J_PASSWORD=grafopptak123
+      - NEXT_PUBLIC_APP_URL=https://opptaksapp.smidigakademiet.no
+      - ALLOWED_ORIGINS=https://opptaksapp.smidigakademiet.no
+    depends_on:
+      neo4j-prod:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  neo4j_prod_data:
+  neo4j_prod_logs:
+  neo4j_prod_conf:

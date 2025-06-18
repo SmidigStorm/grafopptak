@@ -23,6 +23,18 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { Switch } from '@/components/ui/switch';
+import { Textarea } from '@/components/ui/textarea';
 
 interface Fagkode {
   id: string;
@@ -49,6 +61,15 @@ export default function FagkoderPage() {
   const [loading, setLoading] = useState(true);
   const [showNyFagkode, setShowNyFagkode] = useState(false);
   const [showNyFaggruppe, setShowNyFaggruppe] = useState(false);
+  const [showEditFagkode, setShowEditFagkode] = useState(false);
+  const [showEditFaggruppe, setShowEditFaggruppe] = useState(false);
+  const [selectedFagkode, setSelectedFagkode] = useState<Fagkode | null>(null);
+  const [selectedFaggruppe, setSelectedFaggruppe] = useState<Faggruppe | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<{
+    type: 'fagkode' | 'faggruppe';
+    id: string;
+    navn: string;
+  } | null>(null);
   const [nyFagkode, setNyFagkode] = useState({
     kode: '',
     navn: '',
@@ -118,12 +139,93 @@ export default function FagkoderPage() {
       if (response.ok) {
         setShowNyFaggruppe(false);
         setNyFaggruppe({ navn: '', beskrivelse: '', type: '' });
-        fetchData(); // Refresh data
+        fetchData();
       } else {
         console.error('Feil ved opprettelse av faggruppe');
       }
     } catch (error) {
       console.error('Feil ved opprettelse av faggruppe:', error);
+    }
+  };
+
+  const oppdaterFagkode = async () => {
+    if (!selectedFagkode) return;
+
+    try {
+      const response = await fetch(`/api/fagkoder/${selectedFagkode.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(selectedFagkode),
+      });
+
+      if (response.ok) {
+        setShowEditFagkode(false);
+        setSelectedFagkode(null);
+        fetchData();
+      } else {
+        console.error('Feil ved oppdatering av fagkode');
+      }
+    } catch (error) {
+      console.error('Feil ved oppdatering av fagkode:', error);
+    }
+  };
+
+  const oppdaterFaggruppe = async () => {
+    if (!selectedFaggruppe) return;
+
+    try {
+      const response = await fetch(`/api/faggrupper/${selectedFaggruppe.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(selectedFaggruppe),
+      });
+
+      if (response.ok) {
+        setShowEditFaggruppe(false);
+        setSelectedFaggruppe(null);
+        fetchData();
+      } else {
+        console.error('Feil ved oppdatering av faggruppe');
+      }
+    } catch (error) {
+      console.error('Feil ved oppdatering av faggruppe:', error);
+    }
+  };
+
+  const slettFagkode = async (id: string) => {
+    try {
+      const response = await fetch(`/api/fagkoder/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        fetchData();
+      } else {
+        console.error('Feil ved sletting av fagkode');
+      }
+    } catch (error) {
+      console.error('Feil ved sletting av fagkode:', error);
+    }
+  };
+
+  const slettFaggruppe = async (id: string) => {
+    try {
+      const response = await fetch(`/api/faggrupper/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        fetchData();
+      } else {
+        const error = await response.json();
+        alert(error.error || 'Feil ved sletting av faggruppe');
+      }
+    } catch (error) {
+      console.error('Feil ved sletting av faggruppe:', error);
     }
   };
 
@@ -302,13 +404,29 @@ export default function FagkoderPage() {
                       <TableCell>{faggruppe.antallFagkoder}</TableCell>
                       <TableCell>
                         <div className="flex space-x-2">
-                          <Button variant="outline" size="sm" title="Se fagkoder">
-                            <LinkIcon className="h-4 w-4" />
-                          </Button>
-                          <Button variant="outline" size="sm" title="Rediger">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            title="Rediger"
+                            onClick={() => {
+                              setSelectedFaggruppe(faggruppe);
+                              setShowEditFaggruppe(true);
+                            }}
+                          >
                             <Edit className="h-4 w-4" />
                           </Button>
-                          <Button variant="outline" size="sm" title="Slett">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            title="Slett"
+                            onClick={() =>
+                              setDeleteConfirm({
+                                type: 'faggruppe',
+                                id: faggruppe.id,
+                                navn: faggruppe.navn,
+                              })
+                            }
+                          >
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
@@ -333,12 +451,13 @@ export default function FagkoderPage() {
                   <TableHead>Kode</TableHead>
                   <TableHead>Navn</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>Handlinger</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {fagkoder.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={3} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
                       Ingen fagkoder funnet
                     </TableCell>
                   </TableRow>
@@ -358,6 +477,35 @@ export default function FagkoderPage() {
                           {fagkode.aktiv ? 'Aktiv' : 'Inaktiv'}
                         </span>
                       </TableCell>
+                      <TableCell>
+                        <div className="flex space-x-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            title="Rediger"
+                            onClick={() => {
+                              setSelectedFagkode(fagkode);
+                              setShowEditFagkode(true);
+                            }}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            title="Slett"
+                            onClick={() =>
+                              setDeleteConfirm({
+                                type: 'fagkode',
+                                id: fagkode.id,
+                                navn: fagkode.navn,
+                              })
+                            }
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
                     </TableRow>
                   ))
                 )}
@@ -366,6 +514,180 @@ export default function FagkoderPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Edit Fagkode Dialog */}
+      <Dialog open={showEditFagkode} onOpenChange={setShowEditFagkode}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Rediger fagkode</DialogTitle>
+            <DialogDescription>Oppdater informasjon om fagkoden.</DialogDescription>
+          </DialogHeader>
+          {selectedFagkode && (
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="edit-kode" className="text-right">
+                  Kode
+                </Label>
+                <Input
+                  id="edit-kode"
+                  value={selectedFagkode.kode}
+                  onChange={(e) => setSelectedFagkode({ ...selectedFagkode, kode: e.target.value })}
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="edit-navn" className="text-right">
+                  Navn
+                </Label>
+                <Input
+                  id="edit-navn"
+                  value={selectedFagkode.navn}
+                  onChange={(e) => setSelectedFagkode({ ...selectedFagkode, navn: e.target.value })}
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="edit-beskrivelse" className="text-right">
+                  Beskrivelse
+                </Label>
+                <Textarea
+                  id="edit-beskrivelse"
+                  value={selectedFagkode.beskrivelse || ''}
+                  onChange={(e) =>
+                    setSelectedFagkode({ ...selectedFagkode, beskrivelse: e.target.value })
+                  }
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="edit-aktiv" className="text-right">
+                  Aktiv
+                </Label>
+                <Switch
+                  id="edit-aktiv"
+                  checked={selectedFagkode.aktiv}
+                  onCheckedChange={(checked) =>
+                    setSelectedFagkode({ ...selectedFagkode, aktiv: checked })
+                  }
+                />
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button
+              type="submit"
+              onClick={oppdaterFagkode}
+              disabled={!selectedFagkode?.kode || !selectedFagkode?.navn}
+            >
+              Lagre endringer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Faggruppe Dialog */}
+      <Dialog open={showEditFaggruppe} onOpenChange={setShowEditFaggruppe}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Rediger faggruppe</DialogTitle>
+            <DialogDescription>Oppdater informasjon om faggruppen.</DialogDescription>
+          </DialogHeader>
+          {selectedFaggruppe && (
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="edit-fg-navn" className="text-right">
+                  Navn
+                </Label>
+                <Input
+                  id="edit-fg-navn"
+                  value={selectedFaggruppe.navn}
+                  onChange={(e) =>
+                    setSelectedFaggruppe({ ...selectedFaggruppe, navn: e.target.value })
+                  }
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="edit-fg-type" className="text-right">
+                  Type
+                </Label>
+                <Input
+                  id="edit-fg-type"
+                  value={selectedFaggruppe.type || ''}
+                  onChange={(e) =>
+                    setSelectedFaggruppe({ ...selectedFaggruppe, type: e.target.value })
+                  }
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="edit-fg-beskrivelse" className="text-right">
+                  Beskrivelse
+                </Label>
+                <Textarea
+                  id="edit-fg-beskrivelse"
+                  value={selectedFaggruppe.beskrivelse || ''}
+                  onChange={(e) =>
+                    setSelectedFaggruppe({ ...selectedFaggruppe, beskrivelse: e.target.value })
+                  }
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="edit-fg-aktiv" className="text-right">
+                  Aktiv
+                </Label>
+                <Switch
+                  id="edit-fg-aktiv"
+                  checked={selectedFaggruppe.aktiv}
+                  onCheckedChange={(checked) =>
+                    setSelectedFaggruppe({ ...selectedFaggruppe, aktiv: checked })
+                  }
+                />
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button type="submit" onClick={oppdaterFaggruppe} disabled={!selectedFaggruppe?.navn}>
+              Lagre endringer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deleteConfirm} onOpenChange={() => setDeleteConfirm(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Er du sikker?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Dette vil permanent slette{' '}
+              {deleteConfirm?.type === 'fagkode' ? 'fagkoden' : 'faggruppen'} &quot;
+              {deleteConfirm?.navn}&quot;.
+              {deleteConfirm?.type === 'faggruppe' && (
+                <span className="block mt-2 font-semibold">
+                  Merk: Du kan ikke slette en faggruppe som har tilknyttede fagkoder.
+                </span>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Avbryt</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (deleteConfirm?.type === 'fagkode') {
+                  slettFagkode(deleteConfirm.id);
+                } else if (deleteConfirm?.type === 'faggruppe') {
+                  slettFaggruppe(deleteConfirm.id);
+                }
+                setDeleteConfirm(null);
+              }}
+            >
+              Slett
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
