@@ -16,11 +16,12 @@ graph TD
     Dokumentasjon -->|INNEHOLDER| Fagkode
     Fagkode -->|KVALIFISERER_FOR| Faggruppe
 
-    %% Standard-elementer (brukes av regelsett)
-    Regelsett -->|INNEHOLDER| Grunnlag
-    Regelsett -->|INNEHOLDER| Kravelement
-    Regelsett -->|INNEHOLDER| KvoteType
-    Regelsett -->|INNEHOLDER| RangeringType
+    %% Beslutningstre struktur (ny tilnærming)
+    Regelsett -->|HAR_OPPTAKSVEI| OpptaksVei
+    OpptaksVei -->|BASERT_PÅ| Grunnlag
+    OpptaksVei -->|KREVER| Kravelement
+    OpptaksVei -->|GIR_TILGANG_TIL| KvoteType
+    OpptaksVei -->|BRUKER_RANGERING| RangeringType
 
     %% Kobling mellom krav og oppfyllelse (tre forskjellige måter)
     Kravelement -->|OPPFYLLES_AV| Faggruppe
@@ -208,6 +209,26 @@ CREATE CONSTRAINT soknad_id FOR (s:Søknad) REQUIRE s.id IS UNIQUE;
 
 ```cypher
 CREATE CONSTRAINT regelsett_id FOR (r:Regelsett) REQUIRE r.id IS UNIQUE;
+```
+
+### 🛣️ OpptaksVei
+
+**Node label:** `OpptaksVei`
+
+**Properties:**
+
+- `id` (string, required, unique): Unik identifikator (f.eks. "forstegangsvitnemaal-ntnu-bygg-h25")
+- `navn` (string, required): Navn på opptaksveien (f.eks. "Førstegangsvitnemål - NTNU Bygg H25")
+- `beskrivelse` (string): Beskrivelse av opptaksveien
+- `aktiv` (boolean): Om opptaksveien er aktiv
+- `opprettet` (datetime): Når opptaksveien ble opprettet
+
+**Beskrivelse:** En OpptaksVei representerer en komplett regel i et beslutningstre - fra grunnlag via krav til kvote og rangering. Hver vei definerer én måte en søker kan kvalifisere for opptak.
+
+**Constraints:**
+
+```cypher
+CREATE CONSTRAINT opptaksvei_id FOR (ov:OpptaksVei) REQUIRE ov.id IS UNIQUE;
 ```
 
 ### 🏗️ Grunnlag (Standard)
@@ -563,34 +584,34 @@ Et regelsett bygges opp som en tre-struktur hvor:
 3. **KvoteImplementering** som grunnlaget gir tilgang til (basert på standard KvoteType)
 4. **RangeringImplementering** som brukes innenfor hver kvote (basert på standard RangeringType)
 
-**Eksempel på tre-struktur med Type/Implementering:**
+**Eksempel på beslutningstre med OpptaksVeier:**
 
 ```
-📜 Regelsett: "Ingeniørutdanning Standard" (erMal: true)
-├── 🏗️ Grunnlag: "Førstegangsvitnemål videregående" (standard)
-├── 🏗️ Grunnlag: "Ordinært vitnemål videregående" (standard)
-├── ✅ Kravelement: "GSK" (standard)
-├── ✅ Kravelement: "Alderskrav førstegangsvitnemål" (standard)
-├── 📊 KvoteType: "Førstegangsvitnemål kvote" (standard)
-├── 📊 KvoteType: "Ordinær kvote" (standard)
-└── 📈 RangeringType: "Karaktersnitt + realfag" (standard)
-
-↓ Implementeres som:
-
 📜 Regelsett: "NTNU Bygg- og miljøteknikk H25"
-├── 🏗️ GrunnlagImplementering: "Førstegangsvitnemål videregående - NTNU"
-│   ├── ✅ KravImplementering: "GSK med minimumskarakter 3.0"
-│   ├── ✅ KravImplementering: "Matematikk R1 med karakter 4+"
-│   ├── ✅ KravImplementering: "Maksimalt 2 år siden vitnemål"
-│   └── 📊 KvoteImplementering: "Førstegangsvitnemål kvote (60 plasser)" → 📈 RangeringImplementering: "Karaktersnitt + 2x realfag"
-├── 🏗️ GrunnlagImplementering: "Ordinært vitnemål videregående - NTNU"
-│   ├── ✅ KravImplementering: "GSK med minimumskarakter 3.0"
-│   ├── ✅ KravImplementering: "Matematikk R1 med karakter 4+"
-│   └── 📊 KvoteImplementering: "Ordinær kvote (80 plasser)" → 📈 RangeringImplementering: "Karaktersnitt + 2x realfag"
-├── 🏗️ GrunnlagImplementering: "Fagbrev - NTNU"
-│   ├── ✅ KravImplementering: "Relevant fagbrev (bygg/anlegg)"
-│   ├── ✅ KravImplementering: "Matematikk R1 med karakter 3+"
-│   └── 📊 KvoteImplementering: "Ordinær kvote (80 plasser)" → 📈 RangeringImplementering: "Fagbrev 40% + realfag 60%"
+
+├── 🛣️ OpptaksVei: "Førstegangsvitnemål - NTNU Bygg H25"
+│   ├── 📋 Grunnlag: Førstegangsvitnemål videregående
+│   ├── ✅ Krav: GSK + Matematikk R1+R2 + Fysikk 1 + Alder ≤21
+│   ├── 🎯 Kvote: Førstegangsvitnemål-kvote
+│   └── 📊 Rangering: Karaktersnitt + realfagspoeng
+
+├── 🛣️ OpptaksVei: "Ordinært vitnemål - NTNU Bygg H25"
+│   ├── 📋 Grunnlag: Ordinært vitnemål videregående
+│   ├── ✅ Krav: GSK + Matematikk R1+R2 + Fysikk 1
+│   ├── 🎯 Kvote: Ordinær kvote
+│   └── 📊 Rangering: Karaktersnitt + realfagspoeng + alderspoeng
+
+├── 🛣️ OpptaksVei: "Fagbrev - NTNU Bygg H25"
+│   ├── 📋 Grunnlag: Fagbrev
+│   ├── ✅ Krav: Relevant fagbrev + Matematikk R1
+│   ├── 🎯 Kvote: Ordinær kvote
+│   └── 📊 Rangering: Fagbrev + realfagspoeng
+
+└── 🛣️ OpptaksVei: "Forkurs - NTNU Bygg H25"
+    ├── 📋 Grunnlag: Forkurs ingeniør
+    ├── ✅ Krav: Fullført forkurs
+    ├── 🎯 Kvote: Forkurskvote
+    └── 📊 Rangering: Kun forkurskarakterer
 ```
 
 ## ⚡ Gjenbruk og propagering
@@ -751,6 +772,36 @@ RETURN u, ki.spesifikkeKrav;
 **Properties:** (ingen)
 
 **Beskrivelse:** Et utdanningstilbud har et regelsett som definerer opptakskrav
+
+### Regelsett HAR_OPPTAKSVEI OpptaksVei
+
+**Properties:** (ingen)
+
+**Beskrivelse:** Et regelsett har flere opptaksveier som utgjør beslutningstreet
+
+### OpptaksVei BASERT_PÅ Grunnlag
+
+**Properties:** (ingen)
+
+**Beskrivelse:** En opptaksvei er basert på et spesifikt grunnlag
+
+### OpptaksVei KREVER Kravelement
+
+**Properties:** (ingen)
+
+**Beskrivelse:** En opptaksvei krever at spesifikke kravelementer er oppfylt
+
+### OpptaksVei GIR_TILGANG_TIL KvoteType
+
+**Properties:** (ingen)
+
+**Beskrivelse:** En opptaksvei gir tilgang til en spesifikk kvotetype
+
+### OpptaksVei BRUKER_RANGERING RangeringType
+
+**Properties:** (ingen)
+
+**Beskrivelse:** En opptaksvei bruker en spesifikk rangeringstype for å sortere søkere
 
 ### Regelsett INNEHOLDER GrunnlagImplementering
 

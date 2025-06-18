@@ -192,6 +192,7 @@ export default function RegelsettPage() {
                 <TableRow>
                   <TableHead>Navn</TableHead>
                   <TableHead>Versjon</TableHead>
+                  <TableHead>Type</TableHead>
                   <TableHead>Gyldig fra</TableHead>
                   <TableHead>Beskrivelse</TableHead>
                   <TableHead>Status</TableHead>
@@ -203,6 +204,17 @@ export default function RegelsettPage() {
                   <TableRow key={item.id}>
                     <TableCell className="font-medium">{item.navn}</TableCell>
                     <TableCell className="font-mono text-sm">{item.versjon}</TableCell>
+                    <TableCell className="text-sm">
+                      {item.erMal ? (
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                          📋 Mal: {item.malType}
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                          📄 Konkret
+                        </span>
+                      )}
+                    </TableCell>
                     <TableCell className="text-sm">
                       {new Date(item.gyldigFra).toLocaleDateString('nb-NO')}
                     </TableCell>

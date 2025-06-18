@@ -95,6 +95,9 @@ export class DatabaseAdmin {
         'CREATE CONSTRAINT regelsett_id IF NOT EXISTS FOR (r:Regelsett) REQUIRE r.id IS UNIQUE'
       );
       await session.run(
+        'CREATE CONSTRAINT opptaksvei_id IF NOT EXISTS FOR (ov:OpptaksVei) REQUIRE ov.id IS UNIQUE'
+      );
+      await session.run(
         'CREATE CONSTRAINT grunnlag_id IF NOT EXISTS FOR (g:Grunnlag) REQUIRE g.id IS UNIQUE'
       );
       await session.run(
@@ -145,6 +148,7 @@ export class DatabaseAdmin {
         'Søknad',
         'Dokumentasjon',
         'Regelsett',
+        'OpptaksVei',
         'Grunnlag',
         'Kravelement',
         'KvoteType',

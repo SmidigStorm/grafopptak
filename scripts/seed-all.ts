@@ -321,7 +321,47 @@ async function seedAll() {
         id: randomUUID(),
         navn: 'Alderskrav førstegangsvitnemål',
         type: 'alder-forstegangsvitnemaal',
-        beskrivelse: 'Maksimalt 2 år siden vitnemål ble fullført',
+        beskrivelse: 'Maksimalt 21 år i opptaksåret',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (krav9:Kravelement {
+        id: randomUUID(),
+        navn: 'Matematikk R1+R2',
+        type: 'matematikk-r1r2',
+        beskrivelse: 'Matematikk R1 og R2 som samlet krav',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (krav10:Kravelement {
+        id: randomUUID(),
+        navn: 'Fysikk 1',
+        type: 'fysikk-1',
+        beskrivelse: 'Fysikk 1 fra videregående',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (krav11:Kravelement {
+        id: randomUUID(),
+        navn: 'Fullført forkurs',
+        type: 'forkurs-fullfort',
+        beskrivelse: 'Fullført 1-årig forkurs for ingeniørutdanning',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (krav12:Kravelement {
+        id: randomUUID(),
+        navn: 'Norsk karakterkrav 3.0',
+        type: 'norsk-karakter-30',
+        beskrivelse: 'Minimum karakter 3.0 i norsk',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (krav13:Kravelement {
+        id: randomUUID(),
+        navn: 'Matematikk karakterkrav 4.0',
+        type: 'matematikk-karakter-40',
+        beskrivelse: 'Minimum karakter 4.0 i matematikk',
         aktiv: true,
         opprettet: datetime()
       })
@@ -380,6 +420,14 @@ async function seedAll() {
         aktiv: true,
         opprettet: datetime()
       })
+      CREATE (grunnlag7:Grunnlag {
+        id: randomUUID(),
+        navn: 'Forkurs ingeniør',
+        type: 'forkurs-ingenior',
+        beskrivelse: '1-årig forkurs for ingeniørutdanning',
+        aktiv: true,
+        opprettet: datetime()
+      })
     `);
     console.log('✅ Opprettet grunnlag');
 
@@ -405,9 +453,9 @@ async function seedAll() {
       })
       CREATE (kvote3:KvoteType {
         id: randomUUID(),
-        navn: 'Kvote for forkurs ingeniør',
-        type: 'forkurs-ingenior',
-        beskrivelse: 'For søkere som har gjennomført forkurs',
+        navn: 'Forkurskvote',
+        type: 'forkurs',
+        beskrivelse: 'For søkere med fullført forkurs ingeniør',
         aktiv: true,
         opprettet: datetime()
       })
@@ -492,65 +540,90 @@ async function seedAll() {
       })
     `);
 
-    // Koble ingeniørutdanning til standarder og opprett tre-struktur
+    // Opprett OpptaksVeier for Ingeniørutdanning Standard
     await session.run(`
       MATCH (ingeniorMal:Regelsett {navn: 'Ingeniørutdanning Standard'})
+      
+      // Hent alle nødvendige elementer
       MATCH (gsk:Kravelement {type: 'gsk'})
-      MATCH (matR1:Kravelement {type: 'matematikk-r1'})
-      MATCH (matR2:Kravelement {type: 'matematikk-r2'})
+      MATCH (matteR1R2:Kravelement {type: 'matematikk-r1r2'})
+      MATCH (fysikk1:Kravelement {type: 'fysikk-1'})
+      MATCH (alderFgv:Kravelement {type: 'alder-forstegangsvitnemaal'})
+      MATCH (forkursFullfort:Kravelement {type: 'forkurs-fullfort'})
       
-      MATCH (grunnlagForstegangsvitnemaal:Grunnlag {type: 'forstegangsvitnemaal-vgs'})
-      MATCH (grunnlagOrdinaertVitnemaal:Grunnlag {type: 'ordinaert-vitnemaal-vgs'})
-      MATCH (alderForstegangsvitnemaal:Kravelement {type: 'alder-forstegangsvitnemaal'})
+      MATCH (grunnlagFgv:Grunnlag {type: 'forstegangsvitnemaal-vgs'})
+      MATCH (grunnlagOrdinaert:Grunnlag {type: 'ordinaert-vitnemaal-vgs'})
       MATCH (grunnlagFagbrev:Grunnlag {type: 'fagbrev'})
-      MATCH (grunnlagFagskole:Grunnlag {type: 'fagskole'})
+      MATCH (grunnlagForkurs:Grunnlag {type: 'forkurs-ingenior'})
       
-      MATCH (ordinaer:KvoteType {type: 'ordinaer'})
-      MATCH (forstegangsvitnemaal:KvoteType {type: 'forstegangsvitnemaal'})
+      MATCH (kvoteFgv:KvoteType {type: 'forstegangsvitnemaal'})
+      MATCH (kvoteOrdinaer:KvoteType {type: 'ordinaer'})
+      MATCH (kvoteForkurs:KvoteType {type: 'forkurs'})
       
-      MATCH (karaktersnitt:RangeringType {type: 'karaktersnitt-realfag'})
-      MATCH (fagbrevRangering:RangeringType {type: 'fagbrev-realfag'})
-
-      // Koble til regelsettmal
-      CREATE (ingeniorMal)-[:INNEHOLDER]->(gsk)
-      CREATE (ingeniorMal)-[:INNEHOLDER]->(matR1)
-      CREATE (ingeniorMal)-[:INNEHOLDER]->(matR2)
+      MATCH (rangeringKarakter:RangeringType {type: 'karaktersnitt-realfag'})
+      MATCH (rangeringFagbrev:RangeringType {type: 'fagbrev-realfag'})
+      MATCH (rangeringForkurs:RangeringType {type: 'forkurs'})
       
-      CREATE (ingeniorMal)-[:INNEHOLDER]->(grunnlagForstegangsvitnemaal)
-      CREATE (ingeniorMal)-[:INNEHOLDER]->(grunnlagOrdinaertVitnemaal)
-      CREATE (ingeniorMal)-[:INNEHOLDER]->(grunnlagFagbrev)
-      CREATE (ingeniorMal)-[:INNEHOLDER]->(grunnlagFagskole)
+      // OpptaksVei 1: Førstegangsvitnemål
+      CREATE (vei1:OpptaksVei {
+        id: 'forstegangsvitnemaal-ingenior-standard',
+        navn: 'Førstegangsvitnemål - Ingeniørutdanning Standard',
+        beskrivelse: 'Vei for søkere med førstegangsvitnemål',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (ingeniorMal)-[:HAR_OPPTAKSVEI]->(vei1)
+      CREATE (vei1)-[:BASERT_PÅ]->(grunnlagFgv)
+      CREATE (vei1)-[:KREVER]->(gsk)
+      CREATE (vei1)-[:KREVER]->(matteR1R2)
+      CREATE (vei1)-[:KREVER]->(fysikk1)
+      CREATE (vei1)-[:KREVER]->(alderFgv)
+      CREATE (vei1)-[:GIR_TILGANG_TIL]->(kvoteFgv)
+      CREATE (vei1)-[:BRUKER_RANGERING]->(rangeringKarakter)
       
-      CREATE (ingeniorMal)-[:INNEHOLDER]->(ordinaer)
-      CREATE (ingeniorMal)-[:INNEHOLDER]->(forstegangsvitnemaal)
+      // OpptaksVei 2: Ordinært vitnemål
+      CREATE (vei2:OpptaksVei {
+        id: 'ordinaert-vitnemaal-ingenior-standard',
+        navn: 'Ordinært vitnemål - Ingeniørutdanning Standard',
+        beskrivelse: 'Vei for søkere med ordinært vitnemål',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (ingeniorMal)-[:HAR_OPPTAKSVEI]->(vei2)
+      CREATE (vei2)-[:BASERT_PÅ]->(grunnlagOrdinaert)
+      CREATE (vei2)-[:KREVER]->(gsk)
+      CREATE (vei2)-[:KREVER]->(matteR1R2)
+      CREATE (vei2)-[:KREVER]->(fysikk1)
+      CREATE (vei2)-[:GIR_TILGANG_TIL]->(kvoteOrdinaer)
+      CREATE (vei2)-[:BRUKER_RANGERING]->(rangeringKarakter)
       
-      CREATE (ingeniorMal)-[:INNEHOLDER]->(karaktersnitt)
-      CREATE (ingeniorMal)-[:INNEHOLDER]->(fagbrevRangering)
-
-      // Opprett tre-struktur: Førstegangsvitnemål vei
-      CREATE (grunnlagForstegangsvitnemaal)-[:KREVER]->(gsk)
-      CREATE (grunnlagForstegangsvitnemaal)-[:KREVER]->(matR1)
-      CREATE (grunnlagForstegangsvitnemaal)-[:KREVER]->(matR2)
-      CREATE (grunnlagForstegangsvitnemaal)-[:KREVER]->(alderForstegangsvitnemaal)
-      CREATE (grunnlagForstegangsvitnemaal)-[:GIR_TILGANG_TIL]->(forstegangsvitnemaal)
-      CREATE (grunnlagForstegangsvitnemaal)-[:BRUKER_RANGERING]->(karaktersnitt)
+      // OpptaksVei 3: Fagbrev
+      CREATE (vei3:OpptaksVei {
+        id: 'fagbrev-ingenior-standard',
+        navn: 'Fagbrev - Ingeniørutdanning Standard',
+        beskrivelse: 'Vei for søkere med fagbrev',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (ingeniorMal)-[:HAR_OPPTAKSVEI]->(vei3)
+      CREATE (vei3)-[:BASERT_PÅ]->(grunnlagFagbrev)
+      CREATE (vei3)-[:KREVER]->(gsk)
+      CREATE (vei3)-[:GIR_TILGANG_TIL]->(kvoteOrdinaer)
+      CREATE (vei3)-[:BRUKER_RANGERING]->(rangeringFagbrev)
       
-      // Opprett tre-struktur: Ordinært vitnemål vei
-      CREATE (grunnlagOrdinaertVitnemaal)-[:KREVER]->(gsk)
-      CREATE (grunnlagOrdinaertVitnemaal)-[:KREVER]->(matR1)
-      CREATE (grunnlagOrdinaertVitnemaal)-[:KREVER]->(matR2)
-      CREATE (grunnlagOrdinaertVitnemaal)-[:GIR_TILGANG_TIL]->(ordinaer)
-      CREATE (grunnlagOrdinaertVitnemaal)-[:BRUKER_RANGERING]->(karaktersnitt)
-
-      // Opprett tre-struktur: Fagbrev vei  
-      CREATE (grunnlagFagbrev)-[:KREVER]->(matR1)
-      CREATE (grunnlagFagbrev)-[:GIR_TILGANG_TIL]->(ordinaer)
-      CREATE (grunnlagFagbrev)-[:BRUKER_RANGERING]->(fagbrevRangering)
-
-      // Opprett tre-struktur: Fagskole vei
-      CREATE (grunnlagFagskole)-[:KREVER]->(matR1)  
-      CREATE (grunnlagFagskole)-[:GIR_TILGANG_TIL]->(ordinaer)
-      CREATE (grunnlagFagskole)-[:BRUKER_RANGERING]->(karaktersnitt)
+      // OpptaksVei 4: Forkurs
+      CREATE (vei4:OpptaksVei {
+        id: 'forkurs-ingenior-standard',
+        navn: 'Forkurs - Ingeniørutdanning Standard',
+        beskrivelse: 'Vei for søkere med fullført forkurs',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (ingeniorMal)-[:HAR_OPPTAKSVEI]->(vei4)
+      CREATE (vei4)-[:BASERT_PÅ]->(grunnlagForkurs)
+      CREATE (vei4)-[:KREVER]->(forkursFullfort)
+      CREATE (vei4)-[:GIR_TILGANG_TIL]->(kvoteForkurs)
+      CREATE (vei4)-[:BRUKER_RANGERING]->(rangeringForkurs)
     `);
 
     // Opprett Regelsett-mal for Lærerutdanning
@@ -567,57 +640,264 @@ async function seedAll() {
       })
     `);
 
-    // Koble lærerutdanning til standarder og opprett tre-struktur
+    // Opprett OpptaksVeier for Lærerutdanning Standard
     await session.run(`
       MATCH (laererMal:Regelsett {navn: 'Lærerutdanning Standard'})
-      MATCH (gsk:Kravelement {type: 'gsk'})
-      MATCH (norskSpraak:Kravelement {type: 'norsk-spraak'})
       
-      MATCH (grunnlagForstegangsvitnemaal:Grunnlag {type: 'forstegangsvitnemaal-vgs'})
-      MATCH (grunnlagOrdinaertVitnemaal:Grunnlag {type: 'ordinaert-vitnemaal-vgs'})
-      MATCH (alderForstegangsvitnemaal:Kravelement {type: 'alder-forstegangsvitnemaal'})
+      // Hent alle nødvendige elementer
+      MATCH (gsk:Kravelement {type: 'gsk'})
+      MATCH (norskKarakter:Kravelement {type: 'norsk-karakter-30'})
+      MATCH (matteKarakter:Kravelement {type: 'matematikk-karakter-40'})
+      MATCH (alderFgv:Kravelement {type: 'alder-forstegangsvitnemaal'})
+      
+      MATCH (grunnlagFgv:Grunnlag {type: 'forstegangsvitnemaal-vgs'})
+      MATCH (grunnlagOrdinaert:Grunnlag {type: 'ordinaert-vitnemaal-vgs'})
       MATCH (grunnlagRealkompetanse:Grunnlag {type: 'realkompetanse'})
       
-      MATCH (ordinaer:KvoteType {type: 'ordinaer'})
-      MATCH (forstegangsvitnemaal:KvoteType {type: 'forstegangsvitnemaal'})
+      MATCH (kvoteFgv:KvoteType {type: 'forstegangsvitnemaal'})
+      MATCH (kvoteOrdinaer:KvoteType {type: 'ordinaer'})
       
-      MATCH (karaktersnitt:RangeringType {type: 'karaktersnitt-realfag'})
-      MATCH (arbeidserfaring:RangeringType {type: 'erfaring-fagkompetanse'})
-
-      // Koble til regelsettmal
-      CREATE (laererMal)-[:INNEHOLDER]->(gsk)
-      CREATE (laererMal)-[:INNEHOLDER]->(norskSpraak)
+      MATCH (rangeringKarakter:RangeringType {type: 'karaktersnitt-realfag'})
+      MATCH (rangeringErfaring:RangeringType {type: 'erfaring-fagkompetanse'})
       
-      CREATE (laererMal)-[:INNEHOLDER]->(grunnlagForstegangsvitnemaal)
-      CREATE (laererMal)-[:INNEHOLDER]->(grunnlagOrdinaertVitnemaal)
-      CREATE (laererMal)-[:INNEHOLDER]->(grunnlagRealkompetanse)
+      // OpptaksVei 1: Førstegangsvitnemål
+      CREATE (vei1:OpptaksVei {
+        id: 'forstegangsvitnemaal-laerer-standard',
+        navn: 'Førstegangsvitnemål - Lærerutdanning Standard',
+        beskrivelse: 'Vei for søkere med førstegangsvitnemål',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (laererMal)-[:HAR_OPPTAKSVEI]->(vei1)
+      CREATE (vei1)-[:BASERT_PÅ]->(grunnlagFgv)
+      CREATE (vei1)-[:KREVER]->(gsk)
+      CREATE (vei1)-[:KREVER]->(norskKarakter)
+      CREATE (vei1)-[:KREVER]->(matteKarakter)
+      CREATE (vei1)-[:KREVER]->(alderFgv)
+      CREATE (vei1)-[:GIR_TILGANG_TIL]->(kvoteFgv)
+      CREATE (vei1)-[:BRUKER_RANGERING]->(rangeringKarakter)
       
-      CREATE (laererMal)-[:INNEHOLDER]->(ordinaer)
-      CREATE (laererMal)-[:INNEHOLDER]->(forstegangsvitnemaal)
+      // OpptaksVei 2: Ordinært vitnemål
+      CREATE (vei2:OpptaksVei {
+        id: 'ordinaert-vitnemaal-laerer-standard',
+        navn: 'Ordinært vitnemål - Lærerutdanning Standard',
+        beskrivelse: 'Vei for søkere med ordinært vitnemål',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (laererMal)-[:HAR_OPPTAKSVEI]->(vei2)
+      CREATE (vei2)-[:BASERT_PÅ]->(grunnlagOrdinaert)
+      CREATE (vei2)-[:KREVER]->(gsk)
+      CREATE (vei2)-[:KREVER]->(norskKarakter)
+      CREATE (vei2)-[:KREVER]->(matteKarakter)
+      CREATE (vei2)-[:GIR_TILGANG_TIL]->(kvoteOrdinaer)
+      CREATE (vei2)-[:BRUKER_RANGERING]->(rangeringKarakter)
       
-      CREATE (laererMal)-[:INNEHOLDER]->(karaktersnitt)
-      CREATE (laererMal)-[:INNEHOLDER]->(arbeidserfaring)
-
-      // Opprett tre-struktur: Førstegangsvitnemål vei
-      CREATE (grunnlagForstegangsvitnemaal)-[:KREVER]->(gsk)
-      CREATE (grunnlagForstegangsvitnemaal)-[:KREVER]->(norskSpraak)
-      CREATE (grunnlagForstegangsvitnemaal)-[:KREVER]->(alderForstegangsvitnemaal)
-      CREATE (grunnlagForstegangsvitnemaal)-[:GIR_TILGANG_TIL]->(forstegangsvitnemaal)
-      CREATE (grunnlagForstegangsvitnemaal)-[:BRUKER_RANGERING]->(karaktersnitt)
-      
-      // Opprett tre-struktur: Ordinært vitnemål vei
-      CREATE (grunnlagOrdinaertVitnemaal)-[:KREVER]->(gsk)
-      CREATE (grunnlagOrdinaertVitnemaal)-[:KREVER]->(norskSpraak)
-      CREATE (grunnlagOrdinaertVitnemaal)-[:GIR_TILGANG_TIL]->(ordinaer)
-      CREATE (grunnlagOrdinaertVitnemaal)-[:BRUKER_RANGERING]->(karaktersnitt)
-
-      // Opprett tre-struktur: Realkompetanse vei
-      CREATE (grunnlagRealkompetanse)-[:KREVER]->(norskSpraak)
-      CREATE (grunnlagRealkompetanse)-[:GIR_TILGANG_TIL]->(ordinaer)
-      CREATE (grunnlagRealkompetanse)-[:BRUKER_RANGERING]->(arbeidserfaring)
+      // OpptaksVei 3: Realkompetanse
+      CREATE (vei3:OpptaksVei {
+        id: 'realkompetanse-laerer-standard',
+        navn: 'Realkompetanse - Lærerutdanning Standard',
+        beskrivelse: 'Vei for søkere med realkompetanse',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (laererMal)-[:HAR_OPPTAKSVEI]->(vei3)
+      CREATE (vei3)-[:BASERT_PÅ]->(grunnlagRealkompetanse)
+      CREATE (vei3)-[:KREVER]->(norskKarakter)
+      CREATE (vei3)-[:GIR_TILGANG_TIL]->(kvoteOrdinaer)
+      CREATE (vei3)-[:BRUKER_RANGERING]->(rangeringErfaring)
     `);
 
     console.log('✅ Opprettet regelsett-maler');
+
+    // ========== KONKRETE REGELSETT ==========
+    console.log('📜 Oppretter konkrete regelsett...');
+
+    // NTNU Bygg- og miljøteknikk H25 (basert på Ingeniørutdanning mal)
+    await session.run(`
+      CREATE (ntnuBygg:Regelsett {
+        id: randomUUID(),
+        navn: 'NTNU Bygg- og miljøteknikk H25',
+        beskrivelse: 'Regelsett for Bachelor i Bygg- og miljøteknikk ved NTNU, høst 2025',
+        versjon: '1.0',
+        erMal: false,
+        basertPå: 'ingenior-standard',
+        gyldigFra: date('2025-01-01'),
+        opprettet: datetime(),
+        aktiv: true
+      })
+    `);
+
+    // Opprett OpptaksVeier for NTNU Bygg
+    await session.run(`
+      MATCH (ntnuBygg:Regelsett {navn: 'NTNU Bygg- og miljøteknikk H25'})
+      
+      // Hent alle nødvendige elementer
+      MATCH (gsk:Kravelement {type: 'gsk'})
+      MATCH (matteR1R2:Kravelement {type: 'matematikk-r1r2'})
+      MATCH (fysikk1:Kravelement {type: 'fysikk-1'})
+      MATCH (alderFgv:Kravelement {type: 'alder-forstegangsvitnemaal'})
+      MATCH (forkursFullfort:Kravelement {type: 'forkurs-fullfort'})
+      
+      MATCH (grunnlagFgv:Grunnlag {type: 'forstegangsvitnemaal-vgs'})
+      MATCH (grunnlagOrdinaert:Grunnlag {type: 'ordinaert-vitnemaal-vgs'})
+      MATCH (grunnlagFagbrev:Grunnlag {type: 'fagbrev'})
+      MATCH (grunnlagForkurs:Grunnlag {type: 'forkurs-ingenior'})
+      
+      MATCH (kvoteFgv:KvoteType {type: 'forstegangsvitnemaal'})
+      MATCH (kvoteOrdinaer:KvoteType {type: 'ordinaer'})
+      MATCH (kvoteForkurs:KvoteType {type: 'forkurs'})
+      
+      MATCH (rangeringKarakter:RangeringType {type: 'karaktersnitt-realfag'})
+      MATCH (rangeringFagbrev:RangeringType {type: 'fagbrev-realfag'})
+      MATCH (rangeringForkurs:RangeringType {type: 'forkurs'})
+      
+      // OpptaksVei 1: Førstegangsvitnemål
+      CREATE (vei1:OpptaksVei {
+        id: 'forstegangsvitnemaal-ntnu-bygg-h25',
+        navn: 'Førstegangsvitnemål - NTNU Bygg H25',
+        beskrivelse: 'Vei for søkere med førstegangsvitnemål til NTNU Bygg- og miljøteknikk',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (ntnuBygg)-[:HAR_OPPTAKSVEI]->(vei1)
+      CREATE (vei1)-[:BASERT_PÅ]->(grunnlagFgv)
+      CREATE (vei1)-[:KREVER]->(gsk)
+      CREATE (vei1)-[:KREVER]->(matteR1R2)
+      CREATE (vei1)-[:KREVER]->(fysikk1)
+      CREATE (vei1)-[:KREVER]->(alderFgv)
+      CREATE (vei1)-[:GIR_TILGANG_TIL]->(kvoteFgv)
+      CREATE (vei1)-[:BRUKER_RANGERING]->(rangeringKarakter)
+      
+      // OpptaksVei 2: Ordinært vitnemål
+      CREATE (vei2:OpptaksVei {
+        id: 'ordinaert-vitnemaal-ntnu-bygg-h25',
+        navn: 'Ordinært vitnemål - NTNU Bygg H25',
+        beskrivelse: 'Vei for søkere med ordinært vitnemål til NTNU Bygg- og miljøteknikk',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (ntnuBygg)-[:HAR_OPPTAKSVEI]->(vei2)
+      CREATE (vei2)-[:BASERT_PÅ]->(grunnlagOrdinaert)
+      CREATE (vei2)-[:KREVER]->(gsk)
+      CREATE (vei2)-[:KREVER]->(matteR1R2)
+      CREATE (vei2)-[:KREVER]->(fysikk1)
+      CREATE (vei2)-[:GIR_TILGANG_TIL]->(kvoteOrdinaer)
+      CREATE (vei2)-[:BRUKER_RANGERING]->(rangeringKarakter)
+      
+      // OpptaksVei 3: Fagbrev
+      CREATE (vei3:OpptaksVei {
+        id: 'fagbrev-ntnu-bygg-h25',
+        navn: 'Fagbrev - NTNU Bygg H25',
+        beskrivelse: 'Vei for søkere med fagbrev til NTNU Bygg- og miljøteknikk',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (ntnuBygg)-[:HAR_OPPTAKSVEI]->(vei3)
+      CREATE (vei3)-[:BASERT_PÅ]->(grunnlagFagbrev)
+      CREATE (vei3)-[:KREVER]->(gsk)
+      CREATE (vei3)-[:GIR_TILGANG_TIL]->(kvoteOrdinaer)
+      CREATE (vei3)-[:BRUKER_RANGERING]->(rangeringFagbrev)
+      
+      // OpptaksVei 4: Forkurs
+      CREATE (vei4:OpptaksVei {
+        id: 'forkurs-ntnu-bygg-h25',
+        navn: 'Forkurs - NTNU Bygg H25',
+        beskrivelse: 'Vei for søkere med fullført forkurs til NTNU Bygg- og miljøteknikk',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (ntnuBygg)-[:HAR_OPPTAKSVEI]->(vei4)
+      CREATE (vei4)-[:BASERT_PÅ]->(grunnlagForkurs)
+      CREATE (vei4)-[:KREVER]->(forkursFullfort)
+      CREATE (vei4)-[:GIR_TILGANG_TIL]->(kvoteForkurs)
+      CREATE (vei4)-[:BRUKER_RANGERING]->(rangeringForkurs)
+    `);
+
+    // UiO Lærerutdanning H25 (basert på Lærerutdanning mal)
+    await session.run(`
+      CREATE (uioLaerer:Regelsett {
+        id: randomUUID(),
+        navn: 'UiO Lærerutdanning 1-7 H25',
+        beskrivelse: 'Regelsett for Grunnskolelærerutdanning 1-7 ved UiO, høst 2025',
+        versjon: '1.0',
+        erMal: false,
+        basertPå: 'laerer-standard',
+        gyldigFra: date('2025-01-01'),
+        opprettet: datetime(),
+        aktiv: true
+      })
+    `);
+
+    // Opprett OpptaksVeier for UiO Lærer
+    await session.run(`
+      MATCH (uioLaerer:Regelsett {navn: 'UiO Lærerutdanning 1-7 H25'})
+      
+      // Hent alle nødvendige elementer
+      MATCH (gsk:Kravelement {type: 'gsk'})
+      MATCH (norskKarakter:Kravelement {type: 'norsk-karakter-30'})
+      MATCH (matteKarakter:Kravelement {type: 'matematikk-karakter-40'})
+      MATCH (alderFgv:Kravelement {type: 'alder-forstegangsvitnemaal'})
+      
+      MATCH (grunnlagFgv:Grunnlag {type: 'forstegangsvitnemaal-vgs'})
+      MATCH (grunnlagOrdinaert:Grunnlag {type: 'ordinaert-vitnemaal-vgs'})
+      MATCH (grunnlagRealkompetanse:Grunnlag {type: 'realkompetanse'})
+      
+      MATCH (kvoteFgv:KvoteType {type: 'forstegangsvitnemaal'})
+      MATCH (kvoteOrdinaer:KvoteType {type: 'ordinaer'})
+      
+      MATCH (rangeringKarakter:RangeringType {type: 'karaktersnitt-realfag'})
+      MATCH (rangeringErfaring:RangeringType {type: 'erfaring-fagkompetanse'})
+      
+      // OpptaksVei 1: Førstegangsvitnemål
+      CREATE (vei1:OpptaksVei {
+        id: 'forstegangsvitnemaal-uio-laerer-h25',
+        navn: 'Førstegangsvitnemål - UiO Lærerutdanning H25',
+        beskrivelse: 'Vei for søkere med førstegangsvitnemål til UiO lærerutdanning',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (uioLaerer)-[:HAR_OPPTAKSVEI]->(vei1)
+      CREATE (vei1)-[:BASERT_PÅ]->(grunnlagFgv)
+      CREATE (vei1)-[:KREVER]->(gsk)
+      CREATE (vei1)-[:KREVER]->(norskKarakter)
+      CREATE (vei1)-[:KREVER]->(matteKarakter)
+      CREATE (vei1)-[:KREVER]->(alderFgv)
+      CREATE (vei1)-[:GIR_TILGANG_TIL]->(kvoteFgv)
+      CREATE (vei1)-[:BRUKER_RANGERING]->(rangeringKarakter)
+      
+      // OpptaksVei 2: Ordinært vitnemål
+      CREATE (vei2:OpptaksVei {
+        id: 'ordinaert-vitnemaal-uio-laerer-h25',
+        navn: 'Ordinært vitnemål - UiO Lærerutdanning H25',
+        beskrivelse: 'Vei for søkere med ordinært vitnemål til UiO lærerutdanning',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (uioLaerer)-[:HAR_OPPTAKSVEI]->(vei2)
+      CREATE (vei2)-[:BASERT_PÅ]->(grunnlagOrdinaert)
+      CREATE (vei2)-[:KREVER]->(gsk)
+      CREATE (vei2)-[:KREVER]->(norskKarakter)
+      CREATE (vei2)-[:KREVER]->(matteKarakter)
+      CREATE (vei2)-[:GIR_TILGANG_TIL]->(kvoteOrdinaer)
+      CREATE (vei2)-[:BRUKER_RANGERING]->(rangeringKarakter)
+      
+      // OpptaksVei 3: Realkompetanse
+      CREATE (vei3:OpptaksVei {
+        id: 'realkompetanse-uio-laerer-h25',
+        navn: 'Realkompetanse - UiO Lærerutdanning H25',
+        beskrivelse: 'Vei for søkere med realkompetanse til UiO lærerutdanning',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (uioLaerer)-[:HAR_OPPTAKSVEI]->(vei3)
+      CREATE (vei3)-[:BASERT_PÅ]->(grunnlagRealkompetanse)
+      CREATE (vei3)-[:KREVER]->(norskKarakter)
+      CREATE (vei3)-[:GIR_TILGANG_TIL]->(kvoteOrdinaer)
+      CREATE (vei3)-[:BRUKER_RANGERING]->(rangeringErfaring)
+    `);
+
+    console.log('✅ Opprettet konkrete regelsett');
 
     // ========== INSTITUSJONER ==========
     console.log('🏢 Oppretter institusjoner...');
@@ -977,12 +1257,14 @@ async function seedAll() {
     // Regelsett-maler
     const regelsettMalerSummary = await session.run(`
       MATCH (rm:Regelsett {erMal: true})
-      OPTIONAL MATCH (rm)-[:INNEHOLDER]->(ke:Kravelement)
-      OPTIONAL MATCH (rm)-[:INNEHOLDER]->(g:Grunnlag)
-      OPTIONAL MATCH (rm)-[:INNEHOLDER]->(kt:KvoteType)
-      OPTIONAL MATCH (rm)-[:INNEHOLDER]->(rt:RangeringType)
+      OPTIONAL MATCH (rm)-[:HAR_OPPTAKSVEI]->(ov:OpptaksVei)
+      OPTIONAL MATCH (ov)-[:KREVER]->(ke:Kravelement)
+      OPTIONAL MATCH (ov)-[:BASERT_PÅ]->(g:Grunnlag)
+      OPTIONAL MATCH (ov)-[:GIR_TILGANG_TIL]->(kt:KvoteType)
+      OPTIONAL MATCH (ov)-[:BRUKER_RANGERING]->(rt:RangeringType)
       
       RETURN rm.navn as regelsettMal,
+             count(DISTINCT ov) as antallOpptaksVeier,
              count(DISTINCT ke) as antallKravelementer,
              count(DISTINCT g) as antallGrunnlag,
              count(DISTINCT kt) as antallKvoteTyper,
@@ -993,6 +1275,37 @@ async function seedAll() {
     console.log('\n   📜 Regelsett-maler:');
     regelsettMalerSummary.records.forEach((record) => {
       console.log(`     ${record.get('regelsettMal')}:`);
+      console.log(`       OpptaksVeier: ${record.get('antallOpptaksVeier').toNumber()}`);
+      console.log(`       Kravelementer: ${record.get('antallKravelementer').toNumber()}`);
+      console.log(`       Grunnlag: ${record.get('antallGrunnlag').toNumber()}`);
+      console.log(`       Kvotetyper: ${record.get('antallKvoteTyper').toNumber()}`);
+      console.log(`       Rangeringstyper: ${record.get('antallRangeringTyper').toNumber()}`);
+    });
+
+    // Konkrete regelsett
+    const konkreteRegelsettSummary = await session.run(`
+      MATCH (r:Regelsett {erMal: false})
+      OPTIONAL MATCH (r)-[:HAR_OPPTAKSVEI]->(ov:OpptaksVei)
+      OPTIONAL MATCH (ov)-[:KREVER]->(ke:Kravelement)
+      OPTIONAL MATCH (ov)-[:BASERT_PÅ]->(g:Grunnlag)
+      OPTIONAL MATCH (ov)-[:GIR_TILGANG_TIL]->(kt:KvoteType)
+      OPTIONAL MATCH (ov)-[:BRUKER_RANGERING]->(rt:RangeringType)
+      
+      RETURN r.navn as regelsett,
+             r.basertPå as basertPå,
+             count(DISTINCT ov) as antallOpptaksVeier,
+             count(DISTINCT ke) as antallKravelementer,
+             count(DISTINCT g) as antallGrunnlag,
+             count(DISTINCT kt) as antallKvoteTyper,
+             count(DISTINCT rt) as antallRangeringTyper
+      ORDER BY r.navn
+    `);
+
+    console.log('\n   📋 Konkrete regelsett:');
+    konkreteRegelsettSummary.records.forEach((record) => {
+      console.log(`     ${record.get('regelsett')}:`);
+      console.log(`       Basert på: ${record.get('basertPå') || 'ingen mal'}`);
+      console.log(`       OpptaksVeier: ${record.get('antallOpptaksVeier').toNumber()}`);
       console.log(`       Kravelementer: ${record.get('antallKravelementer').toNumber()}`);
       console.log(`       Grunnlag: ${record.get('antallGrunnlag').toNumber()}`);
       console.log(`       Kvotetyper: ${record.get('antallKvoteTyper').toNumber()}`);
