@@ -99,12 +99,13 @@ export default function RegelbyggingPage() {
         fetch('/api/rangeringstyper'),
       ]);
 
-      const [kravelementerData, grunnlagData, kvotetypeData, rangeringstypeData] = await Promise.all([
-        kravelementerRes.json(),
-        grunnlagRes.json(),
-        kvotetypeRes.json(),
-        rangeringstypeRes.json(),
-      ]);
+      const [kravelementerData, grunnlagData, kvotetypeData, rangeringstypeData] =
+        await Promise.all([
+          kravelementerRes.json(),
+          grunnlagRes.json(),
+          kvotetypeRes.json(),
+          rangeringstypeRes.json(),
+        ]);
 
       setKravelementer(kravelementerData);
       setGrunnlag(grunnlagData);
@@ -222,7 +223,8 @@ export default function RegelbyggingPage() {
                 <div>
                   <CardTitle>Grunnlag</CardTitle>
                   <CardDescription>
-                    Standard grunnlag for opptak (f.eks. "Vitnemål videregående", "Fagbrev")
+                    Standard grunnlag for opptak (f.eks. &quot;Vitnemål videregående&quot;,
+                    &quot;Fagbrev&quot;)
                   </CardDescription>
                 </div>
                 <Button>
@@ -257,7 +259,9 @@ export default function RegelbyggingPage() {
                       <TableRow key={item.id}>
                         <TableCell className="font-medium">{item.navn}</TableCell>
                         <TableCell className="font-mono text-sm">{item.type}</TableCell>
-                        <TableCell className="max-w-xs truncate">{item.beskrivelse || '-'}</TableCell>
+                        <TableCell className="max-w-xs truncate">
+                          {item.beskrivelse || '-'}
+                        </TableCell>
                         <TableCell>
                           <span
                             className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
@@ -285,7 +289,8 @@ export default function RegelbyggingPage() {
                 <div>
                   <CardTitle>Kravelementer</CardTitle>
                   <CardDescription>
-                    Standard krav som kan brukes i regelsett (f.eks. "Matematikk R1-nivå", "Politiattest")
+                    Standard krav som kan brukes i regelsett (f.eks. &quot;Matematikk R1-nivå&quot;,
+                    &quot;Politiattest&quot;)
                   </CardDescription>
                 </div>
                 <Dialog open={showNyKravelement} onOpenChange={setShowNyKravelement}>
@@ -298,7 +303,9 @@ export default function RegelbyggingPage() {
                   <DialogContent className="sm:max-w-[425px]">
                     <DialogHeader>
                       <DialogTitle>Opprett nytt kravelement</DialogTitle>
-                      <DialogDescription>Legg til et nytt kravelement i systemet.</DialogDescription>
+                      <DialogDescription>
+                        Legg til et nytt kravelement i systemet.
+                      </DialogDescription>
                     </DialogHeader>
                     <div className="grid gap-4 py-4">
                       <div className="grid grid-cols-4 items-center gap-4">
@@ -308,7 +315,9 @@ export default function RegelbyggingPage() {
                         <Input
                           id="kravelement-navn"
                           value={nyKravelement.navn}
-                          onChange={(e) => setNyKravelement({ ...nyKravelement, navn: e.target.value })}
+                          onChange={(e) =>
+                            setNyKravelement({ ...nyKravelement, navn: e.target.value })
+                          }
                           className="col-span-3"
                           placeholder="f.eks. Matematikk R1-nivå"
                         />
@@ -320,7 +329,9 @@ export default function RegelbyggingPage() {
                         <Input
                           id="kravelement-type"
                           value={nyKravelement.type}
-                          onChange={(e) => setNyKravelement({ ...nyKravelement, type: e.target.value })}
+                          onChange={(e) =>
+                            setNyKravelement({ ...nyKravelement, type: e.target.value })
+                          }
                           className="col-span-3"
                           placeholder="f.eks. matematikk-r1"
                         />
@@ -341,7 +352,11 @@ export default function RegelbyggingPage() {
                       </div>
                     </div>
                     <DialogFooter>
-                      <Button type="submit" onClick={opprettKravelement} disabled={!nyKravelement.navn || !nyKravelement.type}>
+                      <Button
+                        type="submit"
+                        onClick={opprettKravelement}
+                        disabled={!nyKravelement.navn || !nyKravelement.type}
+                      >
                         Opprett kravelement
                       </Button>
                     </DialogFooter>
@@ -376,7 +391,9 @@ export default function RegelbyggingPage() {
                       <TableRow key={kravelement.id}>
                         <TableCell className="font-medium">{kravelement.navn}</TableCell>
                         <TableCell className="font-mono text-sm">{kravelement.type}</TableCell>
-                        <TableCell className="max-w-xs truncate">{kravelement.beskrivelse || '-'}</TableCell>
+                        <TableCell className="max-w-xs truncate">
+                          {kravelement.beskrivelse || '-'}
+                        </TableCell>
                         <TableCell>
                           <span
                             className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
@@ -433,7 +450,8 @@ export default function RegelbyggingPage() {
                 <div>
                   <CardTitle>Kvotetyper</CardTitle>
                   <CardDescription>
-                    Standard kvotetyper (f.eks. "Ordinær kvote", "Førstegangsvitnemål")
+                    Standard kvotetyper (f.eks. &quot;Ordinær kvote&quot;,
+                    &quot;Førstegangsvitnemål&quot;)
                   </CardDescription>
                 </div>
                 <Button>
@@ -468,7 +486,9 @@ export default function RegelbyggingPage() {
                       <TableRow key={item.id}>
                         <TableCell className="font-medium">{item.navn}</TableCell>
                         <TableCell className="font-mono text-sm">{item.type}</TableCell>
-                        <TableCell className="max-w-xs truncate">{item.beskrivelse || '-'}</TableCell>
+                        <TableCell className="max-w-xs truncate">
+                          {item.beskrivelse || '-'}
+                        </TableCell>
                         <TableCell>
                           <span
                             className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
@@ -496,7 +516,7 @@ export default function RegelbyggingPage() {
                 <div>
                   <CardTitle>Rangeringstyper</CardTitle>
                   <CardDescription>
-                    Standard rangeringsmetoder (f.eks. "Karaktersnitt + realfagspoeng")
+                    Standard rangeringsmetoder (f.eks. &quot;Karaktersnitt + realfagspoeng&quot;)
                   </CardDescription>
                 </div>
                 <Button>
@@ -532,8 +552,12 @@ export default function RegelbyggingPage() {
                       <TableRow key={item.id}>
                         <TableCell className="font-medium">{item.navn}</TableCell>
                         <TableCell className="font-mono text-sm">{item.type}</TableCell>
-                        <TableCell className="font-mono text-xs max-w-xs truncate">{item.formelMal || '-'}</TableCell>
-                        <TableCell className="max-w-xs truncate">{item.beskrivelse || '-'}</TableCell>
+                        <TableCell className="font-mono text-xs max-w-xs truncate">
+                          {item.formelMal || '-'}
+                        </TableCell>
+                        <TableCell className="max-w-xs truncate">
+                          {item.beskrivelse || '-'}
+                        </TableCell>
                         <TableCell>
                           <span
                             className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
@@ -571,7 +595,9 @@ export default function RegelbyggingPage() {
                 <Input
                   id="edit-kravelement-navn"
                   value={selectedKravelement.navn}
-                  onChange={(e) => setSelectedKravelement({ ...selectedKravelement, navn: e.target.value })}
+                  onChange={(e) =>
+                    setSelectedKravelement({ ...selectedKravelement, navn: e.target.value })
+                  }
                   className="col-span-3"
                 />
               </div>
@@ -582,7 +608,9 @@ export default function RegelbyggingPage() {
                 <Input
                   id="edit-kravelement-type"
                   value={selectedKravelement.type}
-                  onChange={(e) => setSelectedKravelement({ ...selectedKravelement, type: e.target.value })}
+                  onChange={(e) =>
+                    setSelectedKravelement({ ...selectedKravelement, type: e.target.value })
+                  }
                   className="col-span-3"
                 />
               </div>
@@ -631,7 +659,7 @@ export default function RegelbyggingPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Er du sikker?</AlertDialogTitle>
             <AlertDialogDescription>
-              Dette vil permanent slette {deleteConfirm?.type} "{deleteConfirm?.navn}".
+              Dette vil permanent slette {deleteConfirm?.type} &quot;{deleteConfirm?.navn}&quot;.
               Denne handlingen kan ikke angres.
             </AlertDialogDescription>
           </AlertDialogHeader>
