@@ -16,20 +16,20 @@ export async function GET() {
       MATCH (p:Person)
       WITH institusjoner, utdanningstilbud, count(p) as sokere
       
-      MATCH (rm:RegelsettMal)
-      WITH institusjoner, utdanningstilbud, sokere, count(rm) as regelsettMaler
+      MATCH (r:Regelsett)
+      WITH institusjoner, utdanningstilbud, sokere, count(r) as regelsett
       
       MATCH (d:Dokumentasjon)
-      WITH institusjoner, utdanningstilbud, sokere, regelsettMaler, count(d) as dokumenter
+      WITH institusjoner, utdanningstilbud, sokere, regelsett, count(d) as dokumenter
       
       MATCH (fk:Fagkode)
-      WITH institusjoner, utdanningstilbud, sokere, regelsettMaler, dokumenter, count(fk) as fagkoder
+      WITH institusjoner, utdanningstilbud, sokere, regelsett, dokumenter, count(fk) as fagkoder
       
       RETURN {
         institusjoner: institusjoner,
         utdanningstilbud: utdanningstilbud,
         sokere: sokere,
-        regelsettMaler: regelsettMaler,
+        regelsett: regelsett,
         dokumenter: dokumenter,
         fagkoder: fagkoder
       } as stats
