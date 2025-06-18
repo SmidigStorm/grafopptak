@@ -1,5 +1,5 @@
 import { getSession } from '../lib/neo4j';
-import { seedFagkoderAndFaggrupper } from './seed-fagkoder';
+import { seedAll } from './seed-all';
 
 // Database administrasjonsfunksjoner
 export class DatabaseAdmin {
@@ -194,8 +194,8 @@ export class DatabaseAdmin {
       // 2. Setup constraints
       await this.setupConstraints();
 
-      // 3. Seed fagkoder og faggrupper
-      await seedFagkoderAndFaggrupper();
+      // 3. Seed all data
+      await seedAll();
 
       // 4. Vis statistikk
       console.log('\n');

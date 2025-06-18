@@ -21,6 +21,7 @@ import {
   Settings,
   BarChart3,
   Database,
+  Hammer,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -44,6 +45,11 @@ const menuItems = [
     title: 'Regelsett',
     icon: FileText,
     href: '/admin/regelsett',
+  },
+  {
+    title: 'Regelbygging',
+    icon: Hammer,
+    href: '/admin/regelbygging',
   },
   {
     title: 'Fagkoder',

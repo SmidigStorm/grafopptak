@@ -35,8 +35,8 @@ export default async function globalSetup() {
     await DatabaseAdmin.setupConstraints();
 
     // Import and run seed
-    const { seedFagkoderAndFaggrupper } = await import('../scripts/seed-fagkoder.js');
-    await seedFagkoderAndFaggrupper();
+    const { seedAll } = await import('../scripts/seed-all.js');
+    await seedAll();
 
     console.log('✅ Global test database setup complete');
   } catch (error) {

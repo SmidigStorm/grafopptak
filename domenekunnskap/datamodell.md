@@ -22,8 +22,10 @@ graph TD
     RegelsettMal -->|INNEHOLDER| KvoteType
     RegelsettMal -->|INNEHOLDER| RangeringType
 
-    %% Kobling mellom krav og faggrupper
+    %% Kobling mellom krav og oppfyllelse (tre forskjellige måter)
     Kravelement -->|OPPFYLLES_AV| Faggruppe
+    Kravelement -->|OPPFYLLES_AV| Dokumentasjon
+    Kravelement -->|OPPFYLLES_AV| Fagkode
 
     %% Utdanningstilbud-spesifikke implementeringer
     Regelsett -->|BASERES_PÅ| RegelsettMal
@@ -414,7 +416,9 @@ CREATE CONSTRAINT fagkode_kode FOR (fk:Fagkode) REQUIRE fk.kode IS UNIQUE;
 CREATE CONSTRAINT faggruppe_id FOR (fg:Faggruppe) REQUIRE fg.id IS UNIQUE;
 ```
 
-## 📝 Eksempel: S1 + S2 = R1-nivå
+## 📝 Eksempel: Kravelementer med forskjellige oppfyllelsesmåter
+
+### Eksempel 1: Matematikk R1-nivå (via faggruppe)
 
 **Fagkoder:**
 
@@ -453,6 +457,21 @@ CREATE (fg:Faggruppe {
 });
 ```
 
+**Kravelement som oppfylles av faggruppe:**
+
+```cypher
+CREATE (krav_matte:Kravelement {
+  id: "krav-matematikk-r1",
+  navn: "Matematikk R1-nivå",
+  type: "matematikk-r1",
+  beskrivelse: "Matematikk på R1-nivå eller tilsvarende",
+  aktiv: true
+});
+
+// Kravelementet oppfylles av faggruppen
+CREATE (krav_matte)-[:OPPFYLLES_AV]->(fg);
+```
+
 **Kvalifisering:**
 
 ```cypher
@@ -464,6 +483,43 @@ CREATE (s1)-[:KVALIFISERER_FOR {kreverKombinasjon: ["MAT1002-S2"]}]->(fg);
 CREATE (s2)-[:KVALIFISERER_FOR {kreverKombinasjon: ["MAT1001-S1"]}]->(fg);
 ```
 
+### Eksempel 2: Politiattest (direkte dokumentasjon)
+
+```cypher
+CREATE (krav_politiattest:Kravelement {
+  id: "krav-politiattest",
+  navn: "Politiattest",
+  type: "politiattest",
+  beskrivelse: "Gyldig politiattest ikke eldre enn 3 måneder",
+  aktiv: true
+});
+
+// Kravelementet oppfylles direkte av dokumentasjonstype
+CREATE (krav_politiattest)-[:OPPFYLLES_AV {dokumentType: "politiattest", maksAlder: "3 måneder"}]->(:Dokumentasjon);
+```
+
+### Eksempel 3: Spesifikk fagkode (direkte fagkode)
+
+```cypher
+CREATE (spesiell_fagkode:Fagkode {
+  id: "spesiell-fag",
+  kode: "SPEC001",
+  navn: "Spesialisert fag",
+  aktiv: true
+});
+
+CREATE (krav_spesiell:Kravelement {
+  id: "krav-spesiell-fagkode",
+  navn: "Spesialisert fagkompetanse",
+  type: "spesiell-fagkode",
+  beskrivelse: "Krever akkurat dette spesielle faget",
+  aktiv: true
+});
+
+// Kravelementet oppfylles direkte av en spesifikk fagkode
+CREATE (krav_spesiell)-[:OPPFYLLES_AV]->(spesiell_fagkode);
+```
+
 **Dokumentasjon med fagkoder og karakterer:**
 
 ```cypher
@@ -471,6 +527,13 @@ CREATE (vitnemal:Dokumentasjon {
   id: "ole-vitnemal-vgs",
   navn: "Vitnemål videregående skole",
   type: "vitnemaal"
+});
+
+CREATE (politiattest:Dokumentasjon {
+  id: "ole-politiattest",
+  navn: "Politiattest",
+  type: "politiattest",
+  utstedt: date("2025-06-01")
 });
 
 // Ole har S1 med karakter 5 og S2 med karakter 4
@@ -737,4 +800,16 @@ RETURN u, ki.spesifikkeKrav;
 
 **Properties:** (ingen)
 
-**Beskrivelse:** Et kravelement oppfylles av en faggruppe
+**Beskrivelse:** Et kravelement oppfylles av en faggruppe (f.eks. "Matematikk R2-nivå" oppfylles av faggruppen som inneholder MAT1015-R2, S1+S2+S3, osv.)
+
+### Kravelement OPPFYLLES_AV Dokumentasjon
+
+**Properties:** (ingen)
+
+**Beskrivelse:** Et kravelement oppfylles direkte av en dokumentasjonstype (f.eks. "Politiattest" oppfylles av dokumentasjon med type "politiattest")
+
+### Kravelement OPPFYLLES_AV Fagkode
+
+**Properties:** (ingen)
+
+**Beskrivelse:** Et kravelement oppfylles direkte av en spesifikk fagkode (f.eks. et kravelement som krever akkurat "MAT1015-R2" uten alternative fagkoder)
