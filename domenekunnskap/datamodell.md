@@ -237,7 +237,7 @@ CREATE CONSTRAINT regelsettmal_id FOR (rm:RegelsettMal) REQUIRE rm.id IS UNIQUE;
 
 - `id` (string, required, unique): Unik identifikator
 - `navn` (string, required): Navn på grunnlaget (f.eks. "Vitnemål videregående")
-- `type` (string, required): Type grunnlag ("vitnemaal-vgs", "fagbrev", "fagskole", "utenlandsk", "realkompetanse")
+- `type` (string, required): Type grunnlag ("forstegangsvitnemaal-vgs", "ordinaert-vitnemaal-vgs", "fagbrev", "fagskole", "utenlandsk", "realkompetanse")
 - `beskrivelse` (string): Beskrivelse av grunnlaget
 - `aktiv` (boolean): Om grunnlaget er aktivt
 
@@ -255,7 +255,7 @@ CREATE CONSTRAINT grunnlag_id FOR (g:Grunnlag) REQUIRE g.id IS UNIQUE;
 
 - `id` (string, required, unique): Unik identifikator
 - `navn` (string, required): Navn på kravelementet (f.eks. "Generell studiekompetanse")
-- `type` (string, required): Type krav ("gsk", "matematikk-r1", "alder", "erfaring", "språk")
+- `type` (string, required): Type krav ("gsk", "matematikk-r1", "matematikk-r2", "alder", "alder-forstegangsvitnemaal", "erfaring", "språk")
 - `beskrivelse` (string): Detaljert beskrivelse
 - `aktiv` (boolean): Om kravelementet er aktivt
 
@@ -586,23 +586,30 @@ Et regelsett bygges opp som en tre-struktur hvor:
 
 ```
 📋 RegelsettMal: "Ingeniørutdanning"
-├── 🏗️ Grunnlag: "Vitnemål videregående" (standard)
+├── 🏗️ Grunnlag: "Førstegangsvitnemål videregående" (standard)
+├── 🏗️ Grunnlag: "Ordinært vitnemål videregående" (standard)
 ├── ✅ Kravelement: "GSK" (standard)
+├── ✅ Kravelement: "Alderskrav førstegangsvitnemål" (standard)
+├── 📊 KvoteType: "Førstegangsvitnemål kvote" (standard)
 ├── 📊 KvoteType: "Ordinær kvote" (standard)
 └── 📈 RangeringType: "Karaktersnitt + realfag" (standard)
 
 ↓ Implementeres som:
 
 📜 Regelsett: "NTNU Bygg- og miljøteknikk H25"
-├── 🏗️ GrunnlagImplementering: "Vitnemål videregående - NTNU"
+├── 🏗️ GrunnlagImplementering: "Førstegangsvitnemål videregående - NTNU"
 │   ├── ✅ KravImplementering: "GSK med minimumskarakter 3.0"
 │   ├── ✅ KravImplementering: "Matematikk R1 med karakter 4+"
-│   ├── 📊 KvoteImplementering: "Ordinær kvote (60 plasser)" → 📈 RangeringImplementering: "Karaktersnitt + 2x realfag"
-│   └── 📊 KvoteImplementering: "Førstegangsvitnemål (60 plasser)" → 📈 RangeringImplementering: "Karaktersnitt + 2x realfag"
+│   ├── ✅ KravImplementering: "Maksimalt 2 år siden vitnemål"
+│   └── 📊 KvoteImplementering: "Førstegangsvitnemål kvote (60 plasser)" → 📈 RangeringImplementering: "Karaktersnitt + 2x realfag"
+├── 🏗️ GrunnlagImplementering: "Ordinært vitnemål videregående - NTNU"
+│   ├── ✅ KravImplementering: "GSK med minimumskarakter 3.0"
+│   ├── ✅ KravImplementering: "Matematikk R1 med karakter 4+"
+│   └── 📊 KvoteImplementering: "Ordinær kvote (80 plasser)" → 📈 RangeringImplementering: "Karaktersnitt + 2x realfag"
 ├── 🏗️ GrunnlagImplementering: "Fagbrev - NTNU"
 │   ├── ✅ KravImplementering: "Relevant fagbrev (bygg/anlegg)"
 │   ├── ✅ KravImplementering: "Matematikk R1 med karakter 3+"
-│   └── 📊 KvoteImplementering: "Ordinær kvote (60 plasser)" → 📈 RangeringImplementering: "Fagbrev 40% + realfag 60%"
+│   └── 📊 KvoteImplementering: "Ordinær kvote (80 plasser)" → 📈 RangeringImplementering: "Fagbrev 40% + realfag 60%"
 ```
 
 ## ⚡ Gjenbruk og propagering

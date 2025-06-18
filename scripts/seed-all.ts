@@ -317,6 +317,14 @@ async function seedAll() {
         aktiv: true,
         opprettet: datetime()
       })
+      CREATE (krav8:Kravelement {
+        id: randomUUID(),
+        navn: 'Alderskrav førstegangsvitnemål',
+        type: 'alder-forstegangsvitnemaal',
+        beskrivelse: 'Maksimalt 2 år siden vitnemål ble fullført',
+        aktiv: true,
+        opprettet: datetime()
+      })
     `);
     console.log('✅ Opprettet kravelementer');
 
@@ -326,13 +334,21 @@ async function seedAll() {
     await session.run(`
       CREATE (grunnlag1:Grunnlag {
         id: randomUUID(),
-        navn: 'Vitnemål videregående',
-        type: 'vitnemaal-vgs',
-        beskrivelse: 'Standard vitnemål fra videregående skole',
+        navn: 'Førstegangsvitnemål videregående',
+        type: 'forstegangsvitnemaal-vgs',
+        beskrivelse: 'Vitnemål fra videregående skole, maksimalt 2 år siden fullført',
         aktiv: true,
         opprettet: datetime()
       })
       CREATE (grunnlag2:Grunnlag {
+        id: randomUUID(),
+        navn: 'Ordinært vitnemål videregående',
+        type: 'ordinaert-vitnemaal-vgs',
+        beskrivelse: 'Standard vitnemål fra videregående skole',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (grunnlag3:Grunnlag {
         id: randomUUID(),
         navn: 'Fagbrev',
         type: 'fagbrev',
@@ -340,7 +356,7 @@ async function seedAll() {
         aktiv: true,
         opprettet: datetime()
       })
-      CREATE (grunnlag3:Grunnlag {
+      CREATE (grunnlag4:Grunnlag {
         id: randomUUID(),
         navn: 'FagskoleUtdanning',
         type: 'fagskole',
@@ -348,7 +364,7 @@ async function seedAll() {
         aktiv: true,
         opprettet: datetime()
       })
-      CREATE (grunnlag4:Grunnlag {
+      CREATE (grunnlag5:Grunnlag {
         id: randomUUID(),
         navn: 'Utenlandsk utdanning',
         type: 'utenlandsk',
@@ -356,7 +372,7 @@ async function seedAll() {
         aktiv: true,
         opprettet: datetime()
       })
-      CREATE (grunnlag5:Grunnlag {
+      CREATE (grunnlag6:Grunnlag {
         id: randomUUID(),
         navn: 'Realkompetanse',
         type: 'realkompetanse',
@@ -481,7 +497,9 @@ async function seedAll() {
       MATCH (matR1:Kravelement {type: 'matematikk-r1'})
       MATCH (matR2:Kravelement {type: 'matematikk-r2'})
       
-      MATCH (grunnlagVgs:Grunnlag {type: 'vitnemaal-vgs'})
+      MATCH (grunnlagForstegangsvitnemaal:Grunnlag {type: 'forstegangsvitnemaal-vgs'})
+      MATCH (grunnlagOrdinaertVitnemaal:Grunnlag {type: 'ordinaert-vitnemaal-vgs'})
+      MATCH (alderForstegangsvitnemaal:Kravelement {type: 'alder-forstegangsvitnemaal'})
       MATCH (grunnlagFagbrev:Grunnlag {type: 'fagbrev'})
       MATCH (grunnlagFagskole:Grunnlag {type: 'fagskole'})
       
@@ -496,7 +514,8 @@ async function seedAll() {
       CREATE (ingeniorMal)-[:INNEHOLDER]->(matR1)
       CREATE (ingeniorMal)-[:INNEHOLDER]->(matR2)
       
-      CREATE (ingeniorMal)-[:INNEHOLDER]->(grunnlagVgs)
+      CREATE (ingeniorMal)-[:INNEHOLDER]->(grunnlagForstegangsvitnemaal)
+      CREATE (ingeniorMal)-[:INNEHOLDER]->(grunnlagOrdinaertVitnemaal)
       CREATE (ingeniorMal)-[:INNEHOLDER]->(grunnlagFagbrev)
       CREATE (ingeniorMal)-[:INNEHOLDER]->(grunnlagFagskole)
       
@@ -506,13 +525,20 @@ async function seedAll() {
       CREATE (ingeniorMal)-[:INNEHOLDER]->(karaktersnitt)
       CREATE (ingeniorMal)-[:INNEHOLDER]->(fagbrevRangering)
 
-      // Opprett tre-struktur: Videregående vei
-      CREATE (grunnlagVgs)-[:KREVER]->(gsk)
-      CREATE (grunnlagVgs)-[:KREVER]->(matR1)
-      CREATE (grunnlagVgs)-[:KREVER]->(matR2)
-      CREATE (grunnlagVgs)-[:GIR_TILGANG_TIL]->(ordinaer)
-      CREATE (grunnlagVgs)-[:GIR_TILGANG_TIL]->(forstegangsvitnemaal)
-      CREATE (grunnlagVgs)-[:BRUKER_RANGERING]->(karaktersnitt)
+      // Opprett tre-struktur: Førstegangsvitnemål vei
+      CREATE (grunnlagForstegangsvitnemaal)-[:KREVER]->(gsk)
+      CREATE (grunnlagForstegangsvitnemaal)-[:KREVER]->(matR1)
+      CREATE (grunnlagForstegangsvitnemaal)-[:KREVER]->(matR2)
+      CREATE (grunnlagForstegangsvitnemaal)-[:KREVER]->(alderForstegangsvitnemaal)
+      CREATE (grunnlagForstegangsvitnemaal)-[:GIR_TILGANG_TIL]->(forstegangsvitnemaal)
+      CREATE (grunnlagForstegangsvitnemaal)-[:BRUKER_RANGERING]->(karaktersnitt)
+      
+      // Opprett tre-struktur: Ordinært vitnemål vei
+      CREATE (grunnlagOrdinaertVitnemaal)-[:KREVER]->(gsk)
+      CREATE (grunnlagOrdinaertVitnemaal)-[:KREVER]->(matR1)
+      CREATE (grunnlagOrdinaertVitnemaal)-[:KREVER]->(matR2)
+      CREATE (grunnlagOrdinaertVitnemaal)-[:GIR_TILGANG_TIL]->(ordinaer)
+      CREATE (grunnlagOrdinaertVitnemaal)-[:BRUKER_RANGERING]->(karaktersnitt)
 
       // Opprett tre-struktur: Fagbrev vei  
       CREATE (grunnlagFagbrev)-[:KREVER]->(matR1)
@@ -543,7 +569,9 @@ async function seedAll() {
       MATCH (gsk:Kravelement {type: 'gsk'})
       MATCH (norskSpraak:Kravelement {type: 'norsk-spraak'})
       
-      MATCH (grunnlagVgs:Grunnlag {type: 'vitnemaal-vgs'})
+      MATCH (grunnlagForstegangsvitnemaal:Grunnlag {type: 'forstegangsvitnemaal-vgs'})
+      MATCH (grunnlagOrdinaertVitnemaal:Grunnlag {type: 'ordinaert-vitnemaal-vgs'})
+      MATCH (alderForstegangsvitnemaal:Kravelement {type: 'alder-forstegangsvitnemaal'})
       MATCH (grunnlagRealkompetanse:Grunnlag {type: 'realkompetanse'})
       
       MATCH (ordinaer:KvoteType {type: 'ordinaer'})
@@ -556,7 +584,8 @@ async function seedAll() {
       CREATE (laererMal)-[:INNEHOLDER]->(gsk)
       CREATE (laererMal)-[:INNEHOLDER]->(norskSpraak)
       
-      CREATE (laererMal)-[:INNEHOLDER]->(grunnlagVgs)
+      CREATE (laererMal)-[:INNEHOLDER]->(grunnlagForstegangsvitnemaal)
+      CREATE (laererMal)-[:INNEHOLDER]->(grunnlagOrdinaertVitnemaal)
       CREATE (laererMal)-[:INNEHOLDER]->(grunnlagRealkompetanse)
       
       CREATE (laererMal)-[:INNEHOLDER]->(ordinaer)
@@ -565,12 +594,18 @@ async function seedAll() {
       CREATE (laererMal)-[:INNEHOLDER]->(karaktersnitt)
       CREATE (laererMal)-[:INNEHOLDER]->(arbeidserfaring)
 
-      // Opprett tre-struktur: Videregående vei
-      CREATE (grunnlagVgs)-[:KREVER]->(gsk)
-      CREATE (grunnlagVgs)-[:KREVER]->(norskSpraak)
-      CREATE (grunnlagVgs)-[:GIR_TILGANG_TIL]->(ordinaer)
-      CREATE (grunnlagVgs)-[:GIR_TILGANG_TIL]->(forstegangsvitnemaal)
-      CREATE (grunnlagVgs)-[:BRUKER_RANGERING]->(karaktersnitt)
+      // Opprett tre-struktur: Førstegangsvitnemål vei
+      CREATE (grunnlagForstegangsvitnemaal)-[:KREVER]->(gsk)
+      CREATE (grunnlagForstegangsvitnemaal)-[:KREVER]->(norskSpraak)
+      CREATE (grunnlagForstegangsvitnemaal)-[:KREVER]->(alderForstegangsvitnemaal)
+      CREATE (grunnlagForstegangsvitnemaal)-[:GIR_TILGANG_TIL]->(forstegangsvitnemaal)
+      CREATE (grunnlagForstegangsvitnemaal)-[:BRUKER_RANGERING]->(karaktersnitt)
+      
+      // Opprett tre-struktur: Ordinært vitnemål vei
+      CREATE (grunnlagOrdinaertVitnemaal)-[:KREVER]->(gsk)
+      CREATE (grunnlagOrdinaertVitnemaal)-[:KREVER]->(norskSpraak)
+      CREATE (grunnlagOrdinaertVitnemaal)-[:GIR_TILGANG_TIL]->(ordinaer)
+      CREATE (grunnlagOrdinaertVitnemaal)-[:BRUKER_RANGERING]->(karaktersnitt)
 
       // Opprett tre-struktur: Realkompetanse vei
       CREATE (grunnlagRealkompetanse)-[:KREVER]->(norskSpraak)
