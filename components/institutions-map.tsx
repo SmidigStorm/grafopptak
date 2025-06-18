@@ -170,8 +170,8 @@ export default function InstitutionsMap({ className = '' }: InstitutionsMapProps
     );
   }
 
-  // Center of Norway
-  const norwayCenter: [number, number] = [64.5783, 10.75];
+  // Center of mainland Norway to show entire mainland
+  const norwayCenter: [number, number] = [65.0, 12.0];
 
   return (
     <Card className={className}>
@@ -189,7 +189,7 @@ export default function InstitutionsMap({ className = '' }: InstitutionsMapProps
         <div className="h-[600px] rounded-lg overflow-hidden border">
           <MapContainer
             center={norwayCenter}
-            zoom={5}
+            zoom={4}
             style={{ height: '100%', width: '100%' }}
             scrollWheelZoom={true}
           >

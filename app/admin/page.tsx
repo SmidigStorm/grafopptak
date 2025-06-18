@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Building, GraduationCap, Users, FileText, BookOpen } from 'lucide-react';
 import InstitutionsMap from '@/components/institutions-map';
+import Link from 'next/link';
 
 interface DashboardStats {
   institusjoner: number;
@@ -84,53 +85,61 @@ export default function AdminDashboard() {
       {/* Moderne dashboard grid */}
       <div className="grid gap-6 grid-cols-1 md:grid-cols-6 lg:grid-cols-12">
         {/* Kompakte statistikk-kort (6 kort i 2 rader) */}
-        <Card className="md:col-span-2 lg:col-span-2">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-2xl font-bold">{stats?.institusjoner || 0}</p>
-                <p className="text-xs text-muted-foreground">Institusjoner</p>
+        <Link href="/admin/institusjoner">
+          <Card className="md:col-span-2 lg:col-span-2 hover:shadow-md transition-shadow cursor-pointer">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-2xl font-bold">{stats?.institusjoner || 0}</p>
+                  <p className="text-xs text-muted-foreground">Institusjoner</p>
+                </div>
+                <Building className="h-8 w-8 text-blue-500" />
               </div>
-              <Building className="h-8 w-8 text-blue-500" />
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </Link>
 
-        <Card className="md:col-span-2 lg:col-span-2">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-2xl font-bold">{stats?.utdanningstilbud || 0}</p>
-                <p className="text-xs text-muted-foreground">Utdanningstilbud</p>
+        <Link href="/admin/utdanningstilbud">
+          <Card className="md:col-span-2 lg:col-span-2 hover:shadow-md transition-shadow cursor-pointer">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-2xl font-bold">{stats?.utdanningstilbud || 0}</p>
+                  <p className="text-xs text-muted-foreground">Utdanningstilbud</p>
+                </div>
+                <GraduationCap className="h-8 w-8 text-green-500" />
               </div>
-              <GraduationCap className="h-8 w-8 text-green-500" />
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </Link>
 
-        <Card className="md:col-span-2 lg:col-span-2">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-2xl font-bold">{stats?.sokere || 0}</p>
-                <p className="text-xs text-muted-foreground">Søkere</p>
+        <Link href="/admin/sokere">
+          <Card className="md:col-span-2 lg:col-span-2 hover:shadow-md transition-shadow cursor-pointer">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-2xl font-bold">{stats?.sokere || 0}</p>
+                  <p className="text-xs text-muted-foreground">Søkere</p>
+                </div>
+                <Users className="h-8 w-8 text-purple-500" />
               </div>
-              <Users className="h-8 w-8 text-purple-500" />
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </Link>
 
-        <Card className="md:col-span-2 lg:col-span-2">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-2xl font-bold">{stats?.regelsett || 0}</p>
-                <p className="text-xs text-muted-foreground">Regelsett</p>
+        <Link href="/admin/regelsett">
+          <Card className="md:col-span-2 lg:col-span-2 hover:shadow-md transition-shadow cursor-pointer">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-2xl font-bold">{stats?.regelsett || 0}</p>
+                  <p className="text-xs text-muted-foreground">Regelsett</p>
+                </div>
+                <FileText className="h-8 w-8 text-orange-500" />
               </div>
-              <FileText className="h-8 w-8 text-orange-500" />
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </Link>
 
         <Card className="md:col-span-2 lg:col-span-2">
           <CardContent className="p-4">
@@ -144,17 +153,19 @@ export default function AdminDashboard() {
           </CardContent>
         </Card>
 
-        <Card className="md:col-span-2 lg:col-span-2">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-2xl font-bold">{stats?.fagkoder || 0}</p>
-                <p className="text-xs text-muted-foreground">Fagkoder</p>
+        <Link href="/admin/fagkoder">
+          <Card className="md:col-span-2 lg:col-span-2 hover:shadow-md transition-shadow cursor-pointer">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-2xl font-bold">{stats?.fagkoder || 0}</p>
+                  <p className="text-xs text-muted-foreground">Fagkoder</p>
+                </div>
+                <BookOpen className="h-8 w-8 text-teal-500" />
               </div>
-              <BookOpen className="h-8 w-8 text-teal-500" />
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </Link>
 
         {/* Stort institusjonskart i midten */}
         <div className="md:col-span-6 lg:col-span-8">
