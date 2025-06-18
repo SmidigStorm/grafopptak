@@ -1,4 +1,10 @@
-import { testDb } from '../setup.js';
+import { Neo4jDatabase } from '../../lib/neo4j.js';
+
+const testDb = new Neo4jDatabase({
+  uri: process.env.NEO4J_TEST_URI || 'bolt://localhost:7687',
+  user: process.env.NEO4J_TEST_USER || 'neo4j',
+  password: process.env.NEO4J_TEST_PASSWORD || 'grafopptak123',
+});
 
 describe('Neo4j Database Connection', () => {
   it('should connect to database successfully', async () => {

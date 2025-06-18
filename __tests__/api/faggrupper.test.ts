@@ -1,6 +1,5 @@
 import { NextRequest } from 'next/server';
 import { GET, POST } from '@/app/api/faggrupper/route';
-import { createTestFaggruppe, getTestData } from '../setup.js';
 
 const createMockRequest = (method: string, body?: any) => {
   return {

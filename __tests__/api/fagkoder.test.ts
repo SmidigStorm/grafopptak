@@ -1,6 +1,18 @@
 import { NextRequest } from 'next/server';
 import { GET, POST } from '@/app/api/fagkoder/route';
-import { createTestFaggruppe, createTestFagkode, getTestData } from '../setup.js';
+import { Neo4jDatabase } from '../../lib/neo4j.js';
+
+const testDb = new Neo4jDatabase({
+  uri: process.env.NEO4J_TEST_URI || 'bolt://localhost:7687',
+  user: process.env.NEO4J_TEST_USER || 'neo4j',
+  password: process.env.NEO4J_TEST_PASSWORD || 'grafopptak123',
+});
+
+const getTestData = async (type: string) => {
+  const label = type === 'faggrupper' ? 'Faggruppe' : 'Fagkode';
+  const result = await testDb.runQuery(`MATCH (n:${label}) RETURN n`);
+  return result.records.map((record) => record.get('n').properties);
+};
 
 // Mock NextRequest helper
 const createMockRequest = (method: string, body?: any) => {
