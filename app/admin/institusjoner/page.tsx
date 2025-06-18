@@ -42,6 +42,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { X, Search } from 'lucide-react';
 
 interface Institusjon {
   id: string;
@@ -82,6 +84,9 @@ export default function InstitusjonsPage() {
     adresse: '',
     nettside: '',
   });
+  const [searchTerm, setSearchTerm] = useState('');
+  const [typeFilter, setTypeFilter] = useState<string>('alle');
+  const [activeFilter, setActiveFilter] = useState<boolean | null>(null);
 
   const fetchData = async () => {
     try {
@@ -170,6 +175,29 @@ export default function InstitusjonsPage() {
       console.error('Feil ved sletting av institusjon:', error);
     }
   };
+
+  // Filter institutions based on search term, type, and active status
+  const filteredInstitusjoner = institusjoner.filter((institusjon) => {
+    const matchesSearch =
+      searchTerm === '' ||
+      institusjon.navn.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (institusjon.kortNavn &&
+        institusjon.kortNavn.toLowerCase().includes(searchTerm.toLowerCase()));
+
+    const matchesType = typeFilter === 'alle' || institusjon.type === typeFilter;
+
+    const matchesActive = activeFilter === null || institusjon.aktiv === activeFilter;
+
+    return matchesSearch && matchesType && matchesActive;
+  });
+
+  const clearFilters = () => {
+    setSearchTerm('');
+    setTypeFilter('alle');
+    setActiveFilter(null);
+  };
+
+  const hasActiveFilters = searchTerm !== '' || typeFilter !== 'alle' || activeFilter !== null;
 
   if (loading) {
     return (
@@ -305,13 +333,108 @@ export default function InstitusjonsPage() {
         </Dialog>
       </div>
 
+      {/* Filter Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Search className="h-5 w-5" />
+            Filtrer institusjoner
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-end">
+            <div className="flex-1">
+              <Label htmlFor="search">Søk</Label>
+              <Input
+                id="search"
+                placeholder="Søk på navn eller kort navn..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="mt-1"
+              />
+            </div>
+            <div className="w-full sm:w-48">
+              <Label htmlFor="type-filter">Type</Label>
+              <Select value={typeFilter} onValueChange={setTypeFilter}>
+                <SelectTrigger className="mt-1">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="alle">Alle typer</SelectItem>
+                  {INSTITUSJONSTYPER.map((type) => (
+                    <SelectItem key={type} value={type}>
+                      {type}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="w-full sm:w-32">
+              <Label htmlFor="active-filter">Status</Label>
+              <Select
+                value={activeFilter === null ? 'alle' : activeFilter ? 'aktiv' : 'inaktiv'}
+                onValueChange={(value) => {
+                  if (value === 'alle') setActiveFilter(null);
+                  else if (value === 'aktiv') setActiveFilter(true);
+                  else setActiveFilter(false);
+                }}
+              >
+                <SelectTrigger className="mt-1">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="alle">Alle</SelectItem>
+                  <SelectItem value="aktiv">Aktiv</SelectItem>
+                  <SelectItem value="inaktiv">Inaktiv</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {hasActiveFilters && (
+              <Button variant="outline" onClick={clearFilters} className="mt-6">
+                <X className="h-4 w-4 mr-2" />
+                Fjern filtre
+              </Button>
+            )}
+          </div>
+          {hasActiveFilters && (
+            <div className="flex flex-wrap gap-2 mt-4">
+              {searchTerm && (
+                <Badge variant="secondary" className="flex items-center gap-1">
+                  Søk: &quot;{searchTerm}&quot;
+                  <X className="h-3 w-3 cursor-pointer" onClick={() => setSearchTerm('')} />
+                </Badge>
+              )}
+              {typeFilter !== 'alle' && (
+                <Badge variant="secondary" className="flex items-center gap-1">
+                  Type: {typeFilter}
+                  <X className="h-3 w-3 cursor-pointer" onClick={() => setTypeFilter('alle')} />
+                </Badge>
+              )}
+              {activeFilter !== null && (
+                <Badge variant="secondary" className="flex items-center gap-1">
+                  Status: {activeFilter ? 'Aktiv' : 'Inaktiv'}
+                  <X className="h-3 w-3 cursor-pointer" onClick={() => setActiveFilter(null)} />
+                </Badge>
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Building2 className="h-5 w-5" />
             Institusjoner
           </CardTitle>
-          <CardDescription>Oversikt over alle registrerte utdanningsinstitusjoner</CardDescription>
+          <CardDescription>
+            Oversikt over alle registrerte utdanningsinstitusjoner
+            {hasActiveFilters && (
+              <span className="ml-2 text-sm font-medium">
+                ({filteredInstitusjoner.length} av {institusjoner.length} institusjoner)
+              </span>
+            )}
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <Table>
@@ -325,14 +448,16 @@ export default function InstitusjonsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {institusjoner.length === 0 ? (
+              {filteredInstitusjoner.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                    Ingen institusjoner funnet
+                    {institusjoner.length === 0
+                      ? 'Ingen institusjoner funnet'
+                      : 'Ingen institusjoner matcher filterne'}
                   </TableCell>
                 </TableRow>
               ) : (
-                institusjoner.map((institusjon) => (
+                filteredInstitusjoner.map((institusjon) => (
                   <TableRow key={institusjon.id}>
                     <TableCell>
                       <div>
