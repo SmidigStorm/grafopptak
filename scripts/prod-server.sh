@@ -5,7 +5,7 @@
 ACTION=$1
 PROJECT_NAME="grafopptak-prod"
 COMPOSE_FILE="docker-compose.prod.yml"
-ENV_FILE=".env.prod.local"
+ENV_FILE=".env.production"
 
 # Colors for output
 GREEN='\033[0;32m'
@@ -98,11 +98,31 @@ reset_prod_db() {
     if [[ $REPLY =~ ^[Yy]$ ]]; then
         print_status "🗄️ Resetting production database..."
         
-        # Load env and run reset
-        export $(cat $ENV_FILE | grep -v '^#' | xargs)
+        # Check if production environment is running
+        if ! docker-compose -f $COMPOSE_FILE -p $PROJECT_NAME ps | grep -q "Up"; then
+            print_error "❌ Production environment is not running!"
+            print_status "   Start it first with: npm run prod:start"
+            return 1
+        fi
+        
+        # Load env and run reset with production environment
+        if [ -f "$ENV_FILE" ]; then
+            print_status "📋 Loading production environment variables..."
+            export $(cat $ENV_FILE | grep -v '^#' | xargs)
+        else
+            print_error "❌ Production environment file not found: $ENV_FILE"
+            return 1
+        fi
+        
+        # Run database reset with production environment
         npm run db:reset
         
-        print_status "✅ Production database reset complete"
+        if [ $? -eq 0 ]; then
+            print_status "✅ Production database reset complete"
+        else
+            print_error "❌ Database reset failed"
+            return 1
+        fi
     else
         print_status "❌ Reset cancelled"
     fi
