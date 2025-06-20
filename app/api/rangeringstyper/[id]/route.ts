@@ -44,7 +44,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
   try {
     const body = await request.json();
-    const { navn, type, formelMal, beskrivelse, aktiv, poengTypeIds = [] } = body;
+    const { navn, type, beskrivelse, aktiv, poengTypeIds = [] } = body;
 
     if (!navn || !type) {
       return NextResponse.json({ error: 'Navn og type er påkrevd' }, { status: 400 });
@@ -55,7 +55,6 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       MATCH (rt:RangeringType {id: $id})
       SET rt.navn = $navn,
           rt.type = $type,
-          rt.formelMal = $formelMal,
           rt.beskrivelse = $beskrivelse,
           rt.aktiv = $aktiv,
           rt.sistEndret = datetime()
@@ -77,7 +76,6 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         id,
         navn,
         type,
-        formelMal: formelMal || '',
         beskrivelse: beskrivelse || '',
         aktiv: aktiv ?? true,
         poengTypeIds,

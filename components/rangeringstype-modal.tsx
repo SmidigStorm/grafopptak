@@ -29,7 +29,6 @@ interface RangeringType {
   id?: string;
   navn: string;
   type: string;
-  formelMal?: string;
   beskrivelse?: string;
   aktiv: boolean;
   poengTyper?: PoengType[];

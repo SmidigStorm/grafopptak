@@ -684,7 +684,6 @@ export async function seedAll() {
         id: randomUUID(),
         navn: 'Skolepoeng',
         type: 'skolepoeng',
-        formelMal: 'karakterpoeng + realfagspoeng + språkpoeng + kjønnspoeng + opptaksprøvepoeng',
         beskrivelse: 'Grunnleggende skolepoeng uten alderspoeng og andre tilleggspoeng',
         aktiv: true,
         opprettet: datetime()
@@ -693,7 +692,6 @@ export async function seedAll() {
         id: randomUUID(),
         navn: 'Konkurransepoeng',
         type: 'konkurransepoeng',
-        formelMal: 'karakterpoeng + realfagspoeng + språkpoeng + kjønnspoeng + opptaksprøvepoeng + tilleggspoeng + alderspoeng',
         beskrivelse: 'Full poengberegning med alle tilleggspoeng',
         aktiv: true,
         opprettet: datetime()
@@ -702,7 +700,6 @@ export async function seedAll() {
         id: randomUUID(),
         navn: 'Realkompetanse',
         type: 'realkompetanse',
-        formelMal: 'realkompetansevurderingspoeng',
         beskrivelse: 'Rangering basert kun på realkompetansevurdering',
         aktiv: true,
         opprettet: datetime()

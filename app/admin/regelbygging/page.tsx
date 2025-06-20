@@ -66,7 +66,6 @@ interface RangeringType {
   id: string;
   navn: string;
   type: string;
-  formelMal?: string;
   beskrivelse?: string;
   aktiv: boolean;
   poengTyper?: PoengType[];
@@ -245,6 +244,21 @@ export default function RegelbyggingPage() {
   const handleNyRangeringsType = () => {
     setSelectedRangeringsType(null);
     setShowRangeringsTypeModal(true);
+  };
+
+  const getPoengTypeColor = (type: string) => {
+    switch (type) {
+      case 'dokumentbasert':
+        return 'bg-blue-100 text-blue-800';
+      case 'tilleggspoeng':
+        return 'bg-green-100 text-green-800';
+      case 'automatisk':
+        return 'bg-purple-100 text-purple-800';
+      case 'manuell':
+        return 'bg-orange-100 text-orange-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
   };
 
   return (
@@ -610,56 +624,48 @@ export default function RegelbyggingPage() {
                       >
                         <div className="flex justify-between items-start gap-3">
                           <div className="flex-1 min-w-0">
-                            <h4 className="font-medium text-gray-900 truncate">{item.navn}</h4>
-                            <p className="text-xs text-gray-500 font-mono mt-0.5">{item.type}</p>
-                            {item.formelMal && (
-                              <div className="bg-gray-100 rounded px-2 py-1 mt-1.5">
-                                <p className="text-xs font-mono text-gray-700">{item.formelMal}</p>
-                              </div>
-                            )}
+                            <div className="flex items-center gap-2">
+                              <h4 className="font-medium text-gray-900">{item.navn}</h4>
+                              <span
+                                className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium ${
+                                  item.aktiv
+                                    ? 'bg-green-100 text-green-800'
+                                    : 'bg-yellow-100 text-yellow-800'
+                                }`}
+                              >
+                                {item.aktiv ? 'Aktiv' : 'Inaktiv'}
+                              </span>
+                            </div>
                             {item.beskrivelse && (
-                              <p className="text-xs text-gray-600 mt-1 leading-relaxed">
-                                {item.beskrivelse}
-                              </p>
+                              <p className="text-sm text-gray-600 mt-1">{item.beskrivelse}</p>
                             )}
                             {item.poengTyper && item.poengTyper.length > 0 && (
-                              <div className="mt-2">
-                                <p className="text-xs text-gray-500 mb-1">Poengtyper:</p>
-                                <div className="flex flex-wrap gap-1">
-                                  {item.poengTyper.map((pt) => (
-                                    <span
-                                      key={pt.id}
-                                      className="inline-flex items-center px-1.5 py-0.5 rounded text-xs bg-blue-100 text-blue-800 border border-blue-200"
-                                    >
-                                      {pt.navn}
-                                    </span>
-                                  ))}
-                                </div>
+                              <div className="flex flex-wrap gap-1 mt-2">
+                                {item.poengTyper.map((pt) => (
+                                  <span
+                                    key={pt.id}
+                                    className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs ${getPoengTypeColor(pt.type)}`}
+                                  >
+                                    {pt.navn}
+                                  </span>
+                                ))}
                               </div>
                             )}
                           </div>
-                          <div className="flex items-center gap-1.5 flex-shrink-0">
-                            <span
-                              className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium ${
-                                item.aktiv
-                                  ? 'bg-green-100 text-green-800 border border-green-200'
-                                  : 'bg-yellow-100 text-yellow-800 border border-yellow-200'
-                              }`}
-                            >
-                              {item.aktiv ? 'Aktiv' : 'Inaktiv'}
-                            </span>
+                          <div className="flex items-center gap-1 flex-shrink-0">
                             <Button
                               variant="outline"
                               size="sm"
-                              className="h-6 w-6 p-0"
+                              className="h-7 w-7 p-0"
                               onClick={() => handleEditRangeringsType(item)}
+                              title="Rediger rangeringstype"
                             >
                               <Edit className="h-3 w-3" />
                             </Button>
                             <Button
                               variant="outline"
                               size="sm"
-                              className="h-6 w-6 p-0"
+                              className="h-7 w-7 p-0"
                               onClick={() =>
                                 setDeleteConfirm({
                                   type: 'rangeringstype',
@@ -667,6 +673,7 @@ export default function RegelbyggingPage() {
                                   navn: item.navn,
                                 })
                               }
+                              title="Slett rangeringstype"
                             >
                               <Trash2 className="h-3 w-3" />
                             </Button>

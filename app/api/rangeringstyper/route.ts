@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { navn, type, formelMal, beskrivelse, poengTypeIds = [] } = body;
+    const { navn, type, beskrivelse, poengTypeIds = [] } = body;
 
     if (!navn || !type) {
       return NextResponse.json({ error: 'Navn og type er påkrevd' }, { status: 400 });
@@ -48,7 +48,6 @@ export async function POST(request: NextRequest) {
         id: randomUUID(),
         navn: $navn,
         type: $type,
-        formelMal: $formelMal,
         beskrivelse: $beskrivelse,
         aktiv: true,
         opprettet: datetime()
@@ -61,7 +60,7 @@ export async function POST(request: NextRequest) {
       OPTIONAL MATCH (rt)-[:INKLUDERER_POENGTYPE]->(pt:PoengType)
       RETURN rt, collect(pt) as poengTyper
       `,
-      { navn, type, formelMal: formelMal || '', beskrivelse: beskrivelse || '', poengTypeIds }
+      { navn, type, beskrivelse: beskrivelse || '', poengTypeIds }
     );
 
     const record = result.records[0];
