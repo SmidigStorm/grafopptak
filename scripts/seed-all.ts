@@ -859,6 +859,12 @@ export async function seedAll() {
         type: 'universitet',
         eier: 'offentlig',
         sted: 'Oslo',
+        latitude: 59.9397,
+        longitude: 10.7208,
+        by: 'Oslo',
+        fylke: 'Oslo',
+        adresse: 'Karl Johans gate 47, 0162 Oslo',
+        nettside: 'https://www.uio.no',
         aktiv: true,
         opprettet: datetime()
       })
@@ -869,6 +875,12 @@ export async function seedAll() {
         type: 'universitet',
         eier: 'offentlig',
         sted: 'Trondheim',
+        latitude: 63.4167,
+        longitude: 10.4000,
+        by: 'Trondheim',
+        fylke: 'Trøndelag',
+        adresse: 'Høgskoleringen 1, 7491 Trondheim',
+        nettside: 'https://www.ntnu.no',
         aktiv: true,
         opprettet: datetime()
       })
@@ -879,6 +891,12 @@ export async function seedAll() {
         type: 'universitet',
         eier: 'offentlig',
         sted: 'Bergen',
+        latitude: 60.3894,
+        longitude: 5.3300,
+        by: 'Bergen',
+        fylke: 'Vestland',
+        adresse: 'Muséplass 1, 5007 Bergen',
+        nettside: 'https://www.uib.no',
         aktiv: true,
         opprettet: datetime()
       })
@@ -889,6 +907,12 @@ export async function seedAll() {
         type: 'universitet',
         eier: 'offentlig',
         sted: 'Stavanger',
+        latitude: 58.9700,
+        longitude: 5.7331,
+        by: 'Stavanger',
+        fylke: 'Rogaland',
+        adresse: 'Kjell Arholms gate 41, 4036 Stavanger',
+        nettside: 'https://www.uis.no',
         aktiv: true,
         opprettet: datetime()
       })
@@ -899,6 +923,12 @@ export async function seedAll() {
         type: 'universitet',
         eier: 'offentlig',
         sted: 'Tromsø',
+        latitude: 69.6833,
+        longitude: 18.9833,
+        by: 'Tromsø',
+        fylke: 'Troms og Finnmark',
+        adresse: 'Hansine Hansens veg 18, 9019 Tromsø',
+        nettside: 'https://www.uit.no',
         aktiv: true,
         opprettet: datetime()
       })
@@ -909,6 +939,12 @@ export async function seedAll() {
         type: 'universitet',
         eier: 'offentlig',
         sted: 'Kristiansand',
+        latitude: 58.1467,
+        longitude: 7.9956,
+        by: 'Kristiansand',
+        fylke: 'Agder',
+        adresse: 'Universitetsgata 25, 4604 Kristiansand',
+        nettside: 'https://www.uia.no',
         aktiv: true,
         opprettet: datetime()
       })
@@ -919,6 +955,12 @@ export async function seedAll() {
         type: 'høgskole',
         eier: 'offentlig',
         sted: 'Oslo',
+        latitude: 59.9522,
+        longitude: 10.7595,
+        by: 'Oslo',
+        fylke: 'Oslo',
+        adresse: 'Pilestredet 35, 0166 Oslo',
+        nettside: 'https://www.oslomet.no',
         aktiv: true,
         opprettet: datetime()
       })
@@ -929,6 +971,12 @@ export async function seedAll() {
         type: 'høgskole',
         eier: 'offentlig',
         sted: 'Bergen',
+        latitude: 60.3913,
+        longitude: 5.3221,
+        by: 'Bergen',
+        fylke: 'Vestland',
+        adresse: 'Inndalsveien 28, 5063 Bergen',
+        nettside: 'https://www.hvl.no',
         aktiv: true,
         opprettet: datetime()
       })
@@ -939,6 +987,12 @@ export async function seedAll() {
         type: 'høgskole',
         eier: 'offentlig',
         sted: 'Lillehammer',
+        latitude: 61.1153,
+        longitude: 10.4662,
+        by: 'Lillehammer',
+        fylke: 'Innlandet',
+        adresse: 'Postboks 400, 2418 Elverum',
+        nettside: 'https://www.inn.no',
         aktiv: true,
         opprettet: datetime()
       })
@@ -949,6 +1003,12 @@ export async function seedAll() {
         type: 'høgskole',
         eier: 'offentlig',
         sted: 'Molde',
+        latitude: 62.7372,
+        longitude: 7.1607,
+        by: 'Molde',
+        fylke: 'Møre og Romsdal',
+        adresse: 'Britvegen 2, 6410 Molde',
+        nettside: 'https://www.himolde.no',
         aktiv: true,
         opprettet: datetime()
       })
@@ -959,6 +1019,12 @@ export async function seedAll() {
         type: 'høgskole',
         eier: 'privat',
         sted: 'Oslo',
+        latitude: 59.9493,
+        longitude: 10.7704,
+        by: 'Oslo',
+        fylke: 'Oslo',
+        adresse: 'Nydalsveien 37, 0484 Oslo',
+        nettside: 'https://www.bi.no',
         aktiv: true,
         opprettet: datetime()
       })
@@ -969,6 +1035,12 @@ export async function seedAll() {
         type: 'høgskole',
         eier: 'privat',
         sted: 'Oslo',
+        latitude: 59.9138,
+        longitude: 10.7522,
+        by: 'Oslo',
+        fylke: 'Oslo',
+        adresse: 'Prinsens gate 7-9, 0152 Oslo',
+        nettside: 'https://www.kristiania.no',
         aktiv: true,
         opprettet: datetime()
       })
