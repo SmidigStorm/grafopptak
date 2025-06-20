@@ -748,6 +748,106 @@ export async function seedAll() {
     `);
     console.log('✅ Opprettet rangeringstyper med poengtype-relasjoner');
 
+    // ========== REGELSETT-MALER ==========
+    console.log('📋 Oppretter regelsett-maler...');
+
+    await session.run(`
+      CREATE (ingeniorStandard:Regelsett {
+        id: 'ingenior-standard',
+        navn: 'Ingeniørutdanning standard',
+        beskrivelse: 'Standard mal for ingeniørutdanninger med matematikk og fysikk-krav',
+        versjon: '1.0',
+        erMal: true,
+        basertPå: null,
+        gyldigFra: date('2024-01-01'),
+        opprettet: datetime(),
+        aktiv: true
+      })
+      CREATE (laererStandard:Regelsett {
+        id: 'laerer-standard',
+        navn: 'Lærerutdanning standard',
+        beskrivelse: 'Standard mal for lærerutdanninger med norsk og matematikk karakterkrav',
+        versjon: '1.0',
+        erMal: true,
+        basertPå: null,
+        gyldigFra: date('2024-01-01'),
+        opprettet: datetime(),
+        aktiv: true
+      })
+      CREATE (okonomiStandard:Regelsett {
+        id: 'okonomi-standard',
+        navn: 'Økonomi/business standard',
+        beskrivelse: 'Standard mal for økonomi og business-utdanninger',
+        versjon: '1.0',
+        erMal: true,
+        basertPå: null,
+        gyldigFra: date('2024-01-01'),
+        opprettet: datetime(),
+        aktiv: true
+      })
+      CREATE (helseStandard:Regelsett {
+        id: 'helse-standard',
+        navn: 'Helseutdanning standard',
+        beskrivelse: 'Standard mal for helsefagutdanninger med politiattest og praksis-krav',
+        versjon: '1.0',
+        erMal: true,
+        basertPå: null,
+        gyldigFra: date('2024-01-01'),
+        opprettet: datetime(),
+        aktiv: true
+      })
+    `);
+    console.log('✅ Opprettet regelsett-maler');
+
+    // ========== KONKRETE REGELSETT ==========
+    console.log('🎯 Oppretter konkrete regelsett...');
+
+    // UiO Informatikk H25
+    await session.run(`
+      CREATE (uioInformatikk:Regelsett {
+        id: randomUUID(),
+        navn: 'UiO Informatikk H25',
+        beskrivelse: 'Regelsett for Bachelor i informatikk ved UiO, høst 2025',
+        versjon: '1.0',
+        erMal: false,
+        basertPå: 'ingenior-standard',
+        gyldigFra: date('2025-01-01'),
+        opprettet: datetime(),
+        aktiv: true
+      })
+    `);
+
+    // NTNU Bygg- og miljøteknikk H25
+    await session.run(`
+      CREATE (ntnuBygg:Regelsett {
+        id: randomUUID(),
+        navn: 'NTNU Bygg- og miljøteknikk H25',
+        beskrivelse: 'Regelsett for Bachelor i Bygg- og miljøteknikk ved NTNU, høst 2025',
+        versjon: '1.0',
+        erMal: false,
+        basertPå: 'ingenior-standard',
+        gyldigFra: date('2025-01-01'),
+        opprettet: datetime(),
+        aktiv: true
+      })
+    `);
+
+    // OsloMet Lærerutdanning H25
+    await session.run(`
+      CREATE (oslometLaerer:Regelsett {
+        id: randomUUID(),
+        navn: 'OsloMet Lærerutdanning 1-7 H25',
+        beskrivelse: 'Regelsett for Grunnskolelærerutdanning 1-7 ved OsloMet, høst 2025',
+        versjon: '1.0',
+        erMal: false,
+        basertPå: 'laerer-standard',
+        gyldigFra: date('2025-01-01'),
+        opprettet: datetime(),
+        aktiv: true
+      })
+    `);
+    console.log('✅ Opprettet konkrete regelsett');
+
     // ========== INSTITUSJONER ==========
     console.log('🏢 Oppretter institusjoner...');
 
@@ -1299,6 +1399,84 @@ export async function seedAll() {
 
     console.log('✅ Opprettet dokumentasjon og karakterdata');
 
+    // ========== OPPTAKSVEIER (BESLUTNINGSTRE) ==========
+    console.log('🌳 Oppretter opptaksveier for regelsett...');
+
+    // Opptaksveier for UiO Informatikk
+    await session.run(`
+      MATCH (uioInformatikk:Regelsett {navn: 'UiO Informatikk H25'})
+      MATCH (vitnemaalVgs:Grunnlag {type: 'vitnemaal-vgs'})
+      MATCH (gsk:Kravelement {type: 'generell-studiekompetanse'})
+      MATCH (matteR1:Kravelement {type: 'spesifikk-fagkrav'})
+      MATCH (ordinaer:KvoteType {type: 'ordinaer'})
+      MATCH (konkurransepoeng:RangeringType {type: 'konkurransepoeng'})
+
+      CREATE (vei1:OpptaksVei {
+        id: randomUUID(),
+        navn: 'Ordinær vei - UiO Informatikk',
+        beskrivelse: 'Standard opptaksvei for informatikk ved UiO',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (uioInformatikk)-[:HAR_OPPTAKSVEI]->(vei1)
+      CREATE (vei1)-[:BASERT_PÅ]->(vitnemaalVgs)
+      CREATE (vei1)-[:KREVER]->(gsk)
+      CREATE (vei1)-[:KREVER]->(matteR1)
+      CREATE (vei1)-[:GIR_TILGANG_TIL]->(ordinaer)
+      CREATE (vei1)-[:BRUKER_RANGERING]->(konkurransepoeng)
+    `);
+
+    // Opptaksveier for NTNU Bygg
+    await session.run(`
+      MATCH (ntnuBygg:Regelsett {navn: 'NTNU Bygg- og miljøteknikk H25'})
+      MATCH (vitnemaalVgs:Grunnlag {type: 'vitnemaal-vgs'})
+      MATCH (gsk:Kravelement {type: 'generell-studiekompetanse'})
+      MATCH (matteR1:Kravelement {type: 'spesifikk-fagkrav'})
+      MATCH (fysikk:Kravelement {type: 'spesifikk-fagkrav'})
+      MATCH (ordinaer:KvoteType {type: 'ordinaer'})
+      MATCH (konkurransepoeng:RangeringType {type: 'konkurransepoeng'})
+
+      CREATE (vei2:OpptaksVei {
+        id: randomUUID(),
+        navn: 'Ordinær vei - NTNU Bygg',
+        beskrivelse: 'Standard opptaksvei for bygg- og miljøteknikk ved NTNU',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (ntnuBygg)-[:HAR_OPPTAKSVEI]->(vei2)
+      CREATE (vei2)-[:BASERT_PÅ]->(vitnemaalVgs)
+      CREATE (vei2)-[:KREVER]->(gsk)
+      CREATE (vei2)-[:KREVER]->(matteR1)
+      CREATE (vei2)-[:KREVER]->(fysikk)
+      CREATE (vei2)-[:GIR_TILGANG_TIL]->(ordinaer)
+      CREATE (vei2)-[:BRUKER_RANGERING]->(konkurransepoeng)
+    `);
+
+    // Opptaksveier for OsloMet Lærerutdanning
+    await session.run(`
+      MATCH (oslometLaerer:Regelsett {navn: 'OsloMet Lærerutdanning 1-7 H25'})
+      MATCH (vitnemaalVgs:Grunnlag {type: 'vitnemaal-vgs'})
+      MATCH (gsk:Kravelement {type: 'generell-studiekompetanse'})
+      MATCH (norsk:Kravelement {type: 'sprakkunnskaper'})
+      MATCH (ordinaer:KvoteType {type: 'ordinaer'})
+      MATCH (konkurransepoeng:RangeringType {type: 'konkurransepoeng'})
+
+      CREATE (vei3:OpptaksVei {
+        id: randomUUID(),
+        navn: 'Ordinær vei - OsloMet Lærerutdanning',
+        beskrivelse: 'Standard opptaksvei for lærerutdanning ved OsloMet',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (oslometLaerer)-[:HAR_OPPTAKSVEI]->(vei3)
+      CREATE (vei3)-[:BASERT_PÅ]->(vitnemaalVgs)
+      CREATE (vei3)-[:KREVER]->(gsk)
+      CREATE (vei3)-[:KREVER]->(norsk)
+      CREATE (vei3)-[:GIR_TILGANG_TIL]->(ordinaer)
+      CREATE (vei3)-[:BRUKER_RANGERING]->(konkurransepoeng)
+    `);
+    console.log('✅ Opprettet opptaksveier');
+
     console.log('✅ Fullført seeding av alle data!');
 
     // ========== SAMMENDRAG ==========
@@ -1316,7 +1494,9 @@ export async function seedAll() {
       MATCH (u:Utdanningstilbud)
       MATCH (p:Person)
       MATCH (d:Dokumentasjon)
-      MATCH (kar:Karakter)
+      OPTIONAL MATCH (r:Regelsett)
+      OPTIONAL MATCH (o:OpptaksVei)
+      OPTIONAL MATCH (d)-[rel:INNEHOLDER]->(fk)
       RETURN 
         faggrupper, fagkoder,
         count(DISTINCT k) as kravelementer,
@@ -1328,7 +1508,9 @@ export async function seedAll() {
         count(DISTINCT u) as utdanningstilbud,
         count(DISTINCT p) as personer,
         count(DISTINCT d) as dokumenter,
-        count(DISTINCT kar) as karakterer
+        count(DISTINCT r) as regelsett,
+        count(DISTINCT o) as opptaksveier,
+        count(DISTINCT rel) as karakterer
     `);
 
     const stats = summary.records[0];
@@ -1343,6 +1525,8 @@ export async function seedAll() {
     console.log(`   🎓 Utdanningstilbud: ${stats.get('utdanningstilbud').toNumber()}`);
     console.log(`   👥 Personer: ${stats.get('personer').toNumber()}`);
     console.log(`   📄 Dokumenter: ${stats.get('dokumenter').toNumber()}`);
+    console.log(`   📜 Regelsett: ${stats.get('regelsett').toNumber()}`);
+    console.log(`   🌳 Opptaksveier: ${stats.get('opptaksveier').toNumber()}`);
     console.log(`   ⭐ Karakterer: ${stats.get('karakterer').toNumber()}`);
 
     // Verifiser RangeringType-relasjoner
@@ -1360,6 +1544,23 @@ export async function seedAll() {
       ptNavn.forEach((pt: string) => {
         console.log(`     - ${pt}`);
       });
+    });
+
+    // Verifiser regelsett og opptaksveier
+    const regelsettCheck = await session.run(`
+      MATCH (r:Regelsett)
+      OPTIONAL MATCH (r)-[:HAR_OPPTAKSVEI]->(o:OpptaksVei)
+      RETURN r.navn as regelsett, r.erMal as erMal, count(o) as antallOpptaksveier
+      ORDER BY r.erMal DESC, r.navn
+    `);
+
+    console.log('\n📜 Regelsett og opptaksveier:');
+    regelsettCheck.records.forEach((record) => {
+      const regelsett = record.get('regelsett');
+      const erMal = record.get('erMal');
+      const antall = record.get('antallOpptaksveier').toNumber();
+      const type = erMal ? 'MAL' : 'KONKRET';
+      console.log(`   ${regelsett} (${type}): ${antall} opptaksveier`);
     });
 
     console.log('\\n🎉 Seeding fullført!');
