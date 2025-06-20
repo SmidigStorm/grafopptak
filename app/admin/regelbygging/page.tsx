@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import RangeringsTypeModal from '@/components/rangeringstype-modal';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -68,6 +69,7 @@ interface RangeringType {
   formelMal?: string;
   beskrivelse?: string;
   aktiv: boolean;
+  poengTyper?: PoengType[];
 }
 
 interface PoengType {
@@ -89,6 +91,8 @@ export default function RegelbyggingPage() {
   const [showNyKravelement, setShowNyKravelement] = useState(false);
   const [showEditKravelement, setShowEditKravelement] = useState(false);
   const [selectedKravelement, setSelectedKravelement] = useState<Kravelement | null>(null);
+  const [showRangeringsTypeModal, setShowRangeringsTypeModal] = useState(false);
+  const [selectedRangeringsType, setSelectedRangeringsType] = useState<RangeringType | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<{
     type: string;
     id: string;
@@ -197,6 +201,50 @@ export default function RegelbyggingPage() {
     } catch (error) {
       console.error('Feil ved sletting av kravelement:', error);
     }
+  };
+
+  const handleRangeringsTypeSave = async (rangeringsType: RangeringType) => {
+    try {
+      const url = rangeringsType.id
+        ? `/api/rangeringstyper/${rangeringsType.id}`
+        : '/api/rangeringstyper';
+
+      const method = rangeringsType.id ? 'PUT' : 'POST';
+
+      const body = {
+        ...rangeringsType,
+        poengTypeIds: rangeringsType.poengTyper?.map((pt) => pt.id) || [],
+      };
+
+      const response = await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+      });
+
+      if (response.ok) {
+        await fetchAllData();
+        setShowRangeringsTypeModal(false);
+        setSelectedRangeringsType(null);
+      } else {
+        const error = await response.json();
+        alert(error.error || 'Feil ved lagring av rangeringstype');
+      }
+    } catch (error) {
+      console.error('Feil ved lagring av rangeringstype:', error);
+    }
+  };
+
+  const handleEditRangeringsType = (rangeringsType: RangeringType) => {
+    setSelectedRangeringsType(rangeringsType);
+    setShowRangeringsTypeModal(true);
+  };
+
+  const handleNyRangeringsType = () => {
+    setSelectedRangeringsType(null);
+    setShowRangeringsTypeModal(true);
   };
 
   return (
@@ -536,7 +584,7 @@ export default function RegelbyggingPage() {
                     </CardTitle>
                     <CardDescription>Rangeringsformler som bruker poengtypene</CardDescription>
                   </div>
-                  <Button size="sm">
+                  <Button size="sm" onClick={handleNyRangeringsType}>
                     <Plus className="h-4 w-4 mr-2" />
                     Ny
                   </Button>
@@ -574,6 +622,21 @@ export default function RegelbyggingPage() {
                                 {item.beskrivelse}
                               </p>
                             )}
+                            {item.poengTyper && item.poengTyper.length > 0 && (
+                              <div className="mt-2">
+                                <p className="text-xs text-gray-500 mb-1">Poengtyper:</p>
+                                <div className="flex flex-wrap gap-1">
+                                  {item.poengTyper.map((pt) => (
+                                    <span
+                                      key={pt.id}
+                                      className="inline-flex items-center px-1.5 py-0.5 rounded text-xs bg-blue-100 text-blue-800 border border-blue-200"
+                                    >
+                                      {pt.navn}
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
                           </div>
                           <div className="flex items-center gap-1.5 flex-shrink-0">
                             <span
@@ -585,10 +648,26 @@ export default function RegelbyggingPage() {
                             >
                               {item.aktiv ? 'Aktiv' : 'Inaktiv'}
                             </span>
-                            <Button variant="outline" size="sm" className="h-6 w-6 p-0">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-6 w-6 p-0"
+                              onClick={() => handleEditRangeringsType(item)}
+                            >
                               <Edit className="h-3 w-3" />
                             </Button>
-                            <Button variant="outline" size="sm" className="h-6 w-6 p-0">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-6 w-6 p-0"
+                              onClick={() =>
+                                setDeleteConfirm({
+                                  type: 'rangeringstype',
+                                  id: item.id,
+                                  navn: item.navn,
+                                })
+                              }
+                            >
                               <Trash2 className="h-3 w-3" />
                             </Button>
                           </div>
@@ -795,9 +874,23 @@ export default function RegelbyggingPage() {
           <AlertDialogFooter>
             <AlertDialogCancel>Avbryt</AlertDialogCancel>
             <AlertDialogAction
-              onClick={() => {
+              onClick={async () => {
                 if (deleteConfirm?.type === 'kravelement') {
                   slettKravelement(deleteConfirm.id);
+                } else if (deleteConfirm?.type === 'rangeringstype') {
+                  try {
+                    const response = await fetch(`/api/rangeringstyper/${deleteConfirm.id}`, {
+                      method: 'DELETE',
+                    });
+                    if (response.ok) {
+                      fetchAllData();
+                    } else {
+                      const error = await response.json();
+                      alert(error.error || 'Feil ved sletting av rangeringstype');
+                    }
+                  } catch (error) {
+                    console.error('Feil ved sletting av rangeringstype:', error);
+                  }
                 }
                 setDeleteConfirm(null);
               }}
@@ -807,6 +900,16 @@ export default function RegelbyggingPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <RangeringsTypeModal
+        isOpen={showRangeringsTypeModal}
+        onClose={() => {
+          setShowRangeringsTypeModal(false);
+          setSelectedRangeringsType(null);
+        }}
+        rangeringsType={selectedRangeringsType || undefined}
+        onSave={handleRangeringsTypeSave}
+      />
     </div>
   );
 }

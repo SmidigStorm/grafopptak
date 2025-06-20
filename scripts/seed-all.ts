@@ -1,259 +1,263 @@
 import { getSession } from '../lib/neo4j';
-import { seedKarakterer } from './seed-karakterer';
 
-async function seedAll() {
+/**
+ * VIKTIG: ALL SEEDING SKAL SKJE I DENNE FILEN
+ *
+ * Grunner for monolitisk struktur:
+ * 1. Enklere å holde oversikt over rekkefølge og avhengigheter
+ * 2. Lettere å se sammenhenger mellom entiteter
+ * 3. Færre filer å holde styr på
+ * 4. Avhengigheter mellom entiteter er lettere å håndtere
+ *
+ * Rekkefølge er viktig:
+ * 1. Fagkoder og faggrupper (grunnleggende referansedata)
+ * 2. Kravelementer, grunnlag, kvotetyper (regelkomponenter)
+ * 3. PoengTyper (må finnes før RangeringType)
+ * 4. RangeringTyper med relasjoner til PoengTyper
+ * 5. Institusjoner og utdanningstilbud
+ * 6. Regelsett og opptaksveier
+ * 7. Personer og dokumentasjon (testdata)
+ */
+
+export async function seedAll() {
   const session = getSession();
 
   try {
-    console.log('🌱 Starter seeding av all data...');
+    console.log('🌱 Starter full seeding av databasen...');
 
-    // ========== RESET ==========
-    console.log('🗑️ Sletter eksisterende data...');
-
-    // Slett alle data-noder (men behold constraints)
-    await session.run(`MATCH (n:Fagkode) DETACH DELETE n`);
-    await session.run(`MATCH (n:Faggruppe) DETACH DELETE n`);
-    await session.run(`MATCH (n:Kravelement) DETACH DELETE n`);
-    await session.run(`MATCH (n:Grunnlag) DETACH DELETE n`);
-    await session.run(`MATCH (n:KvoteType) DETACH DELETE n`);
-    await session.run(`MATCH (n:RangeringType) DETACH DELETE n`);
-    await session.run(`MATCH (n:Regelsett) DETACH DELETE n`);
-    await session.run(`MATCH (n:Institusjon) DETACH DELETE n`);
-    await session.run(`MATCH (n:Utdanningstilbud) DETACH DELETE n`);
-    await session.run(`MATCH (n:Person) DETACH DELETE n`);
-    console.log('✅ Slettet eksisterende data');
-
-    // ========== FAGGRUPPER ==========
+    // ========== FAGKODER OG FAGGRUPPER ==========
     console.log('📁 Oppretter faggrupper...');
 
-    const faggrupper = await session.run(`
-      CREATE (mathR1:Faggruppe {
+    await session.run(`
+      CREATE (fg1:Faggruppe {
         id: randomUUID(),
         navn: 'Matematikk R1-nivå',
-        beskrivelse: 'Matematikk på R1-nivå eller tilsvarende kombinasjon (S1+S2)',
-        type: 'matematikk',
-        aktiv: true
+        type: 'matematikk-r1',
+        beskrivelse: 'Matematikk R1 programfag som kvalifiserer for realfagspoeng',
+        aktiv: true,
+        opprettet: datetime()
       })
-      CREATE (mathR2:Faggruppe {
+      CREATE (fg2:Faggruppe {
         id: randomUUID(),
         navn: 'Matematikk R2-nivå',
-        beskrivelse: 'Matematikk på R2-nivå',
-        type: 'matematikk',
-        aktiv: true
+        type: 'matematikk-r2',
+        beskrivelse: 'Matematikk R2 programfag som kvalifiserer for realfagspoeng',
+        aktiv: true,
+        opprettet: datetime()
       })
-      CREATE (norsk393:Faggruppe {
+      CREATE (fg3:Faggruppe {
         id: randomUUID(),
         navn: 'Norsk 393 timer',
-        beskrivelse: 'Norsk hovedmål eller sidemål (393 timer)',
-        type: 'norsk',
-        aktiv: true
+        type: 'norsk-393',
+        beskrivelse: 'Norsk hovedmål eller sidemål med 393 timer',
+        aktiv: true,
+        opprettet: datetime()
       })
-      CREATE (realfagValgfritt:Faggruppe {
+      CREATE (fg4:Faggruppe {
         id: randomUUID(),
         navn: 'Realfag valgfritt',
-        beskrivelse: 'Fysikk, kjemi, biologi, IT, geofag eller teknologi/forskningslære (1+2)',
-        type: 'realfag',
-        aktiv: true
+        type: 'realfag-valgfritt',
+        beskrivelse: 'Realfag som kan gi tilleggspoeng',
+        aktiv: true,
+        opprettet: datetime()
       })
-      RETURN mathR1, mathR2, norsk393, realfagValgfritt
     `);
     console.log('✅ Opprettet faggrupper');
 
-    // ========== FAGKODER ==========
     console.log('📋 Oppretter fagkoder...');
 
-    // Matematikk fagkoder
     await session.run(`
-      CREATE (rea3022:Fagkode {
+      // Matematikk R1
+      CREATE (fk1:Fagkode {
+        id: randomUUID(),
+        kode: 'MAT1001',
+        navn: 'Matematikk R1',
+        type: 'matematikk',
+        omfang: 'R1-nivå',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (fk2:Fagkode {
         id: randomUUID(),
         kode: 'REA3022',
-        navn: 'Matematikk R1',
-        beskrivelse: 'Matematikk R1 - Hovedkode (Kunnskapsløftet)',
-        gyldigFra: date('2020-01-01'),
-        gyldigTil: null,
-        aktiv: true
+        navn: 'Matematikk S1',
+        type: 'matematikk',
+        omfang: 'S1-nivå',
+        aktiv: true,
+        opprettet: datetime()
       })
-      CREATE (rea3024:Fagkode {
+      CREATE (fk3:Fagkode {
         id: randomUUID(),
         kode: 'REA3024',
-        navn: 'Matematikk R2',
-        beskrivelse: 'Matematikk R2 - Hovedkode (Kunnskapsløftet)',
-        gyldigFra: date('2020-01-01'),
-        gyldigTil: null,
-        aktiv: true
+        navn: 'Matematikk S2',
+        type: 'matematikk',
+        omfang: 'S2-nivå',
+        aktiv: true,
+        opprettet: datetime()
       })
-      CREATE (rea3026:Fagkode {
+      CREATE (fk4:Fagkode {
         id: randomUUID(),
         kode: 'REA3026',
-        navn: 'Matematikk S1',
-        beskrivelse: 'Matematikk S1 - Del av S1+S2 kombinasjon',
-        gyldigFra: date('2020-01-01'),
-        gyldigTil: null,
-        aktiv: true
+        navn: 'Matematikk R1',
+        type: 'matematikk',
+        omfang: 'R1-nivå',
+        aktiv: true,
+        opprettet: datetime()
       })
-      CREATE (rea3028:Fagkode {
+
+      // Matematikk R2
+      CREATE (fk5:Fagkode {
+        id: randomUUID(),
+        kode: 'MAT1002',
+        navn: 'Matematikk R2',
+        type: 'matematikk',
+        omfang: 'R2-nivå',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (fk6:Fagkode {
         id: randomUUID(),
         kode: 'REA3028',
-        navn: 'Matematikk S2',
-        beskrivelse: 'Matematikk S2 - Del av S1+S2 kombinasjon',
-        gyldigFra: date('2020-01-01'),
-        gyldigTil: null,
-        aktiv: true
+        navn: 'Matematikk R2',
+        type: 'matematikk',
+        omfang: 'R2-nivå',
+        aktiv: true,
+        opprettet: datetime()
       })
-      CREATE (math3mx:Fagkode {
-        id: randomUUID(),
-        kode: '3MX',
-        navn: 'Matematikk 3MX',
-        beskrivelse: 'Matematikk 3MX - Utfaset fagkode (Reform 94)',
-        gyldigFra: date('1994-01-01'),
-        gyldigTil: date('2006-12-31'),
-        aktiv: false
-      })
-      CREATE (math2mx:Fagkode {
-        id: randomUUID(),
-        kode: '2MX',
-        navn: 'Matematikk 2MX',
-        beskrivelse: 'Matematikk 2MX - Utfaset fagkode (Reform 94)',
-        gyldigFra: date('1994-01-01'),
-        gyldigTil: date('2006-12-31'),
-        aktiv: false
-      })
-    `);
 
-    // Norsk fagkoder
-    await session.run(`
-      CREATE (nor1211:Fagkode {
+      // Norsk
+      CREATE (fk7:Fagkode {
         id: randomUUID(),
         kode: 'NOR1211',
         navn: 'Norsk hovedmål',
-        beskrivelse: 'Norsk hovedmål (393 timer)',
-        gyldigFra: date('2020-01-01'),
-        gyldigTil: null,
-        aktiv: true
+        type: 'norsk',
+        omfang: '393 timer',
+        aktiv: true,
+        opprettet: datetime()
       })
-      CREATE (nor1212:Fagkode {
+      CREATE (fk8:Fagkode {
         id: randomUUID(),
         kode: 'NOR1212',
         navn: 'Norsk sidemål',
-        beskrivelse: 'Norsk sidemål (393 timer)',
-        gyldigFra: date('2020-01-01'),
-        gyldigTil: null,
-        aktiv: true
+        type: 'norsk',
+        omfang: '393 timer',
+        aktiv: true,
+        opprettet: datetime()
       })
-    `);
 
-    // Realfag fagkoder
-    await session.run(`
-      CREATE (fys1001:Fagkode {
+      // Realfag
+      CREATE (fk9:Fagkode {
         id: randomUUID(),
         kode: 'FYS1001',
         navn: 'Fysikk 1',
-        beskrivelse: 'Fysikk 1 (140 timer)',
-        gyldigFra: date('2020-01-01'),
-        gyldigTil: null,
-        aktiv: true
+        type: 'fysikk',
+        omfang: '140 timer',
+        aktiv: true,
+        opprettet: datetime()
       })
-      CREATE (fys1002:Fagkode {
+      CREATE (fk10:Fagkode {
         id: randomUUID(),
         kode: 'FYS1002',
         navn: 'Fysikk 2',
-        beskrivelse: 'Fysikk 2 (140 timer)',
-        gyldigFra: date('2020-01-01'),
-        gyldigTil: null,
-        aktiv: true
+        type: 'fysikk',
+        omfang: '140 timer',
+        aktiv: true,
+        opprettet: datetime()
       })
-      CREATE (kje1001:Fagkode {
+      CREATE (fk11:Fagkode {
         id: randomUUID(),
         kode: 'KJE1001',
         navn: 'Kjemi 1',
-        beskrivelse: 'Kjemi 1 (140 timer)',
-        gyldigFra: date('2020-01-01'),
-        gyldigTil: null,
-        aktiv: true
+        type: 'kjemi',
+        omfang: '140 timer',
+        aktiv: true,
+        opprettet: datetime()
       })
-      CREATE (kje1002:Fagkode {
+      CREATE (fk12:Fagkode {
         id: randomUUID(),
         kode: 'KJE1002',
         navn: 'Kjemi 2',
-        beskrivelse: 'Kjemi 2 (140 timer)',
-        gyldigFra: date('2020-01-01'),
-        gyldigTil: null,
-        aktiv: true
+        type: 'kjemi',
+        omfang: '140 timer',
+        aktiv: true,
+        opprettet: datetime()
       })
-      CREATE (bio1001:Fagkode {
+      CREATE (fk13:Fagkode {
         id: randomUUID(),
         kode: 'BIO1001',
         navn: 'Biologi 1',
-        beskrivelse: 'Biologi 1 (140 timer)',
-        gyldigFra: date('2020-01-01'),
-        gyldigTil: null,
-        aktiv: true
+        type: 'biologi',
+        omfang: '140 timer',
+        aktiv: true,
+        opprettet: datetime()
       })
-      CREATE (bio1002:Fagkode {
+      CREATE (fk14:Fagkode {
         id: randomUUID(),
         kode: 'BIO1002',
         navn: 'Biologi 2',
-        beskrivelse: 'Biologi 2 (140 timer)',
-        gyldigFra: date('2020-01-01'),
-        gyldigTil: null,
-        aktiv: true
+        type: 'biologi',
+        omfang: '140 timer',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (fk15:Fagkode {
+        id: randomUUID(),
+        kode: 'GEO1001',
+        navn: 'Geofag 1',
+        type: 'geofag',
+        omfang: '140 timer',
+        aktiv: true,
+        opprettet: datetime()
       })
     `);
     console.log('✅ Opprettet fagkoder');
 
-    // ========== FAGKODE-FAGGRUPPE KOBLINGER ==========
     console.log('🔗 Kobler fagkoder til faggrupper...');
 
-    // Matematikk R1-nivå
     await session.run(`
-      MATCH (mathR1:Faggruppe {navn: 'Matematikk R1-nivå'})
-      MATCH (rea3022:Fagkode {kode: 'REA3022'})
-      MATCH (rea3026:Fagkode {kode: 'REA3026'}) 
-      MATCH (rea3028:Fagkode {kode: 'REA3028'})
-      MATCH (math2mx:Fagkode {kode: '2MX'})
-      
-      CREATE (rea3022)-[:KVALIFISERER_FOR]->(mathR1)
-      CREATE (rea3026)-[:KVALIFISERER_FOR {kreverKombinasjon: ['REA3028']}]->(mathR1)
-      CREATE (rea3028)-[:KVALIFISERER_FOR {kreverKombinasjon: ['REA3026']}]->(mathR1)
-      CREATE (math2mx)-[:KVALIFISERER_FOR]->(mathR1)
-    `);
+      MATCH (fg1:Faggruppe {type: 'matematikk-r1'})
+      MATCH (fg2:Faggruppe {type: 'matematikk-r2'})
+      MATCH (fg3:Faggruppe {type: 'norsk-393'})
+      MATCH (fg4:Faggruppe {type: 'realfag-valgfritt'})
 
-    // Matematikk R2-nivå
-    await session.run(`
-      MATCH (mathR2:Faggruppe {navn: 'Matematikk R2-nivå'})
-      MATCH (rea3024:Fagkode {kode: 'REA3024'})
-      MATCH (math3mx:Fagkode {kode: '3MX'})
-      
-      CREATE (rea3024)-[:KVALIFISERER_FOR]->(mathR2)
-      CREATE (math3mx)-[:KVALIFISERER_FOR]->(mathR2)
-    `);
+      MATCH (fk1:Fagkode {kode: 'MAT1001'})
+      MATCH (fk2:Fagkode {kode: 'REA3022'})
+      MATCH (fk3:Fagkode {kode: 'REA3024'})
+      MATCH (fk4:Fagkode {kode: 'REA3026'})
+      MATCH (fk5:Fagkode {kode: 'MAT1002'})
+      MATCH (fk6:Fagkode {kode: 'REA3028'})
+      MATCH (fk7:Fagkode {kode: 'NOR1211'})
+      MATCH (fk8:Fagkode {kode: 'NOR1212'})
+      MATCH (fk9:Fagkode {kode: 'FYS1001'})
+      MATCH (fk10:Fagkode {kode: 'FYS1002'})
+      MATCH (fk11:Fagkode {kode: 'KJE1001'})
+      MATCH (fk12:Fagkode {kode: 'KJE1002'})
+      MATCH (fk13:Fagkode {kode: 'BIO1001'})
+      MATCH (fk14:Fagkode {kode: 'BIO1002'})
+      MATCH (fk15:Fagkode {kode: 'GEO1001'})
 
-    // Norsk 393 timer
-    await session.run(`
-      MATCH (norsk393:Faggruppe {navn: 'Norsk 393 timer'})
-      MATCH (nor1211:Fagkode {kode: 'NOR1211'})
-      MATCH (nor1212:Fagkode {kode: 'NOR1212'})
-      
-      CREATE (nor1211)-[:KVALIFISERER_FOR]->(norsk393)
-      CREATE (nor1212)-[:KVALIFISERER_FOR]->(norsk393)
-    `);
+      // Matematikk R1
+      CREATE (fk1)-[:KVALIFISERER_FOR]->(fg1)
+      CREATE (fk2)-[:KVALIFISERER_FOR]->(fg1)
+      CREATE (fk3)-[:KVALIFISERER_FOR]->(fg1)
+      CREATE (fk4)-[:KVALIFISERER_FOR]->(fg1)
 
-    // Realfag valgfritt
-    await session.run(`
-      MATCH (realfagValgfritt:Faggruppe {navn: 'Realfag valgfritt'})
-      MATCH (fys1001:Fagkode {kode: 'FYS1001'})
-      MATCH (fys1002:Fagkode {kode: 'FYS1002'})
-      MATCH (kje1001:Fagkode {kode: 'KJE1001'})
-      MATCH (kje1002:Fagkode {kode: 'KJE1002'})
-      MATCH (bio1001:Fagkode {kode: 'BIO1001'})
-      MATCH (bio1002:Fagkode {kode: 'BIO1002'})
-      
-      CREATE (fys1001)-[:KVALIFISERER_FOR {kreverKombinasjon: ['FYS1002']}]->(realfagValgfritt)
-      CREATE (fys1002)-[:KVALIFISERER_FOR {kreverKombinasjon: ['FYS1001']}]->(realfagValgfritt)
-      CREATE (kje1001)-[:KVALIFISERER_FOR {kreverKombinasjon: ['KJE1002']}]->(realfagValgfritt)
-      CREATE (kje1002)-[:KVALIFISERER_FOR {kreverKombinasjon: ['KJE1001']}]->(realfagValgfritt)
-      CREATE (bio1001)-[:KVALIFISERER_FOR {kreverKombinasjon: ['BIO1002']}]->(realfagValgfritt)
-      CREATE (bio1002)-[:KVALIFISERER_FOR {kreverKombinasjon: ['BIO1001']}]->(realfagValgfritt)
+      // Matematikk R2
+      CREATE (fk5)-[:KVALIFISERER_FOR]->(fg2)
+      CREATE (fk6)-[:KVALIFISERER_FOR]->(fg2)
+
+      // Norsk 393
+      CREATE (fk7)-[:KVALIFISERER_FOR]->(fg3)
+      CREATE (fk8)-[:KVALIFISERER_FOR]->(fg3)
+
+      // Realfag valgfritt
+      CREATE (fk9)-[:KVALIFISERER_FOR]->(fg4)
+      CREATE (fk10)-[:KVALIFISERER_FOR]->(fg4)
+      CREATE (fk11)-[:KVALIFISERER_FOR]->(fg4)
+      CREATE (fk12)-[:KVALIFISERER_FOR]->(fg4)
+      CREATE (fk13)-[:KVALIFISERER_FOR]->(fg4)
+      CREATE (fk14)-[:KVALIFISERER_FOR]->(fg4)
+      CREATE (fk15)-[:KVALIFISERER_FOR]->(fg4)
     `);
     console.log('✅ Koblet fagkoder til faggrupper');
 
@@ -263,105 +267,105 @@ async function seedAll() {
     await session.run(`
       CREATE (krav1:Kravelement {
         id: randomUUID(),
-        navn: 'Matematikk R1-nivå',
-        type: 'matematikk-r1',
-        beskrivelse: 'Matematikk på R1-nivå eller tilsvarende',
+        navn: 'Generell studiekompetanse',
+        type: 'generell-studiekompetanse',
+        beskrivelse: 'Fullført og bestått generell studiekompetanse',
         aktiv: true,
         opprettet: datetime()
       })
       CREATE (krav2:Kravelement {
         id: randomUUID(),
-        navn: 'Matematikk R2-nivå',
-        type: 'matematikk-r2',
-        beskrivelse: 'Matematikk på R2-nivå for ingeniørstudier',
+        navn: 'Matematikk R1',
+        type: 'spesifikk-fagkrav',
+        beskrivelse: 'Matematikk R1 eller tilsvarende',
         aktiv: true,
         opprettet: datetime()
       })
       CREATE (krav3:Kravelement {
         id: randomUUID(),
-        navn: 'Generell studiekompetanse',
-        type: 'gsk',
-        beskrivelse: 'Fullført videregående opplæring med studiekompetanse',
+        navn: 'Matematikk R2',
+        type: 'spesifikk-fagkrav',
+        beskrivelse: 'Matematikk R2 eller tilsvarende',
         aktiv: true,
         opprettet: datetime()
       })
       CREATE (krav4:Kravelement {
         id: randomUUID(),
-        navn: 'Politiattest',
-        type: 'politiattest',
-        beskrivelse: 'Gyldig politiattest ikke eldre enn 3 måneder',
+        navn: 'Fysikk 1',
+        type: 'spesifikk-fagkrav',
+        beskrivelse: 'Fysikk 1 eller tilsvarende',
         aktiv: true,
         opprettet: datetime()
       })
       CREATE (krav5:Kravelement {
         id: randomUUID(),
-        navn: 'Norsk språkkompetanse',
-        type: 'norsk-spraak',
-        beskrivelse: 'Dokumentert norskferdigheter',
+        navn: 'Kjemi 1',
+        type: 'spesifikk-fagkrav',
+        beskrivelse: 'Kjemi 1 eller tilsvarende',
         aktiv: true,
         opprettet: datetime()
       })
       CREATE (krav6:Kravelement {
         id: randomUUID(),
-        navn: 'Alder 23 år',
-        type: 'alder-23',
-        beskrivelse: 'Minimum 23 år fylt i opptaksåret',
+        navn: 'Norsk 393 timer',
+        type: 'sprakkunnskaper',
+        beskrivelse: 'Norsk hovedmål eller sidemål, minimum 393 timer',
         aktiv: true,
         opprettet: datetime()
       })
       CREATE (krav7:Kravelement {
         id: randomUUID(),
-        navn: '5 års arbeidserfaring',
-        type: 'arbeidserfaring-5',
-        beskrivelse: 'Minimum 5 års relevant arbeidserfaring',
+        navn: 'Arbeidserfaring 5 år',
+        type: 'arbeidserfaring',
+        beskrivelse: '5 års relevant arbeids- eller utdanningserfaring',
         aktiv: true,
         opprettet: datetime()
       })
       CREATE (krav8:Kravelement {
         id: randomUUID(),
-        navn: 'Alderskrav førstegangsvitnemål',
-        type: 'alder-forstegangsvitnemaal',
-        beskrivelse: 'Maksimalt 21 år i opptaksåret',
+        navn: 'Fagbrev',
+        type: 'fagkompetanse',
+        beskrivelse: 'Fagbrev eller svennebrev i relevant fag',
         aktiv: true,
         opprettet: datetime()
       })
       CREATE (krav9:Kravelement {
         id: randomUUID(),
-        navn: 'Matematikk R1+R2',
-        type: 'matematikk-r1r2',
-        beskrivelse: 'Matematikk R1 og R2 som samlet krav',
+        navn: 'Politiattest',
+        type: 'vandel',
+        beskrivelse: 'Politiattest uten anmerkninger',
         aktiv: true,
         opprettet: datetime()
       })
       CREATE (krav10:Kravelement {
         id: randomUUID(),
-        navn: 'Fysikk 1',
-        type: 'fysikk-1',
-        beskrivelse: 'Fysikk 1 fra videregående',
+        navn: 'Helseattest',
+        type: 'helse',
+        beskrivelse: 'Helseattest som bekrefter skikkethet',
         aktiv: true,
         opprettet: datetime()
       })
       CREATE (krav11:Kravelement {
         id: randomUUID(),
-        navn: 'Fullført forkurs',
-        type: 'forkurs-fullfort',
-        beskrivelse: 'Fullført 1-årig forkurs for ingeniørutdanning',
+        navn: 'Forkurs ingeniør',
+        type: 'spesiell-kompetanse',
+        beskrivelse: 'Fullført og bestått forkurs for ingeniørutdanning',
         aktiv: true,
         opprettet: datetime()
       })
       CREATE (krav12:Kravelement {
         id: randomUUID(),
-        navn: 'Norsk karakterkrav 3.0',
-        type: 'norsk-karakter-30',
-        beskrivelse: 'Minimum karakter 3.0 i norsk',
+        navn: 'Bachelorgrad',
+        type: 'hoyere-utdanning',
+        beskrivelse: 'Fullført bachelorgrad fra akkreditert institusjon',
         aktiv: true,
         opprettet: datetime()
       })
       CREATE (krav13:Kravelement {
         id: randomUUID(),
-        navn: 'Matematikk karakterkrav 4.0',
-        type: 'matematikk-karakter-40',
-        beskrivelse: 'Minimum karakter 4.0 i matematikk',
+        navn: 'Praksiserfaring helse',
+        type: 'praksis',
+        beskrivelse: 'Minimum 6 måneder praksis i helsesektoren',
         aktiv: true,
         opprettet: datetime()
       })
@@ -372,76 +376,79 @@ async function seedAll() {
     console.log('🏗️ Oppretter grunnlag...');
 
     await session.run(`
-      // Videregående/Gymnasial
       CREATE (grunnlag1:Grunnlag {
         id: randomUUID(),
-        navn: 'Førstegangsvitnemål',
-        type: 'forstegangsvitnemaal',
-        beskrivelse: 'Søker med sitt første vitnemål fra videregående opplæring',
+        navn: 'Vitnemål videregående',
+        type: 'vitnemaal-vgs',
+        beskrivelse: 'Vitnemål fra videregående opplæring',
         aktiv: true,
         opprettet: datetime()
       })
       CREATE (grunnlag2:Grunnlag {
         id: randomUUID(),
-        navn: 'Ordinært vitnemål',
-        type: 'ordinaert-vitnemaal',
-        beskrivelse: 'Standard vitnemål fra videregående opplæring',
+        navn: 'Fagbrev/svennebrev',
+        type: 'fagbrev',
+        beskrivelse: 'Fagbrev eller svennebrev fra fag- og yrkesopplæring',
         aktiv: true,
         opprettet: datetime()
       })
       CREATE (grunnlag3:Grunnlag {
         id: randomUUID(),
-        navn: 'Flere vitnemål',
-        type: 'flere-vitnemaal',
-        beskrivelse: 'Søker med multiple vitnemål (annen poengformel)',
+        navn: 'Privatisteksamen',
+        type: 'privatist',
+        beskrivelse: 'Vitnemål fra privatisteksamen',
         aktiv: true,
         opprettet: datetime()
       })
       CREATE (grunnlag4:Grunnlag {
         id: randomUUID(),
-        navn: 'Vitnemål med kompetansebevis',
-        type: 'vitnemaal-kompetansebevis',
-        beskrivelse: 'Ordinært vitnemål med privatist-forbedringer',
+        navn: 'IB Diploma',
+        type: 'ib-diploma',
+        beskrivelse: 'International Baccalaureate Diploma',
         aktiv: true,
         opprettet: datetime()
       })
       CREATE (grunnlag5:Grunnlag {
         id: randomUUID(),
-        navn: 'IB (International Baccalaureate)',
-        type: 'ib',
-        beskrivelse: 'Internasjonal studentereksamen',
+        navn: 'Forkurs ingeniør',
+        type: 'forkurs-ingenior',
+        beskrivelse: 'Fullført forkurs for ingeniørutdanning',
         aktiv: true,
         opprettet: datetime()
       })
-      
-      // Yrkesfag
       CREATE (grunnlag6:Grunnlag {
         id: randomUUID(),
-        navn: 'Fagbrev/svennebrev',
-        type: 'fagbrev',
-        beskrivelse: 'Fullført lærlingtid med fagbrev eller svennebrev',
+        navn: 'Gymnaseksamen før 1994',
+        type: 'gammel-gymnaseksamen',
+        beskrivelse: 'Artium, examen artium eller gymnaseksamen før 1994',
         aktiv: true,
         opprettet: datetime()
       })
       CREATE (grunnlag7:Grunnlag {
         id: randomUUID(),
-        navn: '3-årig yrkesutdanning',
-        type: 'yrkesfag-3aar',
-        beskrivelse: 'Treårig yrkesfaglig utdanning uten lærlingtid',
+        navn: 'Folkehøgskole',
+        type: 'folkehogskole',
+        beskrivelse: 'Vitnemål fra folkehøgskole (33+ uker)',
         aktiv: true,
         opprettet: datetime()
       })
       CREATE (grunnlag8:Grunnlag {
         id: randomUUID(),
-        navn: 'Yrkesfag med påbygg',
-        type: 'yrkesfag-pabygg',
-        beskrivelse: 'Yrkesfaglig utdanning med påbyggingsår',
+        navn: 'Høyere utdanning',
+        type: 'hoyere-utdanning',
+        beskrivelse: 'Utdanning fra universitet eller høgskole',
         aktiv: true,
         opprettet: datetime()
       })
-      
-      // Høyere utdanning
       CREATE (grunnlag9:Grunnlag {
+        id: randomUUID(),
+        navn: 'Fagskole',
+        type: 'fagskole',
+        beskrivelse: 'Vitnemål fra fagskoleutdanning',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (grunnlag10:Grunnlag {
         id: randomUUID(),
         navn: 'Bachelorgrad',
         type: 'bachelor',
@@ -449,7 +456,7 @@ async function seedAll() {
         aktiv: true,
         opprettet: datetime()
       })
-      CREATE (grunnlag10:Grunnlag {
+      CREATE (grunnlag11:Grunnlag {
         id: randomUUID(),
         navn: 'Mastergrad',
         type: 'master',
@@ -457,9 +464,7 @@ async function seedAll() {
         aktiv: true,
         opprettet: datetime()
       })
-      
-      // Alternative veier
-      CREATE (grunnlag11:Grunnlag {
+      CREATE (grunnlag12:Grunnlag {
         id: randomUUID(),
         navn: '23/5-regel',
         type: '23-5-regel',
@@ -467,7 +472,7 @@ async function seedAll() {
         aktiv: true,
         opprettet: datetime()
       })
-      CREATE (grunnlag12:Grunnlag {
+      CREATE (grunnlag13:Grunnlag {
         id: randomUUID(),
         navn: 'Realkompetanse UH',
         type: 'realkompetanse-uh',
@@ -475,7 +480,7 @@ async function seedAll() {
         aktiv: true,
         opprettet: datetime()
       })
-      CREATE (grunnlag13:Grunnlag {
+      CREATE (grunnlag14:Grunnlag {
         id: randomUUID(),
         navn: 'Realkompetanse fagskole',
         type: 'realkompetanse-fagskole',
@@ -483,15 +488,15 @@ async function seedAll() {
         aktiv: true,
         opprettet: datetime()
       })
-      CREATE (grunnlag14:Grunnlag {
+      CREATE (grunnlag15:Grunnlag {
         id: randomUUID(),
         navn: 'Godkjent fagskole',
         type: 'fagskole-godkjent',
-        beskrivelse: 'Fullført fagskoleUtdanning (120 studiepoeng)',
+        beskrivelse: 'Fullført fagskoleutdanning (120 studiepoeng)',
         aktiv: true,
         opprettet: datetime()
       })
-      CREATE (grunnlag15:Grunnlag {
+      CREATE (grunnlag16:Grunnlag {
         id: randomUUID(),
         navn: 'Godkjent utenlandsk utdanning',
         type: 'utenlandsk-godkjent',
@@ -499,7 +504,7 @@ async function seedAll() {
         aktiv: true,
         opprettet: datetime()
       })
-      CREATE (grunnlag16:Grunnlag {
+      CREATE (grunnlag17:Grunnlag {
         id: randomUUID(),
         navn: 'Y-veien/ingeniørforberedende',
         type: 'y-veien',
@@ -541,442 +546,207 @@ async function seedAll() {
     `);
     console.log('✅ Opprettet kvotetyper');
 
-    // ========== RANGERINGSTYPER ==========
+    // ========== POENGTYPER ==========
+    console.log('📊 Oppretter poengtypene...');
+
+    // Dokumentbaserte poengtyper
+    await session.run(`
+      CREATE (karaktersnittVitnemaal:PoengType {
+        id: randomUUID(),
+        navn: 'karaktersnitt-et-vitnemaal',
+        type: 'dokumentbasert',
+        beskrivelse: 'Karaktersnitt fra ett vitnemål',
+        beregningsmåte: 'Snitt av alle tallkarakterer på ett vitnemål, multiplisert med 10 (0-60 poeng)',
+        aktiv: true,
+        opprettet: datetime()
+      })
+    `);
+
+    // Tilleggspoeng
+    await session.run(`
+      CREATE (realfagspoeng:PoengType {
+        id: randomUUID(),
+        navn: 'realfagspoeng',
+        type: 'tilleggspoeng',
+        beskrivelse: 'Tilleggspoeng for realfag fra videregående',
+        beregningsmåte: 'Kompleks tabell per fag, maks 4 poeng totalt (delt med språkpoeng)',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (spraakpoeng:PoengType {
+        id: randomUUID(),
+        navn: 'språkpoeng',
+        type: 'tilleggspoeng',
+        beskrivelse: 'Tilleggspoeng for fremmedspråk fra videregående',
+        beregningsmåte: 'Nivå I/II: 0,5p, Nivå III: 1p, maks 4 poeng totalt (delt med realfagspoeng)',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (folkehogskolePoeng:PoengType {
+        id: randomUUID(),
+        navn: 'folkehøgskole-poeng',
+        type: 'tilleggspoeng',
+        beskrivelse: 'Tilleggspoeng for folkehøgskole',
+        beregningsmåte: '2 poeng for godkjent folkehøgskole (33+ uker, 90%+ oppmøte)',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (militaertjenestePoeng:PoengType {
+        id: randomUUID(),
+        navn: 'militærtjeneste-poeng',
+        type: 'tilleggspoeng',
+        beskrivelse: 'Tilleggspoeng for militærtjeneste',
+        beregningsmåte: '2 poeng for fullført militærtjeneste/befalsskole/FN-tjeneste',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (siviltjenestePoeng:PoengType {
+        id: randomUUID(),
+        navn: 'siviltjeneste-poeng',
+        type: 'tilleggspoeng',
+        beskrivelse: 'Tilleggspoeng for siviltjeneste',
+        beregningsmåte: '2 poeng for fullført siviltjeneste',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (fagskolePoeng:PoengType {
+        id: randomUUID(),
+        navn: 'fagskole-poeng',
+        type: 'tilleggspoeng',
+        beskrivelse: 'Tilleggspoeng for fagskole',
+        beregningsmåte: '30-59 fagskolepoeng: 1p, 60+ fagskolepoeng: 2p',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (hoyereUtdanningPoeng:PoengType {
+        id: randomUUID(),
+        navn: 'høyere-utdanning-poeng',
+        type: 'tilleggspoeng',
+        beskrivelse: 'Tilleggspoeng for høyere utdanning',
+        beregningsmåte: '30-59 studiepoeng: 1p, 60+ studiepoeng: 2p',
+        aktiv: true,
+        opprettet: datetime()
+      })
+    `);
+
+    // Automatiske poengtyper
+    await session.run(`
+      CREATE (kjonnspoeng:PoengType {
+        id: randomUUID(),
+        navn: 'kjønnspoeng',
+        type: 'automatisk',
+        beskrivelse: 'Automatiske kjønnspoeng for spesielle studieprogram',
+        beregningsmåte: '1-2 poeng automatisk basert på kjønn og studieprogram',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (alderspoeng:PoengType {
+        id: randomUUID(),
+        navn: 'alderspoeng',
+        type: 'automatisk',
+        beskrivelse: 'Automatiske alderspoeng',
+        beregningsmåte: '2 poeng/år fra 20 år (ordinær) eller 24 år (23/5), maks 8 poeng',
+        aktiv: true,
+        opprettet: datetime()
+      })
+    `);
+
+    // Manuelle/vurderte poengtyper
+    await session.run(`
+      CREATE (opptaksprovePoeng:PoengType {
+        id: randomUUID(),
+        navn: 'opptaksprøve-poeng',
+        type: 'manuell',
+        beskrivelse: 'Poeng fra opptaksprøver',
+        beregningsmåte: 'Variabel skala avhengig av prøve - kan legges til karakterpoeng eller erstatte dem',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (realkompetansePoeng:PoengType {
+        id: randomUUID(),
+        navn: 'realkompetansevurderingspoeng',
+        type: 'manuell',
+        beskrivelse: 'Vurdering av realkompetanse',
+        beregningsmåte: 'Saksbehandler setter direkte poengsum 0-60 som erstatning for karakterpoeng',
+        aktiv: true,
+        opprettet: datetime()
+      })
+    `);
+
+    console.log('✅ Opprettet poengtypene');
+
+    // ========== RANGERINGSTYPER MED RELASJONER ==========
     console.log('📈 Oppretter rangeringstyper...');
 
     await session.run(`
-      CREATE (rangering1:RangeringType {
+      // Opprett rangeringstyper
+      CREATE (skolepoeng:RangeringType {
         id: randomUUID(),
-        navn: 'Karaktersnitt + realfagspoeng',
-        type: 'karaktersnitt-realfag',
-        formelMal: 'karaktersnitt + (realfagspoeng * vektfaktor)',
-        beskrivelse: 'Standard rangering med tilleggspoeng for realfag',
+        navn: 'Skolepoeng',
+        type: 'skolepoeng',
+        formelMal: 'karakterpoeng + realfagspoeng + språkpoeng + kjønnspoeng + opptaksprøvepoeng',
+        beskrivelse: 'Grunnleggende skolepoeng uten alderspoeng og andre tilleggspoeng',
         aktiv: true,
         opprettet: datetime()
       })
-      CREATE (rangering2:RangeringType {
+      CREATE (konkurransepoeng:RangeringType {
         id: randomUUID(),
-        navn: 'Fagbrev + realfagskarakterer',
-        type: 'fagbrev-realfag',
-        formelMal: 'fagbrevkarakter * 0.4 + realfagssnitt * 0.6',
-        beskrivelse: 'Vekting av fagbrev og realfagskarakterer',
+        navn: 'Konkurransepoeng',
+        type: 'konkurransepoeng',
+        formelMal: 'karakterpoeng + realfagspoeng + språkpoeng + kjønnspoeng + opptaksprøvepoeng + tilleggspoeng + alderspoeng',
+        beskrivelse: 'Full poengberegning med alle tilleggspoeng',
         aktiv: true,
         opprettet: datetime()
       })
-      CREATE (rangering3:RangeringType {
+      CREATE (realkompetanse:RangeringType {
         id: randomUUID(),
-        navn: 'Karaktersnitt ren',
-        type: 'karaktersnitt',
-        formelMal: 'sum(karakterer) / antall_fag',
-        beskrivelse: 'Bare karaktersnitt uten tilleggspoeng',
+        navn: 'Realkompetanse',
+        type: 'realkompetanse',
+        formelMal: 'realkompetansevurderingspoeng',
+        beskrivelse: 'Rangering basert kun på realkompetansevurdering',
         aktiv: true,
         opprettet: datetime()
       })
-      CREATE (rangering4:RangeringType {
-        id: randomUUID(),
-        navn: 'Arbeidserfaring + fagkompetanse',
-        type: 'erfaring-fagkompetanse',
-        formelMal: 'arbeidserfaring_poeng + fagkompetanse_vurdering',
-        beskrivelse: 'For realkompetansesøkere',
-        aktiv: true,
-        opprettet: datetime()
-      })
-      CREATE (rangering5:RangeringType {
-        id: randomUUID(),
-        navn: 'Forkurskarakterer',
-        type: 'forkurs',
-        formelMal: 'sum(forkurs_karakterer) / antall_fag',
-        beskrivelse: 'Rangering basert på forkursresultater',
-        aktiv: true,
-        opprettet: datetime()
-      })
-      CREATE (rangering6:RangeringType {
-        id: randomUUID(),
-        navn: 'Opptaksprøve + karakterer',
-        type: 'opptak-karakterer',
-        formelMal: 'opptaksprove_poeng * 0.5 + karaktersnitt * 0.5',
-        beskrivelse: 'Kombinert vurdering av opptaksprøve og karakterer',
-        aktiv: true,
-        opprettet: datetime()
-      })
+      
+      // Hent poengtyper for relasjoner
+      WITH skolepoeng, konkurransepoeng, realkompetanse
+      MATCH (karaktersnitt:PoengType {navn: 'karaktersnitt-et-vitnemaal'})
+      MATCH (realfag:PoengType {navn: 'realfagspoeng'})
+      MATCH (spraak:PoengType {navn: 'språkpoeng'})
+      MATCH (kjonn:PoengType {navn: 'kjønnspoeng'})
+      MATCH (opptaksprove:PoengType {navn: 'opptaksprøve-poeng'})
+      MATCH (folkehogskole:PoengType {navn: 'folkehøgskole-poeng'})
+      MATCH (militar:PoengType {navn: 'militærtjeneste-poeng'})
+      MATCH (sivil:PoengType {navn: 'siviltjeneste-poeng'})
+      MATCH (fagskole:PoengType {navn: 'fagskole-poeng'})
+      MATCH (hoyere:PoengType {navn: 'høyere-utdanning-poeng'})
+      MATCH (alder:PoengType {navn: 'alderspoeng'})
+      MATCH (realkompetansePoeng:PoengType {navn: 'realkompetansevurderingspoeng'})
+      
+      // Skolepoeng relasjoner
+      CREATE (skolepoeng)-[:INKLUDERER_POENGTYPE]->(karaktersnitt)
+      CREATE (skolepoeng)-[:INKLUDERER_POENGTYPE]->(realfag)
+      CREATE (skolepoeng)-[:INKLUDERER_POENGTYPE]->(spraak)
+      CREATE (skolepoeng)-[:INKLUDERER_POENGTYPE]->(kjonn)
+      CREATE (skolepoeng)-[:INKLUDERER_POENGTYPE]->(opptaksprove)
+      
+      // Konkurransepoeng relasjoner (alle fra skolepoeng + tilleggspoeng + alderspoeng)
+      CREATE (konkurransepoeng)-[:INKLUDERER_POENGTYPE]->(karaktersnitt)
+      CREATE (konkurransepoeng)-[:INKLUDERER_POENGTYPE]->(realfag)
+      CREATE (konkurransepoeng)-[:INKLUDERER_POENGTYPE]->(spraak)
+      CREATE (konkurransepoeng)-[:INKLUDERER_POENGTYPE]->(kjonn)
+      CREATE (konkurransepoeng)-[:INKLUDERER_POENGTYPE]->(opptaksprove)
+      CREATE (konkurransepoeng)-[:INKLUDERER_POENGTYPE]->(folkehogskole)
+      CREATE (konkurransepoeng)-[:INKLUDERER_POENGTYPE]->(militar)
+      CREATE (konkurransepoeng)-[:INKLUDERER_POENGTYPE]->(sivil)
+      CREATE (konkurransepoeng)-[:INKLUDERER_POENGTYPE]->(fagskole)
+      CREATE (konkurransepoeng)-[:INKLUDERER_POENGTYPE]->(hoyere)
+      CREATE (konkurransepoeng)-[:INKLUDERER_POENGTYPE]->(alder)
+      
+      // Realkompetanse relasjoner (kun realkompetansevurdering)
+      CREATE (realkompetanse)-[:INKLUDERER_POENGTYPE]->(realkompetansePoeng)
     `);
-    console.log('✅ Opprettet rangeringstyper');
-
-    // ========== REGELSETT (MALER) ==========
-    console.log('📜 Oppretter regelsett-maler...');
-
-    // Opprett Regelsett-mal for Ingeniørutdanning
-    await session.run(`
-      CREATE (ingeniorMal:Regelsett {
-        id: randomUUID(),
-        navn: 'Ingeniørutdanning Standard',
-        beskrivelse: 'Standard regelsett for ingeniørutdanninger med strengere realfagskrav',
-        versjon: '1.0',
-        erMal: true,
-        malType: 'ingeniørutdanning',
-        opprettet: datetime(),
-        aktiv: true
-      })
-    `);
-
-    // Opprett OpptaksVeier for Ingeniørutdanning Standard
-    await session.run(`
-      MATCH (ingeniorMal:Regelsett {navn: 'Ingeniørutdanning Standard'})
-      
-      // Hent alle nødvendige elementer
-      MATCH (gsk:Kravelement {type: 'gsk'})
-      MATCH (matteR1R2:Kravelement {type: 'matematikk-r1r2'})
-      MATCH (fysikk1:Kravelement {type: 'fysikk-1'})
-      MATCH (alderFgv:Kravelement {type: 'alder-forstegangsvitnemaal'})
-      MATCH (forkursFullfort:Kravelement {type: 'forkurs-fullfort'})
-      
-      MATCH (grunnlagFgv:Grunnlag {type: 'forstegangsvitnemaal-vgs'})
-      MATCH (grunnlagOrdinaert:Grunnlag {type: 'ordinaert-vitnemaal-vgs'})
-      MATCH (grunnlagFagbrev:Grunnlag {type: 'fagbrev'})
-      MATCH (grunnlagForkurs:Grunnlag {type: 'forkurs-ingenior'})
-      
-      MATCH (kvoteFgv:KvoteType {type: 'forstegangsvitnemaal'})
-      MATCH (kvoteOrdinaer:KvoteType {type: 'ordinaer'})
-      MATCH (kvoteForkurs:KvoteType {type: 'forkurs'})
-      
-      MATCH (rangeringKarakter:RangeringType {type: 'karaktersnitt-realfag'})
-      MATCH (rangeringFagbrev:RangeringType {type: 'fagbrev-realfag'})
-      MATCH (rangeringForkurs:RangeringType {type: 'forkurs'})
-      
-      // OpptaksVei 1: Førstegangsvitnemål
-      CREATE (vei1:OpptaksVei {
-        id: 'forstegangsvitnemaal-ingenior-standard',
-        navn: 'Førstegangsvitnemål - Ingeniørutdanning Standard',
-        beskrivelse: 'Vei for søkere med førstegangsvitnemål',
-        aktiv: true,
-        opprettet: datetime()
-      })
-      CREATE (ingeniorMal)-[:HAR_OPPTAKSVEI]->(vei1)
-      CREATE (vei1)-[:BASERT_PÅ]->(grunnlagFgv)
-      CREATE (vei1)-[:KREVER]->(gsk)
-      CREATE (vei1)-[:KREVER]->(matteR1R2)
-      CREATE (vei1)-[:KREVER]->(fysikk1)
-      CREATE (vei1)-[:KREVER]->(alderFgv)
-      CREATE (vei1)-[:GIR_TILGANG_TIL]->(kvoteFgv)
-      CREATE (vei1)-[:BRUKER_RANGERING]->(rangeringKarakter)
-      
-      // OpptaksVei 2: Ordinært vitnemål
-      CREATE (vei2:OpptaksVei {
-        id: 'ordinaert-vitnemaal-ingenior-standard',
-        navn: 'Ordinært vitnemål - Ingeniørutdanning Standard',
-        beskrivelse: 'Vei for søkere med ordinært vitnemål',
-        aktiv: true,
-        opprettet: datetime()
-      })
-      CREATE (ingeniorMal)-[:HAR_OPPTAKSVEI]->(vei2)
-      CREATE (vei2)-[:BASERT_PÅ]->(grunnlagOrdinaert)
-      CREATE (vei2)-[:KREVER]->(gsk)
-      CREATE (vei2)-[:KREVER]->(matteR1R2)
-      CREATE (vei2)-[:KREVER]->(fysikk1)
-      CREATE (vei2)-[:GIR_TILGANG_TIL]->(kvoteOrdinaer)
-      CREATE (vei2)-[:BRUKER_RANGERING]->(rangeringKarakter)
-      
-      // OpptaksVei 3: Fagbrev
-      CREATE (vei3:OpptaksVei {
-        id: 'fagbrev-ingenior-standard',
-        navn: 'Fagbrev - Ingeniørutdanning Standard',
-        beskrivelse: 'Vei for søkere med fagbrev',
-        aktiv: true,
-        opprettet: datetime()
-      })
-      CREATE (ingeniorMal)-[:HAR_OPPTAKSVEI]->(vei3)
-      CREATE (vei3)-[:BASERT_PÅ]->(grunnlagFagbrev)
-      CREATE (vei3)-[:KREVER]->(gsk)
-      CREATE (vei3)-[:GIR_TILGANG_TIL]->(kvoteOrdinaer)
-      CREATE (vei3)-[:BRUKER_RANGERING]->(rangeringFagbrev)
-      
-      // OpptaksVei 4: Forkurs
-      CREATE (vei4:OpptaksVei {
-        id: 'forkurs-ingenior-standard',
-        navn: 'Forkurs - Ingeniørutdanning Standard',
-        beskrivelse: 'Vei for søkere med fullført forkurs',
-        aktiv: true,
-        opprettet: datetime()
-      })
-      CREATE (ingeniorMal)-[:HAR_OPPTAKSVEI]->(vei4)
-      CREATE (vei4)-[:BASERT_PÅ]->(grunnlagForkurs)
-      CREATE (vei4)-[:KREVER]->(forkursFullfort)
-      CREATE (vei4)-[:GIR_TILGANG_TIL]->(kvoteForkurs)
-      CREATE (vei4)-[:BRUKER_RANGERING]->(rangeringForkurs)
-    `);
-
-    // Opprett Regelsett-mal for Lærerutdanning
-    await session.run(`
-      CREATE (laererMal:Regelsett {
-        id: randomUUID(),
-        navn: 'Lærerutdanning Standard',
-        beskrivelse: 'Standard regelsett for lærerutdanninger med karakterkrav',
-        versjon: '1.0',
-        erMal: true,
-        malType: 'lærerutdanning',
-        opprettet: datetime(),
-        aktiv: true
-      })
-    `);
-
-    // Opprett OpptaksVeier for Lærerutdanning Standard
-    await session.run(`
-      MATCH (laererMal:Regelsett {navn: 'Lærerutdanning Standard'})
-      
-      // Hent alle nødvendige elementer
-      MATCH (gsk:Kravelement {type: 'gsk'})
-      MATCH (norskKarakter:Kravelement {type: 'norsk-karakter-30'})
-      MATCH (matteKarakter:Kravelement {type: 'matematikk-karakter-40'})
-      MATCH (alderFgv:Kravelement {type: 'alder-forstegangsvitnemaal'})
-      
-      MATCH (grunnlagFgv:Grunnlag {type: 'forstegangsvitnemaal-vgs'})
-      MATCH (grunnlagOrdinaert:Grunnlag {type: 'ordinaert-vitnemaal-vgs'})
-      MATCH (grunnlagRealkompetanse:Grunnlag {type: 'realkompetanse'})
-      
-      MATCH (kvoteFgv:KvoteType {type: 'forstegangsvitnemaal'})
-      MATCH (kvoteOrdinaer:KvoteType {type: 'ordinaer'})
-      
-      MATCH (rangeringKarakter:RangeringType {type: 'karaktersnitt-realfag'})
-      MATCH (rangeringErfaring:RangeringType {type: 'erfaring-fagkompetanse'})
-      
-      // OpptaksVei 1: Førstegangsvitnemål
-      CREATE (vei1:OpptaksVei {
-        id: 'forstegangsvitnemaal-laerer-standard',
-        navn: 'Førstegangsvitnemål - Lærerutdanning Standard',
-        beskrivelse: 'Vei for søkere med førstegangsvitnemål',
-        aktiv: true,
-        opprettet: datetime()
-      })
-      CREATE (laererMal)-[:HAR_OPPTAKSVEI]->(vei1)
-      CREATE (vei1)-[:BASERT_PÅ]->(grunnlagFgv)
-      CREATE (vei1)-[:KREVER]->(gsk)
-      CREATE (vei1)-[:KREVER]->(norskKarakter)
-      CREATE (vei1)-[:KREVER]->(matteKarakter)
-      CREATE (vei1)-[:KREVER]->(alderFgv)
-      CREATE (vei1)-[:GIR_TILGANG_TIL]->(kvoteFgv)
-      CREATE (vei1)-[:BRUKER_RANGERING]->(rangeringKarakter)
-      
-      // OpptaksVei 2: Ordinært vitnemål
-      CREATE (vei2:OpptaksVei {
-        id: 'ordinaert-vitnemaal-laerer-standard',
-        navn: 'Ordinært vitnemål - Lærerutdanning Standard',
-        beskrivelse: 'Vei for søkere med ordinært vitnemål',
-        aktiv: true,
-        opprettet: datetime()
-      })
-      CREATE (laererMal)-[:HAR_OPPTAKSVEI]->(vei2)
-      CREATE (vei2)-[:BASERT_PÅ]->(grunnlagOrdinaert)
-      CREATE (vei2)-[:KREVER]->(gsk)
-      CREATE (vei2)-[:KREVER]->(norskKarakter)
-      CREATE (vei2)-[:KREVER]->(matteKarakter)
-      CREATE (vei2)-[:GIR_TILGANG_TIL]->(kvoteOrdinaer)
-      CREATE (vei2)-[:BRUKER_RANGERING]->(rangeringKarakter)
-      
-      // OpptaksVei 3: Realkompetanse
-      CREATE (vei3:OpptaksVei {
-        id: 'realkompetanse-laerer-standard',
-        navn: 'Realkompetanse - Lærerutdanning Standard',
-        beskrivelse: 'Vei for søkere med realkompetanse',
-        aktiv: true,
-        opprettet: datetime()
-      })
-      CREATE (laererMal)-[:HAR_OPPTAKSVEI]->(vei3)
-      CREATE (vei3)-[:BASERT_PÅ]->(grunnlagRealkompetanse)
-      CREATE (vei3)-[:KREVER]->(norskKarakter)
-      CREATE (vei3)-[:GIR_TILGANG_TIL]->(kvoteOrdinaer)
-      CREATE (vei3)-[:BRUKER_RANGERING]->(rangeringErfaring)
-    `);
-
-    console.log('✅ Opprettet regelsett-maler');
-
-    // ========== KONKRETE REGELSETT ==========
-    console.log('📜 Oppretter konkrete regelsett...');
-
-    // NTNU Bygg- og miljøteknikk H25 (basert på Ingeniørutdanning mal)
-    await session.run(`
-      CREATE (ntnuBygg:Regelsett {
-        id: randomUUID(),
-        navn: 'NTNU Bygg- og miljøteknikk H25',
-        beskrivelse: 'Regelsett for Bachelor i Bygg- og miljøteknikk ved NTNU, høst 2025',
-        versjon: '1.0',
-        erMal: false,
-        basertPå: 'ingenior-standard',
-        gyldigFra: date('2025-01-01'),
-        opprettet: datetime(),
-        aktiv: true
-      })
-    `);
-
-    // Opprett OpptaksVeier for NTNU Bygg
-    await session.run(`
-      MATCH (ntnuBygg:Regelsett {navn: 'NTNU Bygg- og miljøteknikk H25'})
-      
-      // Hent alle nødvendige elementer
-      MATCH (gsk:Kravelement {type: 'gsk'})
-      MATCH (matteR1R2:Kravelement {type: 'matematikk-r1r2'})
-      MATCH (fysikk1:Kravelement {type: 'fysikk-1'})
-      MATCH (alderFgv:Kravelement {type: 'alder-forstegangsvitnemaal'})
-      MATCH (forkursFullfort:Kravelement {type: 'forkurs-fullfort'})
-      
-      MATCH (grunnlagFgv:Grunnlag {type: 'forstegangsvitnemaal-vgs'})
-      MATCH (grunnlagOrdinaert:Grunnlag {type: 'ordinaert-vitnemaal-vgs'})
-      MATCH (grunnlagFagbrev:Grunnlag {type: 'fagbrev'})
-      MATCH (grunnlagForkurs:Grunnlag {type: 'forkurs-ingenior'})
-      
-      MATCH (kvoteFgv:KvoteType {type: 'forstegangsvitnemaal'})
-      MATCH (kvoteOrdinaer:KvoteType {type: 'ordinaer'})
-      MATCH (kvoteForkurs:KvoteType {type: 'forkurs'})
-      
-      MATCH (rangeringKarakter:RangeringType {type: 'karaktersnitt-realfag'})
-      MATCH (rangeringFagbrev:RangeringType {type: 'fagbrev-realfag'})
-      MATCH (rangeringForkurs:RangeringType {type: 'forkurs'})
-      
-      // OpptaksVei 1: Førstegangsvitnemål
-      CREATE (vei1:OpptaksVei {
-        id: 'forstegangsvitnemaal-ntnu-bygg-h25',
-        navn: 'Førstegangsvitnemål - NTNU Bygg H25',
-        beskrivelse: 'Vei for søkere med førstegangsvitnemål til NTNU Bygg- og miljøteknikk',
-        aktiv: true,
-        opprettet: datetime()
-      })
-      CREATE (ntnuBygg)-[:HAR_OPPTAKSVEI]->(vei1)
-      CREATE (vei1)-[:BASERT_PÅ]->(grunnlagFgv)
-      CREATE (vei1)-[:KREVER]->(gsk)
-      CREATE (vei1)-[:KREVER]->(matteR1R2)
-      CREATE (vei1)-[:KREVER]->(fysikk1)
-      CREATE (vei1)-[:KREVER]->(alderFgv)
-      CREATE (vei1)-[:GIR_TILGANG_TIL]->(kvoteFgv)
-      CREATE (vei1)-[:BRUKER_RANGERING]->(rangeringKarakter)
-      
-      // OpptaksVei 2: Ordinært vitnemål
-      CREATE (vei2:OpptaksVei {
-        id: 'ordinaert-vitnemaal-ntnu-bygg-h25',
-        navn: 'Ordinært vitnemål - NTNU Bygg H25',
-        beskrivelse: 'Vei for søkere med ordinært vitnemål til NTNU Bygg- og miljøteknikk',
-        aktiv: true,
-        opprettet: datetime()
-      })
-      CREATE (ntnuBygg)-[:HAR_OPPTAKSVEI]->(vei2)
-      CREATE (vei2)-[:BASERT_PÅ]->(grunnlagOrdinaert)
-      CREATE (vei2)-[:KREVER]->(gsk)
-      CREATE (vei2)-[:KREVER]->(matteR1R2)
-      CREATE (vei2)-[:KREVER]->(fysikk1)
-      CREATE (vei2)-[:GIR_TILGANG_TIL]->(kvoteOrdinaer)
-      CREATE (vei2)-[:BRUKER_RANGERING]->(rangeringKarakter)
-      
-      // OpptaksVei 3: Fagbrev
-      CREATE (vei3:OpptaksVei {
-        id: 'fagbrev-ntnu-bygg-h25',
-        navn: 'Fagbrev - NTNU Bygg H25',
-        beskrivelse: 'Vei for søkere med fagbrev til NTNU Bygg- og miljøteknikk',
-        aktiv: true,
-        opprettet: datetime()
-      })
-      CREATE (ntnuBygg)-[:HAR_OPPTAKSVEI]->(vei3)
-      CREATE (vei3)-[:BASERT_PÅ]->(grunnlagFagbrev)
-      CREATE (vei3)-[:KREVER]->(gsk)
-      CREATE (vei3)-[:GIR_TILGANG_TIL]->(kvoteOrdinaer)
-      CREATE (vei3)-[:BRUKER_RANGERING]->(rangeringFagbrev)
-      
-      // OpptaksVei 4: Forkurs
-      CREATE (vei4:OpptaksVei {
-        id: 'forkurs-ntnu-bygg-h25',
-        navn: 'Forkurs - NTNU Bygg H25',
-        beskrivelse: 'Vei for søkere med fullført forkurs til NTNU Bygg- og miljøteknikk',
-        aktiv: true,
-        opprettet: datetime()
-      })
-      CREATE (ntnuBygg)-[:HAR_OPPTAKSVEI]->(vei4)
-      CREATE (vei4)-[:BASERT_PÅ]->(grunnlagForkurs)
-      CREATE (vei4)-[:KREVER]->(forkursFullfort)
-      CREATE (vei4)-[:GIR_TILGANG_TIL]->(kvoteForkurs)
-      CREATE (vei4)-[:BRUKER_RANGERING]->(rangeringForkurs)
-    `);
-
-    // UiO Lærerutdanning H25 (basert på Lærerutdanning mal)
-    await session.run(`
-      CREATE (uioLaerer:Regelsett {
-        id: randomUUID(),
-        navn: 'UiO Lærerutdanning 1-7 H25',
-        beskrivelse: 'Regelsett for Grunnskolelærerutdanning 1-7 ved UiO, høst 2025',
-        versjon: '1.0',
-        erMal: false,
-        basertPå: 'laerer-standard',
-        gyldigFra: date('2025-01-01'),
-        opprettet: datetime(),
-        aktiv: true
-      })
-    `);
-
-    // Opprett OpptaksVeier for UiO Lærer
-    await session.run(`
-      MATCH (uioLaerer:Regelsett {navn: 'UiO Lærerutdanning 1-7 H25'})
-      
-      // Hent alle nødvendige elementer
-      MATCH (gsk:Kravelement {type: 'gsk'})
-      MATCH (norskKarakter:Kravelement {type: 'norsk-karakter-30'})
-      MATCH (matteKarakter:Kravelement {type: 'matematikk-karakter-40'})
-      MATCH (alderFgv:Kravelement {type: 'alder-forstegangsvitnemaal'})
-      
-      MATCH (grunnlagFgv:Grunnlag {type: 'forstegangsvitnemaal-vgs'})
-      MATCH (grunnlagOrdinaert:Grunnlag {type: 'ordinaert-vitnemaal-vgs'})
-      MATCH (grunnlagRealkompetanse:Grunnlag {type: 'realkompetanse'})
-      
-      MATCH (kvoteFgv:KvoteType {type: 'forstegangsvitnemaal'})
-      MATCH (kvoteOrdinaer:KvoteType {type: 'ordinaer'})
-      
-      MATCH (rangeringKarakter:RangeringType {type: 'karaktersnitt-realfag'})
-      MATCH (rangeringErfaring:RangeringType {type: 'erfaring-fagkompetanse'})
-      
-      // OpptaksVei 1: Førstegangsvitnemål
-      CREATE (vei1:OpptaksVei {
-        id: 'forstegangsvitnemaal-uio-laerer-h25',
-        navn: 'Førstegangsvitnemål - UiO Lærerutdanning H25',
-        beskrivelse: 'Vei for søkere med førstegangsvitnemål til UiO lærerutdanning',
-        aktiv: true,
-        opprettet: datetime()
-      })
-      CREATE (uioLaerer)-[:HAR_OPPTAKSVEI]->(vei1)
-      CREATE (vei1)-[:BASERT_PÅ]->(grunnlagFgv)
-      CREATE (vei1)-[:KREVER]->(gsk)
-      CREATE (vei1)-[:KREVER]->(norskKarakter)
-      CREATE (vei1)-[:KREVER]->(matteKarakter)
-      CREATE (vei1)-[:KREVER]->(alderFgv)
-      CREATE (vei1)-[:GIR_TILGANG_TIL]->(kvoteFgv)
-      CREATE (vei1)-[:BRUKER_RANGERING]->(rangeringKarakter)
-      
-      // OpptaksVei 2: Ordinært vitnemål
-      CREATE (vei2:OpptaksVei {
-        id: 'ordinaert-vitnemaal-uio-laerer-h25',
-        navn: 'Ordinært vitnemål - UiO Lærerutdanning H25',
-        beskrivelse: 'Vei for søkere med ordinært vitnemål til UiO lærerutdanning',
-        aktiv: true,
-        opprettet: datetime()
-      })
-      CREATE (uioLaerer)-[:HAR_OPPTAKSVEI]->(vei2)
-      CREATE (vei2)-[:BASERT_PÅ]->(grunnlagOrdinaert)
-      CREATE (vei2)-[:KREVER]->(gsk)
-      CREATE (vei2)-[:KREVER]->(norskKarakter)
-      CREATE (vei2)-[:KREVER]->(matteKarakter)
-      CREATE (vei2)-[:GIR_TILGANG_TIL]->(kvoteOrdinaer)
-      CREATE (vei2)-[:BRUKER_RANGERING]->(rangeringKarakter)
-      
-      // OpptaksVei 3: Realkompetanse
-      CREATE (vei3:OpptaksVei {
-        id: 'realkompetanse-uio-laerer-h25',
-        navn: 'Realkompetanse - UiO Lærerutdanning H25',
-        beskrivelse: 'Vei for søkere med realkompetanse til UiO lærerutdanning',
-        aktiv: true,
-        opprettet: datetime()
-      })
-      CREATE (uioLaerer)-[:HAR_OPPTAKSVEI]->(vei3)
-      CREATE (vei3)-[:BASERT_PÅ]->(grunnlagRealkompetanse)
-      CREATE (vei3)-[:KREVER]->(norskKarakter)
-      CREATE (vei3)-[:GIR_TILGANG_TIL]->(kvoteOrdinaer)
-      CREATE (vei3)-[:BRUKER_RANGERING]->(rangeringErfaring)
-    `);
-
-    console.log('✅ Opprettet konkrete regelsett');
+    console.log('✅ Opprettet rangeringstyper med poengtype-relasjoner');
 
     // ========== INSTITUSJONER ==========
     console.log('🏢 Oppretter institusjoner...');
@@ -985,170 +755,122 @@ async function seedAll() {
       CREATE (uio:Institusjon {
         id: randomUUID(),
         navn: 'Universitetet i Oslo',
-        kortNavn: 'UiO',
-        type: 'Universitet',
-        institusjonsnummer: '0150',
-        adresse: 'Problemveien 7, 0313 Oslo',
-        nettside: 'https://www.uio.no',
-        latitude: 59.9373,
-        longitude: 10.7199,
-        by: 'Oslo',
-        fylke: 'Oslo',
-        aktiv: true
+        kortnavn: 'UiO',
+        type: 'universitet',
+        eier: 'offentlig',
+        sted: 'Oslo',
+        aktiv: true,
+        opprettet: datetime()
       })
       CREATE (ntnu:Institusjon {
         id: randomUUID(),
         navn: 'Norges teknisk-naturvitenskapelige universitet',
-        kortNavn: 'NTNU',
-        type: 'Universitet',
-        institusjonsnummer: '0194',
-        adresse: 'Høgskoleringen 1, 7491 Trondheim',
-        nettside: 'https://www.ntnu.no',
-        latitude: 63.4178,
-        longitude: 10.4018,
-        by: 'Trondheim',
-        fylke: 'Trøndelag',
-        aktiv: true
+        kortnavn: 'NTNU',
+        type: 'universitet',
+        eier: 'offentlig',
+        sted: 'Trondheim',
+        aktiv: true,
+        opprettet: datetime()
       })
       CREATE (uib:Institusjon {
         id: randomUUID(),
         navn: 'Universitetet i Bergen',
-        kortNavn: 'UiB',
-        type: 'Universitet',
-        institusjonsnummer: '0163',
-        adresse: 'Muséplass 1, 5007 Bergen',
-        nettside: 'https://www.uib.no',
-        latitude: 60.3862,
-        longitude: 5.3204,
-        by: 'Bergen',
-        fylke: 'Vestland',
-        aktiv: true
-      })
-      CREATE (uit:Institusjon {
-        id: randomUUID(),
-        navn: 'UiT Norges arktiske universitet',
-        kortNavn: 'UiT',
-        type: 'Universitet',
-        institusjonsnummer: '0174',
-        adresse: 'Hansine Hansens veg 18, 9019 Tromsø',
-        nettside: 'https://www.uit.no',
-        latitude: 69.6489,
-        longitude: 18.9551,
-        by: 'Tromsø',
-        fylke: 'Troms og Finnmark',
-        aktiv: true
-      })
-      CREATE (oslomet:Institusjon {
-        id: randomUUID(),
-        navn: 'OsloMet - storbyuniversitetet',
-        kortNavn: 'OsloMet',
-        type: 'Høgskole',
-        institusjonsnummer: '0202',
-        adresse: 'Pilestredet 35, 0166 Oslo',
-        nettside: 'https://www.oslomet.no',
-        latitude: 59.9200,
-        longitude: 10.7350,
-        by: 'Oslo',
-        fylke: 'Oslo',
-        aktiv: true
-      })
-      CREATE (kristiania:Institusjon {
-        id: randomUUID(),
-        navn: 'Høyskolen Kristiania',
-        kortNavn: 'Kristiania',
-        type: 'Privat høgskole',
-        institusjonsnummer: '1502',
-        adresse: 'Prinsensgate 7-9, 0152 Oslo',
-        nettside: 'https://www.kristiania.no',
-        latitude: 59.9150,
-        longitude: 10.7500,
-        by: 'Oslo',
-        fylke: 'Oslo',
-        aktiv: true
-      })
-      CREATE (uia:Institusjon {
-        id: randomUUID(),
-        navn: 'Universitetet i Agder',
-        kortNavn: 'UiA',
-        type: 'Universitet',
-        institusjonsnummer: '0232',
-        adresse: 'Universitetsveien 25, 4630 Kristiansand',
-        nettside: 'https://www.uia.no',
-        latitude: 58.1467,
-        longitude: 7.9956,
-        by: 'Kristiansand',
-        fylke: 'Agder',
-        aktiv: true
+        kortnavn: 'UiB',
+        type: 'universitet',
+        eier: 'offentlig',
+        sted: 'Bergen',
+        aktiv: true,
+        opprettet: datetime()
       })
       CREATE (uis:Institusjon {
         id: randomUUID(),
         navn: 'Universitetet i Stavanger',
-        kortNavn: 'UiS',
-        type: 'Universitet',
-        institusjonsnummer: '0215',
-        adresse: 'Kjell Arholms gate 41, 4021 Stavanger',
-        nettside: 'https://www.uis.no',
-        latitude: 58.8700,
-        longitude: 5.6900,
-        by: 'Stavanger',
-        fylke: 'Rogaland',
-        aktiv: true
+        kortnavn: 'UiS',
+        type: 'universitet',
+        eier: 'offentlig',
+        sted: 'Stavanger',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (uit:Institusjon {
+        id: randomUUID(),
+        navn: 'UiT Norges arktiske universitet',
+        kortnavn: 'UiT',
+        type: 'universitet',
+        eier: 'offentlig',
+        sted: 'Tromsø',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (uia:Institusjon {
+        id: randomUUID(),
+        navn: 'Universitetet i Agder',
+        kortnavn: 'UiA',
+        type: 'universitet',
+        eier: 'offentlig',
+        sted: 'Kristiansand',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (oslomet:Institusjon {
+        id: randomUUID(),
+        navn: 'OsloMet - storbyuniversitetet',
+        kortnavn: 'OsloMet',
+        type: 'høgskole',
+        eier: 'offentlig',
+        sted: 'Oslo',
+        aktiv: true,
+        opprettet: datetime()
       })
       CREATE (hvl:Institusjon {
         id: randomUUID(),
         navn: 'Høgskulen på Vestlandet',
-        kortNavn: 'HVL',
-        type: 'Høgskole',
-        institusjonsnummer: '0217',
-        adresse: 'Inndalsveien 28, 5063 Bergen',
-        nettside: 'https://www.hvl.no',
-        latitude: 60.3700,
-        longitude: 5.3500,
-        by: 'Bergen',
-        fylke: 'Vestland',
-        aktiv: true
+        kortnavn: 'HVL',
+        type: 'høgskole',
+        eier: 'offentlig',
+        sted: 'Bergen',
+        aktiv: true,
+        opprettet: datetime()
       })
-      CREATE (inn:Institusjon {
+      CREATE (hinn:Institusjon {
         id: randomUUID(),
         navn: 'Høgskolen i Innlandet',
-        kortNavn: 'HiNN',
-        type: 'Høgskole',
-        institusjonsnummer: '0283',
-        adresse: 'Terningen Arena, 2418 Elverum',
-        nettside: 'https://www.inn.no',
-        latitude: 60.8811,
-        longitude: 11.5644,
-        by: 'Elverum',
-        fylke: 'Innlandet',
-        aktiv: true
+        kortnavn: 'HiNN',
+        type: 'høgskole',
+        eier: 'offentlig',
+        sted: 'Lillehammer',
+        aktiv: true,
+        opprettet: datetime()
       })
       CREATE (himolde:Institusjon {
         id: randomUUID(),
         navn: 'Høgskolen i Molde',
-        kortNavn: 'HiMolde',
-        type: 'Høgskole',
-        institusjonsnummer: '0181',
-        adresse: 'Britvegen 2, 6410 Molde',
-        nettside: 'https://www.himolde.no',
-        latitude: 62.7372,
-        longitude: 7.1574,
-        by: 'Molde',
-        fylke: 'Møre og Romsdal',
-        aktiv: true
+        kortnavn: 'HiMolde',
+        type: 'høgskole',
+        eier: 'offentlig',
+        sted: 'Molde',
+        aktiv: true,
+        opprettet: datetime()
       })
       CREATE (bi:Institusjon {
         id: randomUUID(),
         navn: 'BI Norges Handelshøyskole',
-        kortNavn: 'BI',
-        type: 'Privat høgskole',
-        institusjonsnummer: '1541',
-        adresse: 'Nydalsveien 37, 0484 Oslo',
-        nettside: 'https://www.bi.no',
-        latitude: 59.9500,
-        longitude: 10.7700,
-        by: 'Oslo',
-        fylke: 'Oslo',
-        aktiv: true
+        kortnavn: 'BI',
+        type: 'høgskole',
+        eier: 'privat',
+        sted: 'Oslo',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (kristiania:Institusjon {
+        id: randomUUID(),
+        navn: 'Høyskolen Kristiania',
+        kortnavn: 'Kristiania',
+        type: 'høgskole',
+        eier: 'privat',
+        sted: 'Oslo',
+        aktiv: true,
+        opprettet: datetime()
       })
     `);
     console.log('✅ Opprettet institusjoner');
@@ -1157,76 +879,62 @@ async function seedAll() {
     console.log('🎓 Oppretter utdanningstilbud...');
 
     await session.run(`
-      MATCH (uio:Institusjon {kortNavn: 'UiO'})
-      MATCH (ntnu:Institusjon {kortNavn: 'NTNU'})
-      MATCH (oslomet:Institusjon {kortNavn: 'OsloMet'})
-      MATCH (kristiania:Institusjon {kortNavn: 'Kristiania'})
-      
-      CREATE (informatikk:Utdanningstilbud {
+      MATCH (uio:Institusjon {kortnavn: 'UiO'})
+      MATCH (ntnu:Institusjon {kortnavn: 'NTNU'})
+      MATCH (oslomet:Institusjon {kortnavn: 'OsloMet'})
+      MATCH (kristiania:Institusjon {kortnavn: 'Kristiania'})
+
+      CREATE (uio)-[:TILBYR]->(informatikk:Utdanningstilbud {
         id: randomUUID(),
-        navn: 'Bachelor i informatikk',
-        studienivaa: 'Bachelor',
+        navn: 'Bachelor i Informatikk: programmering og systemarkitektur',
+        kortnavn: 'Informatikk',
+        studienivaa: 'bachelor',
         studiepoeng: 180,
-        varighet: '3 år',
-        semester: 'Høst',
-        aar: 2024,
+        normertid: 3,
         studiested: 'Oslo',
-        undervisningssprak: 'Norsk',
-        maxAntallStudenter: 200,
-        beskrivelse: 'Tredelt bachelorprogram i informatikk med spesialisering innen programmering, algoritmer og datastrukturer.',
-        aktiv: true
+        aktiv: true,
+        opprettet: datetime()
       })
-      CREATE (bygg:Utdanningstilbud {
+
+      CREATE (ntnu)-[:TILBYR]->(bygg:Utdanningstilbud {
         id: randomUUID(),
-        navn: 'Sivilingeniør i bygg- og miljøteknikk',
-        studienivaa: 'Master',
-        studiepoeng: 300,
-        varighet: '5 år',
-        semester: 'Høst',
-        aar: 2024,
+        navn: 'Bachelor i Bygg- og miljøteknikk',
+        kortnavn: 'Bygg- og miljøteknikk',
+        studienivaa: 'bachelor',
+        studiepoeng: 180,
+        normertid: 3,
         studiested: 'Trondheim',
-        undervisningssprak: 'Norsk',
-        maxAntallStudenter: 150,
-        beskrivelse: 'Integrert masterprogram innen bygg- og miljøteknikk med fokus på bærekraftige løsninger.',
-        aktiv: true
+        aktiv: true,
+        opprettet: datetime()
       })
-      CREATE (sykepleie:Utdanningstilbud {
+
+      CREATE (oslomet)-[:TILBYR]->(larerutdanning:Utdanningstilbud {
         id: randomUUID(),
-        navn: 'Bachelor i sykepleie',
-        studienivaa: 'Bachelor',
+        navn: 'Bachelor i Grunnskolelærerutdanning 1-7',
+        kortnavn: 'Lærerutdanning 1-7',
+        studienivaa: 'bachelor',
         studiepoeng: 180,
-        varighet: '3 år',
-        semester: 'Begge',
-        aar: 2024,
+        normertid: 3,
         studiested: 'Oslo',
-        undervisningssprak: 'Norsk',
-        maxAntallStudenter: 120,
-        beskrivelse: 'Profesjonsutdanning som kvalifiserer for autorisasjon som sykepleier.',
-        aktiv: true
+        aktiv: true,
+        opprettet: datetime()
       })
-      CREATE (markedsforing:Utdanningstilbud {
+
+      CREATE (kristiania)-[:TILBYR]->(markedsforing:Utdanningstilbud {
         id: randomUUID(),
-        navn: 'Bachelor i markedsføring og merkevareledelse',
-        studienivaa: 'Bachelor',
+        navn: 'Bachelor i Markedsføring og salgsledelse',
+        kortnavn: 'Markedsføring',
+        studienivaa: 'bachelor',
         studiepoeng: 180,
-        varighet: '3 år',
-        semester: 'Høst',
-        aar: 2024,
+        normertid: 3,
         studiested: 'Oslo',
-        undervisningssprak: 'Engelsk',
-        maxAntallStudenter: 80,
-        beskrivelse: 'Moderne markedsføringsutdanning med fokus på digital markedsføring og merkevarebygging.',
-        aktiv: true
+        aktiv: true,
+        opprettet: datetime()
       })
-      
-      CREATE (uio)-[:TILBYR]->(informatikk)
-      CREATE (ntnu)-[:TILBYR]->(bygg)
-      CREATE (oslomet)-[:TILBYR]->(sykepleie)
-      CREATE (kristiania)-[:TILBYR]->(markedsforing)
     `);
     console.log('✅ Opprettet utdanningstilbud');
 
-    // ========== SØKERE ==========
+    // ========== PERSONER (TESTDATA) ==========
     console.log('👥 Oppretter søkere...');
 
     await session.run(`
@@ -1234,200 +942,460 @@ async function seedAll() {
         id: randomUUID(),
         fornavn: 'Anna',
         etternavn: 'Hansen',
-        fodselsdato: date('2003-05-15'),
-        fodselsnummer: '15050312345',
-        epost: 'anna.hansen@example.no',
+        fodselsdato: date('2005-03-15'),
+        kjonn: 'kvinne',
         telefon: '12345678',
-        adresse: 'Storgata 15\\n0180 Oslo',
-        postnummer: '0180',
-        poststed: 'Oslo',
-        statsborgerskap: 'Norge',
-        aktiv: true
+        epost: 'anna.hansen@example.com',
+        adresse: 'Storgata 1, 0001 Oslo',
+        statsborgerskap: 'norsk',
+        aktiv: true,
+        opprettet: datetime()
       })
       CREATE (erik:Person {
         id: randomUUID(),
         fornavn: 'Erik',
         etternavn: 'Johnsen',
-        fodselsdato: date('2002-09-23'),
-        fodselsnummer: '23090234567',
-        epost: 'erik.johnsen@example.no',
+        fodselsdato: date('2004-08-22'),
+        kjonn: 'mann',
         telefon: '23456789',
-        adresse: 'Elvegata 42\\n7030 Trondheim',
-        postnummer: '7030',
-        poststed: 'Trondheim',
-        statsborgerskap: 'Norge',
-        aktiv: true
+        epost: 'erik.johnsen@example.com',
+        adresse: 'Parkveien 10, 7030 Trondheim',
+        statsborgerskap: 'norsk',
+        aktiv: true,
+        opprettet: datetime()
       })
       CREATE (maria:Person {
         id: randomUUID(),
         fornavn: 'Maria',
         etternavn: 'Andersen',
-        fodselsdato: date('1998-12-08'),
-        fodselsnummer: '08129812345',
-        epost: 'maria.andersen@example.no',
+        fodselsdato: date('1995-12-03'),
+        kjonn: 'kvinne',
         telefon: '34567890',
-        adresse: 'Fjellveien 8\\n5020 Bergen',
-        postnummer: '5020',
-        poststed: 'Bergen',
-        statsborgerskap: 'Norge',
-        aktiv: true
+        epost: 'maria.andersen@example.com',
+        adresse: 'Torgallmenningen 2, 5020 Bergen',
+        statsborgerskap: 'norsk',
+        aktiv: true,
+        opprettet: datetime()
       })
       CREATE (lars:Person {
         id: randomUUID(),
         fornavn: 'Lars',
         etternavn: 'Olsen',
-        fodselsdato: date('1995-07-14'),
-        fodselsnummer: '14079512345',
-        epost: 'lars.olsen@example.no',
+        fodselsdato: date('2003-06-10'),
+        kjonn: 'mann',
         telefon: '45678901',
-        adresse: 'Industriveien 99\\n4020 Stavanger',
-        postnummer: '4020',
-        poststed: 'Stavanger',
-        statsborgerskap: 'Norge',
-        aktiv: true
+        epost: 'lars.olsen@example.com',
+        adresse: 'Kvadraturen 5, 4612 Kristiansand',
+        statsborgerskap: 'norsk',
+        aktiv: true,
+        opprettet: datetime()
       })
       CREATE (sophie:Person {
         id: randomUUID(),
         fornavn: 'Sophie',
         etternavn: 'Müller',
-        fodselsdato: date('2001-03-25'),
-        fodselsnummer: '25030123456',
-        epost: 'sophie.muller@example.de',
+        fodselsdato: date('2005-11-18'),
+        kjonn: 'kvinne',
         telefon: '56789012',
-        adresse: 'Universitetsveien 12\\n0315 Oslo',
-        postnummer: '0315',
-        poststed: 'Oslo',
-        statsborgerskap: 'Tyskland',
-        aktiv: true
+        epost: 'sophie.muller@example.com',
+        adresse: 'Hansastraße 15, 20354 Hamburg',
+        statsborgerskap: 'tysk',
+        aktiv: true,
+        opprettet: datetime()
       })
     `);
     console.log('✅ Opprettet søkere');
 
+    // ========== DOKUMENTASJON OG KARAKTERER ==========
+    console.log('📄 Oppretter dokumentasjon og karakterdata...');
+
+    await session.run(`
+      MATCH (anna:Person {fornavn: 'Anna'})
+      MATCH (erik:Person {fornavn: 'Erik'})
+      MATCH (maria:Person {fornavn: 'Maria'})
+      MATCH (lars:Person {fornavn: 'Lars'})
+      MATCH (sophie:Person {fornavn: 'Sophie'})
+
+      // Anna - vitnemål
+      CREATE (anna)-[:HAR_DOKUMENTASJON]->(annaVitnemaal:Dokumentasjon {
+        id: randomUUID(),
+        type: 'vitnemaal',
+        navn: 'Vitnemål videregående opplæring',
+        utstedt: date('2023-06-15'),
+        utsteder: 'Oslo katedralskole',
+        utdanningsnivaa: 'videregående',
+        aktiv: true,
+        opprettet: datetime()
+      })
+
+      // Erik - vitnemål  
+      CREATE (erik)-[:HAR_DOKUMENTASJON]->(erikVitnemaal:Dokumentasjon {
+        id: randomUUID(),
+        type: 'vitnemaal',
+        navn: 'Vitnemål videregående opplæring',
+        utstedt: date('2022-06-20'),
+        utsteder: 'Trondheim katedralskole',
+        utdanningsnivaa: 'videregående',
+        aktiv: true,
+        opprettet: datetime()
+      })
+
+      // Maria - fagbrev og karakterutskrift
+      CREATE (maria)-[:HAR_DOKUMENTASJON]->(mariaFagbrev:Dokumentasjon {
+        id: randomUUID(),
+        type: 'fagbrev',
+        navn: 'Fagbrev IKT-servicefag',
+        utstedt: date('2016-08-15'),
+        utsteder: 'Bergen tekniske fagskole',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (maria)-[:HAR_DOKUMENTASJON]->(mariaKarakter:Dokumentasjon {
+        id: randomUUID(),
+        type: 'karakterutskrift',
+        navn: 'Karakterutskrift påbygging',
+        utstedt: date('2017-06-10'),
+        utsteder: 'Bergen voksenopplæring',
+        utdanningsnivaa: 'videregående',
+        aktiv: true,
+        opprettet: datetime()
+      })
+
+      // Lars - vitnemål
+      CREATE (lars)-[:HAR_DOKUMENTASJON]->(larsVitnemaal:Dokumentasjon {
+        id: randomUUID(),
+        type: 'vitnemaal',
+        navn: 'Vitnemål videregående opplæring',
+        utstedt: date('2021-06-18'),
+        utsteder: 'Kristiansand katedralskole',
+        utdanningsnivaa: 'videregående',
+        aktiv: true,
+        opprettet: datetime()
+      })
+
+      // Sophie - IB Diploma
+      CREATE (sophie)-[:HAR_DOKUMENTASJON]->(sophieIB:Dokumentasjon {
+        id: randomUUID(),
+        type: 'vitnemaal',
+        navn: 'IB Diploma Programme',
+        utstedt: date('2023-07-05'),
+        utsteder: 'International School Hamburg',
+        utdanningsnivaa: 'videregående',
+        aktiv: true,
+        opprettet: datetime()
+      })
+
+      // Karakterer for Anna
+      WITH annaVitnemaal
+      MATCH (fk1:Fagkode {kode: 'NOR1211'})
+      MATCH (fk2:Fagkode {kode: 'REA3022'})
+      MATCH (fk3:Fagkode {kode: 'REA3024'})
+      MATCH (fk4:Fagkode {kode: 'REA3026'})
+      MATCH (fk5:Fagkode {kode: 'FYS1001'})
+      MATCH (fk6:Fagkode {kode: 'KJE1001'})
+      MATCH (fk7:Fagkode {kode: 'BIO1001'})
+
+      CREATE (annaVitnemaal)-[:INNEHOLDER_KARAKTER]->(kar1:Karakter {
+        id: randomUUID(),
+        karakter: '5',
+        karaktersystem: '1-6',
+        dato: date('2023-05-15'),
+        opprettet: datetime()
+      })
+      CREATE (kar1)-[:GITT_I]->(fk1)
+
+      CREATE (annaVitnemaal)-[:INNEHOLDER_KARAKTER]->(kar2:Karakter {
+        id: randomUUID(),
+        karakter: '4',
+        karaktersystem: '1-6',
+        dato: date('2023-05-20'),
+        opprettet: datetime()
+      })
+      CREATE (kar2)-[:GITT_I]->(fk2)
+
+      CREATE (annaVitnemaal)-[:INNEHOLDER_KARAKTER]->(kar3:Karakter {
+        id: randomUUID(),
+        karakter: '5',
+        karaktersystem: '1-6',
+        dato: date('2023-05-20'),
+        opprettet: datetime()
+      })
+      CREATE (kar3)-[:GITT_I]->(fk3)
+
+      CREATE (annaVitnemaal)-[:INNEHOLDER_KARAKTER]->(kar4:Karakter {
+        id: randomUUID(),
+        karakter: '4',
+        karaktersystem: '1-6',
+        dato: date('2023-05-25'),
+        opprettet: datetime()
+      })
+      CREATE (kar4)-[:GITT_I]->(fk4)
+
+      CREATE (annaVitnemaal)-[:INNEHOLDER_KARAKTER]->(kar5:Karakter {
+        id: randomUUID(),
+        karakter: '5',
+        karaktersystem: '1-6',
+        dato: date('2023-05-30'),
+        opprettet: datetime()
+      })
+      CREATE (kar5)-[:GITT_I]->(fk5)
+
+      CREATE (annaVitnemaal)-[:INNEHOLDER_KARAKTER]->(kar6:Karakter {
+        id: randomUUID(),
+        karakter: '4',
+        karaktersystem: '1-6',
+        dato: date('2023-06-05'),
+        opprettet: datetime()
+      })
+      CREATE (kar6)-[:GITT_I]->(fk6)
+
+      CREATE (annaVitnemaal)-[:INNEHOLDER_KARAKTER]->(kar7:Karakter {
+        id: randomUUID(),
+        karakter: '6',
+        karaktersystem: '1-6',
+        dato: date('2023-06-10'),
+        opprettet: datetime()
+      })
+      CREATE (kar7)-[:GITT_I]->(fk7)
+    `);
+
+    await session.run(`
+      // Karakterer for Erik
+      MATCH (erik:Person {fornavn: 'Erik'})
+      MATCH (erikVitnemaal:Dokumentasjon)<-[:HAR_DOKUMENTASJON]-(erik)
+      WHERE erikVitnemaal.type = 'vitnemaal'
+
+      MATCH (fk1:Fagkode {kode: 'NOR1211'})
+      MATCH (fk2:Fagkode {kode: 'REA3022'})
+      MATCH (fk3:Fagkode {kode: 'REA3024'})
+      MATCH (fk4:Fagkode {kode: 'REA3026'})
+      MATCH (fk5:Fagkode {kode: 'FYS1001'})
+      MATCH (fk6:Fagkode {kode: 'FYS1002'})
+      MATCH (fk7:Fagkode {kode: 'KJE1001'})
+
+      CREATE (erikVitnemaal)-[:INNEHOLDER_KARAKTER]->(kar8:Karakter {
+        id: randomUUID(),
+        karakter: '4',
+        karaktersystem: '1-6',
+        dato: date('2022-05-15'),
+        opprettet: datetime()
+      })
+      CREATE (kar8)-[:GITT_I]->(fk1)
+
+      CREATE (erikVitnemaal)-[:INNEHOLDER_KARAKTER]->(kar9:Karakter {
+        id: randomUUID(),
+        karakter: '5',
+        karaktersystem: '1-6',
+        dato: date('2022-05-20'),
+        kommentar: 'Forbedret fra 3',
+        opprettet: datetime()
+      })
+      CREATE (kar9)-[:GITT_I]->(fk2)
+
+      CREATE (erikVitnemaal)-[:INNEHOLDER_KARAKTER]->(kar10:Karakter {
+        id: randomUUID(),
+        karakter: '4',
+        karaktersystem: '1-6',
+        dato: date('2022-05-20'),
+        kommentar: 'Forbedret fra 3',
+        opprettet: datetime()
+      })
+      CREATE (kar10)-[:GITT_I]->(fk3)
+
+      CREATE (erikVitnemaal)-[:INNEHOLDER_KARAKTER]->(kar11:Karakter {
+        id: randomUUID(),
+        karakter: '5',
+        karaktersystem: '1-6',
+        dato: date('2022-05-25'),
+        opprettet: datetime()
+      })
+      CREATE (kar11)-[:GITT_I]->(fk4)
+
+      CREATE (erikVitnemaal)-[:INNEHOLDER_KARAKTER]->(kar12:Karakter {
+        id: randomUUID(),
+        karakter: '6',
+        karaktersystem: '1-6',
+        dato: date('2022-05-30'),
+        opprettet: datetime()
+      })
+      CREATE (kar12)-[:GITT_I]->(fk5)
+
+      CREATE (erikVitnemaal)-[:INNEHOLDER_KARAKTER]->(kar13:Karakter {
+        id: randomUUID(),
+        karakter: '5',
+        karaktersystem: '1-6',
+        dato: date('2022-06-05'),
+        opprettet: datetime()
+      })
+      CREATE (kar13)-[:GITT_I]->(fk6)
+
+      CREATE (erikVitnemaal)-[:INNEHOLDER_KARAKTER]->(kar14:Karakter {
+        id: randomUUID(),
+        karakter: '3',
+        karaktersystem: '1-6',
+        dato: date('2022-06-10'),
+        opprettet: datetime()
+      })
+      CREATE (kar14)-[:GITT_I]->(fk7)
+    `);
+
+    await session.run(`
+      // Karakterer for Maria (fagbrev)
+      MATCH (maria:Person {fornavn: 'Maria'})
+      MATCH (mariaFagbrev:Dokumentasjon)<-[:HAR_DOKUMENTASJON]-(maria)
+      WHERE mariaFagbrev.type = 'fagbrev'
+      MATCH (mariaKarakter:Dokumentasjon)<-[:HAR_DOKUMENTASJON]-(maria)
+      WHERE mariaKarakter.type = 'karakterutskrift'
+
+      MATCH (fk1:Fagkode {kode: 'NOR1211'})
+      MATCH (fk2:Fagkode {kode: 'REA3022'})
+
+      CREATE (mariaFagbrev)-[:INNEHOLDER_KARAKTER]->(kar15:Karakter {
+        id: randomUUID(),
+        karakter: '4',
+        karaktersystem: '1-6',
+        dato: date('2016-06-15'),
+        opprettet: datetime()
+      })
+      CREATE (kar15)-[:GITT_I]->(fk1)
+
+      CREATE (mariaKarakter)-[:INNEHOLDER_KARAKTER]->(kar16:Karakter {
+        id: randomUUID(),
+        karakter: '5',
+        karaktersystem: '1-6',
+        dato: date('2017-05-20'),
+        opprettet: datetime()
+      })
+      CREATE (kar16)-[:GITT_I]->(fk2)
+    `);
+
+    await session.run(`
+      // Karakterer for Lars
+      MATCH (lars:Person {fornavn: 'Lars'})
+      MATCH (larsVitnemaal:Dokumentasjon)<-[:HAR_DOKUMENTASJON]-(lars)
+      WHERE larsVitnemaal.type = 'vitnemaal'
+
+      MATCH (fk1:Fagkode {kode: 'NOR1211'})
+      MATCH (fk2:Fagkode {kode: 'REA3022'})
+
+      CREATE (larsVitnemaal)-[:INNEHOLDER_KARAKTER]->(kar17:Karakter {
+        id: randomUUID(),
+        karakter: '3',
+        karaktersystem: '1-6',
+        dato: date('2021-05-15'),
+        opprettet: datetime()
+      })
+      CREATE (kar17)-[:GITT_I]->(fk1)
+
+      CREATE (larsVitnemaal)-[:INNEHOLDER_KARAKTER]->(kar18:Karakter {
+        id: randomUUID(),
+        karakter: '3',
+        karaktersystem: '1-6',
+        dato: date('2021-05-20'),
+        opprettet: datetime()
+      })
+      CREATE (kar18)-[:GITT_I]->(fk2)
+    `);
+
+    console.log('✅ Opprettet dokumentasjon og karakterdata');
+
+    console.log('✅ Fullført seeding av alle data!');
+
     // ========== SAMMENDRAG ==========
-    console.log('\n📊 Sammendrag av opprettet data:');
+    console.log('\\n📊 Sammendrag av seeded data:');
 
-    // Faggrupper
-    const faggrupperSummary = await session.run(
-      'MATCH (fg:Faggruppe) OPTIONAL MATCH (fk:Fagkode)-[:KVALIFISERER_FOR]->(fg) RETURN fg.navn as faggruppe, count(fk) as antallFagkoder ORDER BY fg.navn'
-    );
-    console.log('\n   📁 Faggrupper:');
-    faggrupperSummary.records.forEach((record) => {
-      console.log(
-        `     ${record.get('faggruppe')}: ${record.get('antallFagkoder').toNumber()} fagkoder`
-      );
-    });
-
-    // Regelsett-elementer
-    const kravelementerCount = await session.run(
-      'MATCH (ke:Kravelement) RETURN count(ke) as antall'
-    );
-    const grunnlagCount = await session.run('MATCH (g:Grunnlag) RETURN count(g) as antall');
-    const kvotetypeCount = await session.run('MATCH (kt:KvoteType) RETURN count(kt) as antall');
-    const rangeringstypeCount = await session.run(
-      'MATCH (rt:RangeringType) RETURN count(rt) as antall'
-    );
-
-    console.log('\n   📋 Regelsett-elementer:');
-    console.log(`     Kravelementer: ${kravelementerCount.records[0].get('antall').toNumber()}`);
-    console.log(`     Grunnlag: ${grunnlagCount.records[0].get('antall').toNumber()}`);
-    console.log(`     Kvotetyper: ${kvotetypeCount.records[0].get('antall').toNumber()}`);
-    console.log(`     Rangeringstyper: ${rangeringstypeCount.records[0].get('antall').toNumber()}`);
-
-    // Regelsett-maler
-    const regelsettMalerSummary = await session.run(`
-      MATCH (rm:Regelsett {erMal: true})
-      OPTIONAL MATCH (rm)-[:HAR_OPPTAKSVEI]->(ov:OpptaksVei)
-      OPTIONAL MATCH (ov)-[:KREVER]->(ke:Kravelement)
-      OPTIONAL MATCH (ov)-[:BASERT_PÅ]->(g:Grunnlag)
-      OPTIONAL MATCH (ov)-[:GIR_TILGANG_TIL]->(kt:KvoteType)
-      OPTIONAL MATCH (ov)-[:BRUKER_RANGERING]->(rt:RangeringType)
-      
-      RETURN rm.navn as regelsettMal,
-             count(DISTINCT ov) as antallOpptaksVeier,
-             count(DISTINCT ke) as antallKravelementer,
-             count(DISTINCT g) as antallGrunnlag,
-             count(DISTINCT kt) as antallKvoteTyper,
-             count(DISTINCT rt) as antallRangeringTyper
-      ORDER BY rm.navn
+    const summary = await session.run(`
+      MATCH (fg:Faggruppe) OPTIONAL MATCH (fk:Fagkode)-[:KVALIFISERER_FOR]->(fg)
+      WITH count(DISTINCT fg) as faggrupper, count(DISTINCT fk) as fagkoder
+      MATCH (k:Kravelement) 
+      MATCH (g:Grunnlag)
+      MATCH (kv:KvoteType)
+      MATCH (rt:RangeringType)
+      MATCH (pt:PoengType)
+      MATCH (i:Institusjon)
+      MATCH (u:Utdanningstilbud)
+      MATCH (p:Person)
+      MATCH (d:Dokumentasjon)
+      MATCH (kar:Karakter)
+      RETURN 
+        faggrupper, fagkoder,
+        count(DISTINCT k) as kravelementer,
+        count(DISTINCT g) as grunnlag,
+        count(DISTINCT kv) as kvotetyper,
+        count(DISTINCT rt) as rangeringstyper,
+        count(DISTINCT pt) as poengtyper,
+        count(DISTINCT i) as institusjoner,
+        count(DISTINCT u) as utdanningstilbud,
+        count(DISTINCT p) as personer,
+        count(DISTINCT d) as dokumenter,
+        count(DISTINCT kar) as karakterer
     `);
 
-    console.log('\n   📜 Regelsett-maler:');
-    regelsettMalerSummary.records.forEach((record) => {
-      console.log(`     ${record.get('regelsettMal')}:`);
-      console.log(`       OpptaksVeier: ${record.get('antallOpptaksVeier').toNumber()}`);
-      console.log(`       Kravelementer: ${record.get('antallKravelementer').toNumber()}`);
-      console.log(`       Grunnlag: ${record.get('antallGrunnlag').toNumber()}`);
-      console.log(`       Kvotetyper: ${record.get('antallKvoteTyper').toNumber()}`);
-      console.log(`       Rangeringstyper: ${record.get('antallRangeringTyper').toNumber()}`);
-    });
+    const stats = summary.records[0];
+    console.log(`   📁 Faggrupper: ${stats.get('faggrupper').toNumber()}`);
+    console.log(`   📋 Fagkoder: ${stats.get('fagkoder').toNumber()}`);
+    console.log(`   🎯 Kravelementer: ${stats.get('kravelementer').toNumber()}`);
+    console.log(`   🏗️ Grunnlag: ${stats.get('grunnlag').toNumber()}`);
+    console.log(`   📊 Kvotetyper: ${stats.get('kvotetyper').toNumber()}`);
+    console.log(`   📈 Rangeringstyper: ${stats.get('rangeringstyper').toNumber()}`);
+    console.log(`   📊 PoengTyper: ${stats.get('poengtyper').toNumber()}`);
+    console.log(`   🏢 Institusjoner: ${stats.get('institusjoner').toNumber()}`);
+    console.log(`   🎓 Utdanningstilbud: ${stats.get('utdanningstilbud').toNumber()}`);
+    console.log(`   👥 Personer: ${stats.get('personer').toNumber()}`);
+    console.log(`   📄 Dokumenter: ${stats.get('dokumenter').toNumber()}`);
+    console.log(`   ⭐ Karakterer: ${stats.get('karakterer').toNumber()}`);
 
-    // Konkrete regelsett
-    const konkreteRegelsettSummary = await session.run(`
-      MATCH (r:Regelsett {erMal: false})
-      OPTIONAL MATCH (r)-[:HAR_OPPTAKSVEI]->(ov:OpptaksVei)
-      OPTIONAL MATCH (ov)-[:KREVER]->(ke:Kravelement)
-      OPTIONAL MATCH (ov)-[:BASERT_PÅ]->(g:Grunnlag)
-      OPTIONAL MATCH (ov)-[:GIR_TILGANG_TIL]->(kt:KvoteType)
-      OPTIONAL MATCH (ov)-[:BRUKER_RANGERING]->(rt:RangeringType)
-      
-      RETURN r.navn as regelsett,
-             r.basertPå as basertPå,
-             count(DISTINCT ov) as antallOpptaksVeier,
-             count(DISTINCT ke) as antallKravelementer,
-             count(DISTINCT g) as antallGrunnlag,
-             count(DISTINCT kt) as antallKvoteTyper,
-             count(DISTINCT rt) as antallRangeringTyper
-      ORDER BY r.navn
+    // Verifiser RangeringType-relasjoner
+    const rangeringCheck = await session.run(`
+      MATCH (rt:RangeringType)-[:INKLUDERER_POENGTYPE]->(pt:PoengType)
+      RETURN rt.navn as rangeringstype, collect(pt.navn) as poengtyper
+      ORDER BY rt.navn
     `);
 
-    console.log('\n   📋 Konkrete regelsett:');
-    konkreteRegelsettSummary.records.forEach((record) => {
-      console.log(`     ${record.get('regelsett')}:`);
-      console.log(`       Basert på: ${record.get('basertPå') || 'ingen mal'}`);
-      console.log(`       OpptaksVeier: ${record.get('antallOpptaksVeier').toNumber()}`);
-      console.log(`       Kravelementer: ${record.get('antallKravelementer').toNumber()}`);
-      console.log(`       Grunnlag: ${record.get('antallGrunnlag').toNumber()}`);
-      console.log(`       Kvotetyper: ${record.get('antallKvoteTyper').toNumber()}`);
-      console.log(`       Rangeringstyper: ${record.get('antallRangeringTyper').toNumber()}`);
+    console.log('\\n📈 RangeringType PoengType-relasjoner:');
+    rangeringCheck.records.forEach((record) => {
+      const rtNavn = record.get('rangeringstype');
+      const ptNavn = record.get('poengtyper');
+      console.log(`   ${rtNavn}: ${ptNavn.length} poengtyper`);
+      ptNavn.forEach((pt: string) => {
+        console.log(`     - ${pt}`);
+      });
     });
 
-    // Nye entiteter
-    const institusjonerCount = await session.run('MATCH (i:Institusjon) RETURN count(i) as antall');
-    const utdanningstilbudCount = await session.run(
-      'MATCH (u:Utdanningstilbud) RETURN count(u) as antall'
-    );
-    const sokereCount = await session.run('MATCH (p:Person) RETURN count(p) as antall');
-
-    console.log('\n   🏢 Andre entiteter:');
-    console.log(`     Institusjoner: ${institusjonerCount.records[0].get('antall').toNumber()}`);
-    console.log(
-      `     Utdanningstilbud: ${utdanningstilbudCount.records[0].get('antall').toNumber()}`
-    );
-    console.log(`     Søkere: ${sokereCount.records[0].get('antall').toNumber()}`);
-
-    console.log('\n🎉 All seeding fullført!');
-
-    // Seed karakterer hvis kalt direkte
-    if (require.main === module) {
-      console.log('\n🎯 Starter karakterseeding...');
-      await seedKarakterer();
-    }
-  } catch (error) {
-    console.error('❌ Feil under seeding:', error);
-    throw error;
+    console.log('\\n🎉 Seeding fullført!');
   } finally {
     await session.close();
   }
 }
 
-// Kjør seeding hvis scriptet kalles direkte
+/**
+ * Fjerner all data fra databasen
+ */
+export async function clearAll() {
+  const session = getSession();
+
+  try {
+    console.log('🗑️ Sletter all data...');
+
+    await session.run(`
+      MATCH (n) DETACH DELETE n
+    `);
+
+    console.log('✅ All data slettet');
+  } finally {
+    await session.close();
+  }
+}
+
+// CLI entry point
 if (require.main === module) {
   seedAll()
-    .then(() => process.exit(0))
+    .then(() => {
+      console.log('\\n✨ Seeding completed successfully!');
+      process.exit(0);
+    })
     .catch((error) => {
-      console.error(error);
+      console.error('❌ Error during seeding:', error);
       process.exit(1);
     });
 }
-
-export { seedAll };

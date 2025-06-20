@@ -299,60 +299,72 @@ export async function seedStandardKomponenter() {
     console.log('📈 Oppretter rangeringstyper...');
 
     await session.run(`
-      CREATE (rangering1:RangeringType {
+      // Opprett rangeringstyper
+      CREATE (skolepoeng:RangeringType {
         id: randomUUID(),
-        navn: 'Karaktersnitt + realfagspoeng',
-        type: 'karaktersnitt-realfag',
-        formelMal: 'karaktersnitt + (realfagspoeng * vektfaktor)',
-        beskrivelse: 'Standard rangering med tilleggspoeng for realfag',
+        navn: 'Skolepoeng',
+        type: 'skolepoeng',
+        formelMal: 'karakterpoeng + realfagspoeng + språkpoeng + kjønnspoeng + opptaksprøvepoeng',
+        beskrivelse: 'Grunnleggende skolepoeng uten alderspoeng og andre tilleggspoeng',
         aktiv: true,
         opprettet: datetime()
       })
-      CREATE (rangering2:RangeringType {
+      CREATE (konkurransepoeng:RangeringType {
         id: randomUUID(),
-        navn: 'Fagbrev + realfagskarakterer',
-        type: 'fagbrev-realfag',
-        formelMal: 'fagbrevkarakter * 0.4 + realfagssnitt * 0.6',
-        beskrivelse: 'Vekting av fagbrev og realfagskarakterer',
+        navn: 'Konkurransepoeng',
+        type: 'konkurransepoeng',
+        formelMal: 'karakterpoeng + realfagspoeng + språkpoeng + kjønnspoeng + opptaksprøvepoeng + tilleggspoeng + alderspoeng',
+        beskrivelse: 'Full poengberegning med alle tilleggspoeng',
         aktiv: true,
         opprettet: datetime()
       })
-      CREATE (rangering3:RangeringType {
+      CREATE (realkompetanse:RangeringType {
         id: randomUUID(),
-        navn: 'Karaktersnitt ren',
-        type: 'karaktersnitt',
-        formelMal: 'sum(karakterer) / antall_fag',
-        beskrivelse: 'Bare karaktersnitt uten tilleggspoeng',
+        navn: 'Realkompetanse',
+        type: 'realkompetanse',
+        formelMal: 'realkompetansevurderingspoeng',
+        beskrivelse: 'Rangering basert kun på realkompetansevurdering',
         aktiv: true,
         opprettet: datetime()
       })
-      CREATE (rangering4:RangeringType {
-        id: randomUUID(),
-        navn: 'Arbeidserfaring + fagkompetanse',
-        type: 'erfaring-fagkompetanse',
-        formelMal: 'arbeidserfaring_poeng + fagkompetanse_vurdering',
-        beskrivelse: 'For realkompetansesøkere',
-        aktiv: true,
-        opprettet: datetime()
-      })
-      CREATE (rangering5:RangeringType {
-        id: randomUUID(),
-        navn: 'Forkurskarakterer',
-        type: 'forkurs',
-        formelMal: 'sum(forkurs_karakterer) / antall_fag',
-        beskrivelse: 'Rangering basert på forkursresultater',
-        aktiv: true,
-        opprettet: datetime()
-      })
-      CREATE (rangering6:RangeringType {
-        id: randomUUID(),
-        navn: 'Opptaksprøve + karakterer',
-        type: 'opptak-karakterer',
-        formelMal: 'opptaksprove_poeng * 0.5 + karaktersnitt * 0.5',
-        beskrivelse: 'Kombinert vurdering av opptaksprøve og karakterer',
-        aktiv: true,
-        opprettet: datetime()
-      })
+      
+      // Hent poengtyper for relasjoner
+      WITH skolepoeng, konkurransepoeng, realkompetanse
+      MATCH (karaktersnitt:PoengType {navn: 'karaktersnitt-et-vitnemaal'})
+      MATCH (realfag:PoengType {navn: 'realfagspoeng'})
+      MATCH (spraak:PoengType {navn: 'språkpoeng'})
+      MATCH (kjonn:PoengType {navn: 'kjønnspoeng'})
+      MATCH (opptaksprove:PoengType {navn: 'opptaksprøve-poeng'})
+      MATCH (folkehogskole:PoengType {navn: 'folkehøgskole-poeng'})
+      MATCH (militar:PoengType {navn: 'militærtjeneste-poeng'})
+      MATCH (sivil:PoengType {navn: 'siviltjeneste-poeng'})
+      MATCH (fagskole:PoengType {navn: 'fagskole-poeng'})
+      MATCH (hoyere:PoengType {navn: 'høyere-utdanning-poeng'})
+      MATCH (alder:PoengType {navn: 'alderspoeng'})
+      MATCH (realkompetansePoeng:PoengType {navn: 'realkompetansevurderingspoeng'})
+      
+      // Skolepoeng relasjoner
+      CREATE (skolepoeng)-[:INKLUDERER_POENGTYPE]->(karaktersnitt)
+      CREATE (skolepoeng)-[:INKLUDERER_POENGTYPE]->(realfag)
+      CREATE (skolepoeng)-[:INKLUDERER_POENGTYPE]->(spraak)
+      CREATE (skolepoeng)-[:INKLUDERER_POENGTYPE]->(kjonn)
+      CREATE (skolepoeng)-[:INKLUDERER_POENGTYPE]->(opptaksprove)
+      
+      // Konkurransepoeng relasjoner (alle fra skolepoeng + tilleggspoeng + alderspoeng)
+      CREATE (konkurransepoeng)-[:INKLUDERER_POENGTYPE]->(karaktersnitt)
+      CREATE (konkurransepoeng)-[:INKLUDERER_POENGTYPE]->(realfag)
+      CREATE (konkurransepoeng)-[:INKLUDERER_POENGTYPE]->(spraak)
+      CREATE (konkurransepoeng)-[:INKLUDERER_POENGTYPE]->(kjonn)
+      CREATE (konkurransepoeng)-[:INKLUDERER_POENGTYPE]->(opptaksprove)
+      CREATE (konkurransepoeng)-[:INKLUDERER_POENGTYPE]->(folkehogskole)
+      CREATE (konkurransepoeng)-[:INKLUDERER_POENGTYPE]->(militar)
+      CREATE (konkurransepoeng)-[:INKLUDERER_POENGTYPE]->(sivil)
+      CREATE (konkurransepoeng)-[:INKLUDERER_POENGTYPE]->(fagskole)
+      CREATE (konkurransepoeng)-[:INKLUDERER_POENGTYPE]->(hoyere)
+      CREATE (konkurransepoeng)-[:INKLUDERER_POENGTYPE]->(alder)
+      
+      // Realkompetanse relasjoner (kun realkompetansevurdering)
+      CREATE (realkompetanse)-[:INKLUDERER_POENGTYPE]->(realkompetansePoeng)
     `);
     console.log('✅ Opprettet rangeringstyper');
 

@@ -8,12 +8,19 @@ export async function GET() {
     const result = await session.run(
       `
       MATCH (rt:RangeringType)
-      RETURN rt
+      OPTIONAL MATCH (rt)-[:INKLUDERER_POENGTYPE]->(pt:PoengType)
+      RETURN rt, collect(pt) as poengTyper
       ORDER BY rt.navn
       `
     );
 
-    const rangeringstyper = result.records.map((record: any) => record.get('rt').properties);
+    const rangeringstyper = result.records.map((record: any) => ({
+      ...record.get('rt').properties,
+      poengTyper: record
+        .get('poengTyper')
+        .map((pt: any) => pt.properties)
+        .filter((pt: any) => pt.id),
+    }));
 
     return NextResponse.json(rangeringstyper);
   } catch (error) {
@@ -29,7 +36,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { navn, type, formelMal, beskrivelse } = body;
+    const { navn, type, formelMal, beskrivelse, poengTypeIds = [] } = body;
 
     if (!navn || !type) {
       return NextResponse.json({ error: 'Navn og type er påkrevd' }, { status: 400 });
@@ -46,12 +53,25 @@ export async function POST(request: NextRequest) {
         aktiv: true,
         opprettet: datetime()
       })
-      RETURN rt
+      WITH rt
+      UNWIND $poengTypeIds as poengTypeId
+      MATCH (pt:PoengType {id: poengTypeId})
+      CREATE (rt)-[:INKLUDERER_POENGTYPE]->(pt)
+      WITH rt
+      OPTIONAL MATCH (rt)-[:INKLUDERER_POENGTYPE]->(pt:PoengType)
+      RETURN rt, collect(pt) as poengTyper
       `,
-      { navn, type, formelMal: formelMal || '', beskrivelse: beskrivelse || '' }
+      { navn, type, formelMal: formelMal || '', beskrivelse: beskrivelse || '', poengTypeIds }
     );
 
-    const rangeringstype = result.records[0].get('rt').properties;
+    const record = result.records[0];
+    const rangeringstype = {
+      ...record.get('rt').properties,
+      poengTyper: record
+        .get('poengTyper')
+        .map((pt: any) => pt.properties)
+        .filter((pt: any) => pt.id),
+    };
 
     return NextResponse.json(rangeringstype, { status: 201 });
   } catch (error) {

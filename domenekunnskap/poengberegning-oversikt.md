@@ -210,6 +210,51 @@ Tre varianter:
 - Søkes via Samordna opptak
 - Konkurrerer i forkurskvote eller ordinær kvote
 
+## 6. Rangeringstyper - Systemdefinerte formler
+
+### 6.1 Skolepoeng
+
+**Type:** `skolepoeng`
+**Beskrivelse:** Grunnleggende skolepoeng uten alderspoeng og andre tilleggspoeng
+
+**Formel:**
+
+- Karakterpoeng (basis)
+- - Realfagspoeng
+- - Språkpoeng
+- - Kjønnspoeng (hvis relevant)
+- - Poeng for opptaksprøver (hvis relevant)
+
+**Brukes for:** Førstegangsvitnemål og lignende kvoter
+
+### 6.2 Konkurransepoeng
+
+**Type:** `konkurransepoeng`
+**Beskrivelse:** Full poengberegning med alle tilleggspoeng
+
+**Formel:**
+
+- Karakterpoeng (basis)
+- - Realfagspoeng
+- - Språkpoeng
+- - Kjønnspoeng (hvis relevant)
+- - Poeng for opptaksprøver (hvis relevant)
+- - Tilleggspoeng (folkehøgskole/militær/sivil/fagskole)
+- - Alderspoeng
+
+**Brukes for:** Ordinær kvote og andre konkurranseutsatte kvoter
+
+### 6.3 Realkompetanse
+
+**Type:** `realkompetanse`
+**Beskrivelse:** Rangering basert kun på realkompetansevurdering
+
+**Formel:**
+
+- Realkompetansevurderingspoeng (erstatter karakterpoeng)
+
+**Brukes for:** Søkere som har fått innvilget realkompetansevurdering og ikke har tradisjonelle karakterer
+
 ## Viktige merknader
 
 1. **Dokumentasjon:** Alle tilleggspoeng krever gyldig dokumentasjon
@@ -217,3 +262,4 @@ Tre varianter:
 3. **Årlige endringer:** Regler kan endres fra år til år
 4. **Kombinasjoner:** Realfag + språk maks 4 poeng totalt
 5. **Kvoteregler:** Ulike kvoter har ulike poengberegninger
+6. **Rangeringstyper:** Systemet definerer standard rangeringsformler for ulike opptaksveier

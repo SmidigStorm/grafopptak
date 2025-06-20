@@ -57,9 +57,9 @@
 - **Struktur**: Neo4j grafdatabase med noder og relasjoner
 - **Scripts**: Database admin-verktøy i `/scripts/db-admin.ts`
 - **Seeding**:
-  - Hovedscript: `/scripts/seed-all.ts` - Seeder alle entiteter
-  - Fagkoder: `/scripts/seed-fagkoder.ts` - Fagkoder og faggrupper
-  - Karakterer: `/scripts/seed-karakterer.ts` - Testdata for personer og karakterer
+  - **VIKTIG**: ALL SEEDING SKJER I `/scripts/seed-all.ts` (monolitisk struktur)
+  - **Grunner**: Enklere å holde oversikt over rekkefølge og avhengigheter mellom entiteter
+  - **Rekkefølge viktig**: Fagkoder → Kravelementer/Grunnlag/Kvotetyper → PoengTyper → RangeringTyper (med relasjoner) → Institusjoner → Personer/Dokumentasjon
 - **Reset**: `npm run db:reset` for full reset med constraints og seeding
 - **Admin**: `npm run db:admin` for interaktivt admin-verktøy
 

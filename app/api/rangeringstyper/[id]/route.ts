@@ -10,7 +10,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const result = await session.run(
       `
       MATCH (rt:RangeringType {id: $id})
-      RETURN rt
+      OPTIONAL MATCH (rt)-[:INKLUDERER_POENGTYPE]->(pt:PoengType)
+      RETURN rt, collect(pt) as poengTyper
       `,
       { id }
     );
@@ -19,7 +20,14 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ error: 'Rangeringstype ikke funnet' }, { status: 404 });
     }
 
-    const rangeringstype = result.records[0].get('rt').properties;
+    const record = result.records[0];
+    const rangeringstype = {
+      ...record.get('rt').properties,
+      poengTyper: record
+        .get('poengTyper')
+        .map((pt: any) => pt.properties)
+        .filter((pt: any) => pt.id),
+    };
 
     return NextResponse.json(rangeringstype);
   } catch (error) {
@@ -36,7 +44,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
   try {
     const body = await request.json();
-    const { navn, type, formelMal, beskrivelse, aktiv } = body;
+    const { navn, type, formelMal, beskrivelse, aktiv, poengTypeIds = [] } = body;
 
     if (!navn || !type) {
       return NextResponse.json({ error: 'Navn og type er påkrevd' }, { status: 400 });
@@ -51,7 +59,19 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
           rt.beskrivelse = $beskrivelse,
           rt.aktiv = $aktiv,
           rt.sistEndret = datetime()
-      RETURN rt
+      WITH rt
+      // Slett eksisterende PoengType-relasjoner
+      OPTIONAL MATCH (rt)-[r:INKLUDERER_POENGTYPE]->()
+      DELETE r
+      WITH rt
+      // Opprett nye PoengType-relasjoner
+      UNWIND $poengTypeIds as poengTypeId
+      MATCH (pt:PoengType {id: poengTypeId})
+      CREATE (rt)-[:INKLUDERER_POENGTYPE]->(pt)
+      WITH rt
+      // Returner med PoengTyper
+      OPTIONAL MATCH (rt)-[:INKLUDERER_POENGTYPE]->(pt:PoengType)
+      RETURN rt, collect(pt) as poengTyper
       `,
       {
         id,
@@ -60,6 +80,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         formelMal: formelMal || '',
         beskrivelse: beskrivelse || '',
         aktiv: aktiv ?? true,
+        poengTypeIds,
       }
     );
 
@@ -67,7 +88,14 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ error: 'Rangeringstype ikke funnet' }, { status: 404 });
     }
 
-    const rangeringstype = result.records[0].get('rt').properties;
+    const record = result.records[0];
+    const rangeringstype = {
+      ...record.get('rt').properties,
+      poengTyper: record
+        .get('poengTyper')
+        .map((pt: any) => pt.properties)
+        .filter((pt: any) => pt.id),
+    };
 
     return NextResponse.json(rangeringstype);
   } catch (error) {
@@ -108,7 +136,8 @@ export async function DELETE(
     const result = await session.run(
       `
       MATCH (rt:RangeringType {id: $id})
-      DELETE rt
+      OPTIONAL MATCH (rt)-[r:INKLUDERER_POENGTYPE]->()
+      DELETE r, rt
       RETURN count(rt) as deletedCount
       `,
       { id }
