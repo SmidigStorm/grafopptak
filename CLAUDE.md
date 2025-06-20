@@ -19,7 +19,7 @@
 - **Ingen quick-fixes**: Implementer fundamentale løsninger som varer over tid
 - **Forståelig arkitektur**: Alt skal være enkelt å forstå og jobbe videre på
 - **FØLG CLAUDE.MD**: Ikke lag nye strukturer - bruk det som allerede er definert her
-- **Test før commit**: Alltid kjør `npm run db:reset` eller tilsvarende før commit
+- **Test kritiske endringer**: Kjør `npm run db:reset` kun ved database/seeding-endringer
 
 ## Språkbruk
 
@@ -56,7 +56,7 @@
 
 ## Git og Commit-praksis
 
-- **Test alltid før commit**: Kjør `npm run db:reset` eller relevant test
+- **Test når relevant**: Kjør `npm run db:reset` kun ved database/seeding-endringer
 - **Commit ofte**: Etter hver større endring, ikke i store batches
 - **Beskrivende meldinger**: Forklar hva og hvorfor, ikke bare hva
 - **Push etter commit**: Hold remote oppdatert
