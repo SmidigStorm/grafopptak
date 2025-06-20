@@ -3,6 +3,7 @@ import { getSession } from '../../lib/neo4j';
 // Core modules
 import { seedFagkoder, clearFagkoder } from './core/fagkoder';
 import { seedStandardKomponenter, clearStandardKomponenter } from './core/standard-komponenter';
+import { seedPoengtyper, clearPoengtyper } from './core/poengtyper';
 import { seedInstitusjoner, clearInstitusjoner } from './core/institusjoner';
 
 // Regelsett modules
@@ -32,6 +33,7 @@ export async function seedAll() {
     await clearKonkreteRegelsett();
     await clearRegelsettMaler();
     await clearInstitusjoner();
+    await clearPoengtyper();
     await clearStandardKomponenter();
     await clearFagkoder();
 
@@ -42,6 +44,7 @@ export async function seedAll() {
 
     await seedFagkoder();
     await seedStandardKomponenter();
+    await seedPoengtyper();
     await seedInstitusjoner();
 
     console.log('✅ Ferdig med kjerne-komponenter');
@@ -82,11 +85,13 @@ export async function seedAll() {
       MATCH (g:Grunnlag) 
       MATCH (kv:KvoteType)
       MATCH (rt:RangeringType)
+      MATCH (pt:PoengType)
       RETURN 
         count(DISTINCT k) as kravelementer,
         count(DISTINCT g) as grunnlag,
         count(DISTINCT kv) as kvotetyper,
-        count(DISTINCT rt) as rangeringstyper
+        count(DISTINCT rt) as rangeringstyper,
+        count(DISTINCT pt) as poengtyper
     `);
 
     const counts = komponenterCount.records[0];
@@ -95,6 +100,7 @@ export async function seedAll() {
     console.log(`     Grunnlag: ${counts.get('grunnlag').toNumber()}`);
     console.log(`     Kvotetyper: ${counts.get('kvotetyper').toNumber()}`);
     console.log(`     Rangeringstyper: ${counts.get('rangeringstyper').toNumber()}`);
+    console.log(`     Poengtypene: ${counts.get('poengtyper').toNumber()}`);
 
     // Institusjoner
     const institusjonerSummary = await session.run(`
@@ -156,6 +162,7 @@ export async function clearAll() {
   await clearKonkreteRegelsett();
   await clearRegelsettMaler();
   await clearInstitusjoner();
+  await clearPoengtyper();
   await clearStandardKomponenter();
   await clearFagkoder();
 

@@ -35,7 +35,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
-import { Plus, Settings, FileText, Target, Trophy, Edit, Trash2 } from 'lucide-react';
+import { Plus, Settings, FileText, Target, Trophy, Edit, Trash2, Calculator } from 'lucide-react';
 
 interface Kravelement {
   id: string;
@@ -70,11 +70,21 @@ interface RangeringType {
   aktiv: boolean;
 }
 
+interface PoengType {
+  id: string;
+  navn: string;
+  type: string;
+  beskrivelse?: string;
+  beregningsmåte?: string;
+  aktiv: boolean;
+}
+
 export default function RegelbyggingPage() {
   const [kravelementer, setKravelementer] = useState<Kravelement[]>([]);
   const [grunnlag, setGrunnlag] = useState<Grunnlag[]>([]);
   const [kvotetyper, setKvotetyper] = useState<KvoteType[]>([]);
   const [rangeringstyper, setRangeringstyper] = useState<RangeringType[]>([]);
+  const [poengtyper, setPoengtyper] = useState<PoengType[]>([]);
   const [loading, setLoading] = useState(true);
   const [showNyKravelement, setShowNyKravelement] = useState(false);
   const [showEditKravelement, setShowEditKravelement] = useState(false);
@@ -92,25 +102,29 @@ export default function RegelbyggingPage() {
 
   const fetchAllData = async () => {
     try {
-      const [kravelementerRes, grunnlagRes, kvotetypeRes, rangeringstypeRes] = await Promise.all([
-        fetch('/api/kravelementer'),
-        fetch('/api/grunnlag'),
-        fetch('/api/kvotetyper'),
-        fetch('/api/rangeringstyper'),
-      ]);
+      const [kravelementerRes, grunnlagRes, kvotetypeRes, rangeringstypeRes, poengtypeRes] =
+        await Promise.all([
+          fetch('/api/kravelementer'),
+          fetch('/api/grunnlag'),
+          fetch('/api/kvotetyper'),
+          fetch('/api/rangeringstyper'),
+          fetch('/api/poengtyper'),
+        ]);
 
-      const [kravelementerData, grunnlagData, kvotetypeData, rangeringstypeData] =
+      const [kravelementerData, grunnlagData, kvotetypeData, rangeringstypeData, poengtypeData] =
         await Promise.all([
           kravelementerRes.json(),
           grunnlagRes.json(),
           kvotetypeRes.json(),
           rangeringstypeRes.json(),
+          poengtypeRes.json(),
         ]);
 
       setKravelementer(kravelementerData);
       setGrunnlag(grunnlagData);
       setKvotetyper(kvotetypeData);
       setRangeringstyper(rangeringstypeData);
+      setPoengtyper(poengtypeData);
     } catch (error) {
       console.error('Feil ved henting av data:', error);
     } finally {
@@ -210,9 +224,9 @@ export default function RegelbyggingPage() {
             <Trophy className="h-4 w-4" />
             Kvotetyper
           </TabsTrigger>
-          <TabsTrigger value="rangeringstyper" className="flex items-center gap-2">
-            <Settings className="h-4 w-4" />
-            Rangeringstyper
+          <TabsTrigger value="rangering" className="flex items-center gap-2">
+            <Calculator className="h-4 w-4" />
+            Rangering
           </TabsTrigger>
         </TabsList>
 
@@ -509,58 +523,47 @@ export default function RegelbyggingPage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="rangeringstyper" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <div className="flex justify-between items-center">
-                <div>
-                  <CardTitle>Rangeringstyper</CardTitle>
-                  <CardDescription>
-                    Standard rangeringsmetoder (f.eks. &quot;Karaktersnitt + realfagspoeng&quot;)
-                  </CardDescription>
+        <TabsContent value="rangering" className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Rangeringstyper */}
+            <Card>
+              <CardHeader>
+                <div className="flex justify-between items-center">
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      <Settings className="h-5 w-5" />
+                      Rangeringstyper
+                    </CardTitle>
+                    <CardDescription>Rangeringsformler som bruker poengtypene</CardDescription>
+                  </div>
+                  <Button size="sm">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Ny
+                  </Button>
                 </div>
-                <Button>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Ny rangeringstype
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {loading ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <p>Laster rangeringstyper...</p>
-                </div>
-              ) : rangeringstyper.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <Settings className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
-                  <p>Ingen rangeringstyper funnet</p>
-                  <p className="text-sm">Opprett din første rangeringstype for å komme i gang</p>
-                </div>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Navn</TableHead>
-                      <TableHead>Type</TableHead>
-                      <TableHead>Formel</TableHead>
-                      <TableHead>Beskrivelse</TableHead>
-                      <TableHead>Status</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
+              </CardHeader>
+              <CardContent>
+                {loading ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <p>Laster rangeringstyper...</p>
+                  </div>
+                ) : rangeringstyper.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <Settings className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
+                    <p>Ingen rangeringstyper funnet</p>
+                    <p className="text-sm">Opprett din første rangeringstype</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
                     {rangeringstyper.map((item) => (
-                      <TableRow key={item.id}>
-                        <TableCell className="font-medium">{item.navn}</TableCell>
-                        <TableCell className="font-mono text-sm">{item.type}</TableCell>
-                        <TableCell className="font-mono text-xs max-w-xs truncate">
-                          {item.formelMal || '-'}
-                        </TableCell>
-                        <TableCell className="max-w-xs truncate">
-                          {item.beskrivelse || '-'}
-                        </TableCell>
-                        <TableCell>
+                      <div key={item.id} className="border rounded-lg p-4 space-y-2">
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <h4 className="font-medium">{item.navn}</h4>
+                            <p className="text-sm text-muted-foreground font-mono">{item.type}</p>
+                          </div>
                           <span
-                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                            className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
                               item.aktiv
                                 ? 'bg-green-100 text-green-800'
                                 : 'bg-yellow-100 text-yellow-800'
@@ -568,14 +571,113 @@ export default function RegelbyggingPage() {
                           >
                             {item.aktiv ? 'Aktiv' : 'Inaktiv'}
                           </span>
-                        </TableCell>
-                      </TableRow>
+                        </div>
+                        {item.formelMal && (
+                          <div className="bg-gray-50 rounded p-2">
+                            <p className="text-xs font-mono text-gray-700">{item.formelMal}</p>
+                          </div>
+                        )}
+                        {item.beskrivelse && (
+                          <p className="text-sm text-muted-foreground">{item.beskrivelse}</p>
+                        )}
+                        <div className="flex space-x-2 pt-2">
+                          <Button variant="outline" size="sm">
+                            <Edit className="h-3 w-3" />
+                          </Button>
+                          <Button variant="outline" size="sm">
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </div>
                     ))}
-                  </TableBody>
-                </Table>
-              )}
-            </CardContent>
-          </Card>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Poengtypene */}
+            <Card>
+              <CardHeader>
+                <div className="flex justify-between items-center">
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      <Calculator className="h-5 w-5" />
+                      Poengtypene
+                    </CardTitle>
+                    <CardDescription>
+                      Ulike poengtyper som brukes i rangeringsformler
+                    </CardDescription>
+                  </div>
+                  <Button size="sm">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Ny
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {loading ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <p>Laster poengtypene...</p>
+                  </div>
+                ) : poengtyper.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <Calculator className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
+                    <p>Ingen poengtypene funnet</p>
+                    <p className="text-sm">Opprett din første poengtype</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {/* Group by type */}
+                    {['dokumentbasert', 'tilleggspoeng', 'manuell'].map((kategori) => {
+                      const kategoriPoeng = poengtyper.filter((p) => p.type === kategori);
+                      if (kategoriPoeng.length === 0) return null;
+
+                      return (
+                        <div key={kategori} className="space-y-2">
+                          <h5 className="text-sm font-medium text-muted-foreground capitalize">
+                            {kategori}
+                          </h5>
+                          <div className="space-y-2">
+                            {kategoriPoeng.map((item) => (
+                              <div key={item.id} className="border rounded-lg p-3 space-y-1">
+                                <div className="flex justify-between items-start">
+                                  <div className="flex-1">
+                                    <h4 className="text-sm font-medium">{item.navn}</h4>
+                                    {item.beregningsmåte && (
+                                      <p className="text-xs text-muted-foreground mt-1">
+                                        {item.beregningsmåte}
+                                      </p>
+                                    )}
+                                  </div>
+                                  <span
+                                    className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium ${
+                                      item.aktiv
+                                        ? 'bg-green-100 text-green-800'
+                                        : 'bg-yellow-100 text-yellow-800'
+                                    }`}
+                                  >
+                                    {item.aktiv ? 'Aktiv' : 'Inaktiv'}
+                                  </span>
+                                </div>
+                                <div className="flex space-x-1 pt-1">
+                                  <Button variant="outline" size="sm" className="h-6 px-2">
+                                    <Edit className="h-3 w-3" />
+                                  </Button>
+                                  <Button variant="outline" size="sm" className="h-6 px-2">
+                                    <Trash2 className="h-3 w-3" />
+                                  </Button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
       </Tabs>
 

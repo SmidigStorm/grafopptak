@@ -23,6 +23,12 @@ graph TD
     OpptaksVei -->|GIR_TILGANG_TIL| KvoteType
     OpptaksVei -->|BRUKER_RANGERING| RangeringType
 
+    %% Poeng og rangering
+    Person -->|HAR_POENGBEREGNING| PoengBeregning
+    OpptaksVei -->|HAR_POENGBEREGNING| PoengBeregning
+    PoengType -->|BRUKES_I| PoengBeregning
+    RangeringType -->|BRUKER_POENGTYPE| PoengType
+
     %% Kobling mellom krav og oppfyllelse (tre forskjellige måter)
     Kravelement -->|OPPFYLLES_AV| Faggruppe
     Kravelement -->|OPPFYLLES_AV| Dokumentasjon
@@ -292,6 +298,60 @@ CREATE CONSTRAINT kvotetype_id FOR (kt:KvoteType) REQUIRE kt.id IS UNIQUE;
 
 ```cypher
 CREATE CONSTRAINT rangeringtype_id FOR (rt:RangeringType) REQUIRE rt.id IS UNIQUE;
+```
+
+### 📊 PoengType (Standard)
+
+**Node label:** `PoengType`
+
+**Properties:**
+
+- `id` (string, required, unique): Unik identifikator
+- `navn` (string, required): Navn på poengtypen (f.eks. "karaktersnitt-vitnemaal", "realfagspoeng")
+- `type` (string, required): Type poeng ("dokumentbasert", "tilleggspoeng", "manuell")
+- `beskrivelse` (string): Detaljert beskrivelse av hvordan poengene beregnes
+- `beregningsmåte` (string): Tekstbeskrivelse av beregningsmåte (f.eks. "Snitt av alle karakterer på vitnemål \* 10")
+- `aktiv` (boolean): Om poengtypen er aktiv
+- `opprettet` (datetime): Når poengtypen ble opprettet
+
+**Constraints:**
+
+```cypher
+CREATE CONSTRAINT poengtype_id FOR (pt:PoengType) REQUIRE pt.id IS UNIQUE;
+```
+
+### 🎯 PoengBeregning
+
+**Node label:** `PoengBeregning`
+
+**Properties:**
+
+- `id` (string, required, unique): Unik identifikator
+- `personId` (string, required): Referanse til person
+- `opptaksVeiId` (string, required): Referanse til opptaksvei
+- `poengTypeId` (string, required): Referanse til poengtype
+- `verdi` (float, required): Beregnet poengverdi (f.eks. 44.2)
+- `grunnlag` (string): Beskrivelse av grunnlaget (f.eks. "vitnemaal-id-123", "dokument-456")
+- `beregnetDato` (datetime, required): Når poengene ble beregnet
+- `gyldig` (boolean): Om beregningen er gyldig
+- `kommentar` (string): Eventuell kommentar til beregningen
+
+**Constraints:**
+
+```cypher
+CREATE CONSTRAINT poengberegning_id FOR (pb:PoengBeregning) REQUIRE pb.id IS UNIQUE;
+CREATE CONSTRAINT poengberegning_unique FOR (pb:PoengBeregning) REQUIRE (pb.personId, pb.opptaksVeiId, pb.poengTypeId) IS UNIQUE;
+```
+
+**Relationships:**
+
+```cypher
+// PoengBeregning knyttet til Person, OpptaksVei og PoengType
+MATCH (pb:PoengBeregning), (p:Person), (ov:OpptaksVei), (pt:PoengType)
+WHERE pb.personId = p.id AND pb.opptaksVeiId = ov.id AND pb.poengTypeId = pt.id
+CREATE (pb)-[:GJELDER_PERSON]->(p)
+CREATE (pb)-[:GJELDER_OPPTAKSVEI]->(ov)
+CREATE (pb)-[:BRUKER_POENGTYPE]->(pt)
 ```
 
 ### 📚 Fagkode
