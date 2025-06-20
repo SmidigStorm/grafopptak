@@ -1,6 +1,5 @@
 import { getSession } from '../lib/neo4j';
 import { seedAll } from './seeding/index';
-import { seedKarakterer } from './seed-karakterer';
 
 // Database administrasjonsfunksjoner
 export class DatabaseAdmin {
@@ -196,14 +195,10 @@ export class DatabaseAdmin {
       // 2. Setup constraints
       await this.setupConstraints();
 
-      // 3. Seed all data
+      // 3. Seed all data (inkluderer karakterer)
       await seedAll();
 
-      // 4. Seed karakterer
-      console.log('\n');
-      await seedKarakterer();
-
-      // 5. Vis statistikk
+      // 4. Vis statistikk
       console.log('\n');
       await this.getDatabaseStats();
 
