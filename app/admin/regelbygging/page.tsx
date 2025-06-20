@@ -554,39 +554,44 @@ export default function RegelbyggingPage() {
                     <p className="text-sm">Opprett din første rangeringstype</p>
                   </div>
                 ) : (
-                  <div className="space-y-3">
+                  <div className="space-y-2">
                     {rangeringstyper.map((item) => (
-                      <div key={item.id} className="border rounded-lg p-4 space-y-2">
-                        <div className="flex justify-between items-start">
-                          <div className="flex-1">
-                            <h4 className="font-medium">{item.navn}</h4>
-                            <p className="text-sm text-muted-foreground font-mono">{item.type}</p>
+                      <div
+                        key={item.id}
+                        className="border rounded-md p-3 bg-slate-50 border-slate-200"
+                      >
+                        <div className="flex justify-between items-start gap-3">
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-medium text-gray-900 truncate">{item.navn}</h4>
+                            <p className="text-xs text-gray-500 font-mono mt-0.5">{item.type}</p>
+                            {item.formelMal && (
+                              <div className="bg-gray-100 rounded px-2 py-1 mt-1.5">
+                                <p className="text-xs font-mono text-gray-700">{item.formelMal}</p>
+                              </div>
+                            )}
+                            {item.beskrivelse && (
+                              <p className="text-xs text-gray-600 mt-1 leading-relaxed">
+                                {item.beskrivelse}
+                              </p>
+                            )}
                           </div>
-                          <span
-                            className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                              item.aktiv
-                                ? 'bg-green-100 text-green-800'
-                                : 'bg-yellow-100 text-yellow-800'
-                            }`}
-                          >
-                            {item.aktiv ? 'Aktiv' : 'Inaktiv'}
-                          </span>
-                        </div>
-                        {item.formelMal && (
-                          <div className="bg-gray-50 rounded p-2">
-                            <p className="text-xs font-mono text-gray-700">{item.formelMal}</p>
+                          <div className="flex items-center gap-1.5 flex-shrink-0">
+                            <span
+                              className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium ${
+                                item.aktiv
+                                  ? 'bg-green-100 text-green-800 border border-green-200'
+                                  : 'bg-yellow-100 text-yellow-800 border border-yellow-200'
+                              }`}
+                            >
+                              {item.aktiv ? 'Aktiv' : 'Inaktiv'}
+                            </span>
+                            <Button variant="outline" size="sm" className="h-6 w-6 p-0">
+                              <Edit className="h-3 w-3" />
+                            </Button>
+                            <Button variant="outline" size="sm" className="h-6 w-6 p-0">
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
                           </div>
-                        )}
-                        {item.beskrivelse && (
-                          <p className="text-sm text-muted-foreground">{item.beskrivelse}</p>
-                        )}
-                        <div className="flex space-x-2 pt-2">
-                          <Button variant="outline" size="sm">
-                            <Edit className="h-3 w-3" />
-                          </Button>
-                          <Button variant="outline" size="sm">
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
                         </div>
                       </div>
                     ))}
@@ -627,54 +632,74 @@ export default function RegelbyggingPage() {
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {/* Group by type */}
-                    {['dokumentbasert', 'tilleggspoeng', 'automatisk', 'manuell'].map(
-                      (kategori) => {
-                        const kategoriPoeng = poengtyper.filter((p) => p.type === kategori);
-                        if (kategoriPoeng.length === 0) return null;
+                    {/* Group by type with color coding */}
+                    {[
+                      {
+                        key: 'dokumentbasert',
+                        name: 'Dokumentbasert',
+                        color: 'bg-blue-50 border-blue-200',
+                      },
+                      {
+                        key: 'tilleggspoeng',
+                        name: 'Tilleggspoeng',
+                        color: 'bg-green-50 border-green-200',
+                      },
+                      {
+                        key: 'automatisk',
+                        name: 'Automatisk',
+                        color: 'bg-purple-50 border-purple-200',
+                      },
+                      { key: 'manuell', name: 'Manuell', color: 'bg-orange-50 border-orange-200' },
+                    ].map(({ key, name, color }) => {
+                      const kategoriPoeng = poengtyper.filter((p) => p.type === key);
+                      if (kategoriPoeng.length === 0) return null;
 
-                        return (
-                          <div key={kategori} className="space-y-2">
-                            <h5 className="text-sm font-medium text-muted-foreground capitalize">
-                              {kategori}
-                            </h5>
-                            <div className="space-y-2">
-                              {kategoriPoeng.map((item) => (
-                                <div key={item.id} className="border rounded-lg p-3 space-y-1">
-                                  <div className="flex justify-between items-start">
-                                    <div className="flex-1">
-                                      <h4 className="text-sm font-medium">{item.navn}</h4>
-                                      {item.beregningsmåte && (
-                                        <p className="text-xs text-muted-foreground mt-1">
-                                          {item.beregningsmåte}
-                                        </p>
-                                      )}
-                                    </div>
+                      return (
+                        <div key={key} className="space-y-2">
+                          <h5 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                            <div
+                              className={`w-3 h-3 rounded-full ${color.replace('bg-', 'bg-').replace('-50', '-400').replace(' border-', '')}`}
+                            ></div>
+                            {name} ({kategoriPoeng.length})
+                          </h5>
+                          <div className="space-y-1.5">
+                            {kategoriPoeng.map((item) => (
+                              <div key={item.id} className={`border rounded-md p-2.5 ${color}`}>
+                                <div className="flex justify-between items-start gap-3">
+                                  <div className="flex-1 min-w-0">
+                                    <h4 className="text-sm font-medium text-gray-900 truncate">
+                                      {item.navn}
+                                    </h4>
+                                    {item.beregningsmåte && (
+                                      <p className="text-xs text-gray-600 mt-0.5 leading-relaxed">
+                                        {item.beregningsmåte}
+                                      </p>
+                                    )}
+                                  </div>
+                                  <div className="flex items-center gap-1.5 flex-shrink-0">
                                     <span
                                       className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium ${
                                         item.aktiv
-                                          ? 'bg-green-100 text-green-800'
-                                          : 'bg-yellow-100 text-yellow-800'
+                                          ? 'bg-green-100 text-green-800 border border-green-200'
+                                          : 'bg-yellow-100 text-yellow-800 border border-yellow-200'
                                       }`}
                                     >
                                       {item.aktiv ? 'Aktiv' : 'Inaktiv'}
                                     </span>
-                                  </div>
-                                  <div className="flex space-x-1 pt-1">
-                                    <Button variant="outline" size="sm" className="h-6 px-2">
+                                    <Button variant="outline" size="sm" className="h-6 w-6 p-0">
                                       <Edit className="h-3 w-3" />
                                     </Button>
-                                    <Button variant="outline" size="sm" className="h-6 px-2">
+                                    <Button variant="outline" size="sm" className="h-6 w-6 p-0">
                                       <Trash2 className="h-3 w-3" />
                                     </Button>
                                   </div>
                                 </div>
-                              ))}
-                            </div>
+                              </div>
+                            ))}
                           </div>
-                        );
-                      }
-                    )}
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </CardContent>
