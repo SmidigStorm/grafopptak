@@ -13,9 +13,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { X, Plus, GripVertical } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
 
 interface PoengType {
   id: string;
@@ -41,24 +40,19 @@ interface RangeringsTypeModalProps {
   onSave: (rangeringsType: RangeringType) => void;
 }
 
-const poengTypeColors = {
-  karaktersnitt: 'bg-blue-100 text-blue-800 border-blue-200',
-  tilleggspoeng: 'bg-green-100 text-green-800 border-green-200',
-  erfaring: 'bg-purple-100 text-purple-800 border-purple-200',
-  kompetanse: 'bg-orange-100 text-orange-800 border-orange-200',
-  annet: 'bg-gray-100 text-gray-800 border-gray-200',
-};
-
 const getPoengTypeColor = (type: string) => {
-  return poengTypeColors[type as keyof typeof poengTypeColors] || poengTypeColors.annet;
-};
-
-const generateFormelPreview = (poengTyper: PoengType[]) => {
-  if (poengTyper.length === 0) return 'Ingen poengtyper valgt';
-  if (poengTyper.length === 1) return poengTyper[0].navn;
-
-  const formler = poengTyper.map((pt) => pt.navn);
-  return formler.join(' + ');
+  switch (type) {
+    case 'dokumentbasert':
+      return 'bg-blue-100 text-blue-800';
+    case 'tilleggspoeng':
+      return 'bg-green-100 text-green-800';
+    case 'automatisk':
+      return 'bg-purple-100 text-purple-800';
+    case 'manuell':
+      return 'bg-orange-100 text-orange-800';
+    default:
+      return 'bg-gray-100 text-gray-800';
+  }
 };
 
 export default function RangeringsTypeModal({
@@ -76,7 +70,6 @@ export default function RangeringsTypeModal({
   });
   const [tilgjengeligePoengTyper, setTilgjengeligePoengTyper] = useState<PoengType[]>([]);
   const [loading, setLoading] = useState(false);
-  const [draggedPoengType, setDraggedPoengType] = useState<PoengType | null>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -122,54 +115,33 @@ export default function RangeringsTypeModal({
     }
   };
 
-  const handleDragStart = (e: React.DragEvent, poengType: PoengType) => {
-    setDraggedPoengType(poengType);
-    e.dataTransfer.effectAllowed = 'copy';
-  };
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'copy';
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    if (!draggedPoengType) return;
-
-    // Sjekk om poengtype allerede er lagt til
-    const erAlleredeValgt = formData.poengTyper?.some((pt) => pt.id === draggedPoengType.id);
-    if (erAlleredeValgt) {
-      setDraggedPoengType(null);
-      return;
+  const handlePoengTypeToggle = (poengType: PoengType, checked: boolean) => {
+    if (checked) {
+      setFormData((prev) => ({
+        ...prev,
+        poengTyper: [...(prev.poengTyper || []), poengType],
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        poengTyper: prev.poengTyper?.filter((pt) => pt.id !== poengType.id) || [],
+      }));
     }
-
-    setFormData((prev) => ({
-      ...prev,
-      poengTyper: [...(prev.poengTyper || []), draggedPoengType],
-    }));
-    setDraggedPoengType(null);
   };
 
-  const fjernPoengType = (poengTypeId: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      poengTyper: prev.poengTyper?.filter((pt) => pt.id !== poengTypeId) || [],
-    }));
+  const isPoengTypeSelected = (poengTypeId: string) => {
+    return formData.poengTyper?.some((pt) => pt.id === poengTypeId) || false;
   };
-
-  const tilgjengeligePoengTyperFiltrert = tilgjengeligePoengTyper.filter(
-    (pt) => !formData.poengTyper?.some((vpt) => vpt.id === pt.id)
-  );
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle>
             {rangeringsType ? 'Rediger rangeringstype' : 'Ny rangeringstype'}
           </DialogTitle>
           <DialogDescription>
-            Konfigurer rangeringstype ved å dra poengtyper fra høyre side inn i rangeringstypen.
+            Konfigurer rangeringstype og velg hvilke poengtyper som skal inkluderes.
           </DialogDescription>
         </DialogHeader>
 
@@ -182,7 +154,7 @@ export default function RangeringsTypeModal({
                 id="navn"
                 value={formData.navn}
                 onChange={(e) => setFormData((prev) => ({ ...prev, navn: e.target.value }))}
-                placeholder="F.eks. Ordinær rangering med tilleggspoeng"
+                placeholder="F.eks. Skolepoeng"
               />
             </div>
             <div>
@@ -191,7 +163,7 @@ export default function RangeringsTypeModal({
                 id="type"
                 value={formData.type}
                 onChange={(e) => setFormData((prev) => ({ ...prev, type: e.target.value }))}
-                placeholder="F.eks. ordinær-tilleggspoeng"
+                placeholder="F.eks. skolepoeng"
               />
             </div>
           </div>
@@ -203,116 +175,68 @@ export default function RangeringsTypeModal({
               value={formData.beskrivelse || ''}
               onChange={(e) => setFormData((prev) => ({ ...prev, beskrivelse: e.target.value }))}
               placeholder="Beskriv hvordan denne rangeringstypen fungerer..."
+              rows={2}
             />
           </div>
 
-          {/* Hovedseksjon med drag & drop */}
-          <div className="grid grid-cols-2 gap-6">
-            {/* Venstre side - RangeringType (drop-zone) */}
-            <div className="space-y-4">
-              <div>
-                <Label className="text-base font-medium">Rangeringstype sammensetning</Label>
-                <p className="text-sm text-muted-foreground">
-                  Dra poengtyper hit for å bygge opp rangeringstypen
-                </p>
-              </div>
+          {/* Poengtyper med checkboxer */}
+          <div>
+            <Label className="text-base font-medium">Poengtyper</Label>
+            <p className="text-sm text-muted-foreground mb-3">
+              Velg hvilke poengtyper som skal inkluderes i rangeringstypen
+            </p>
 
-              <div
-                className="min-h-[200px] border-2 border-dashed border-muted-foreground/25 rounded-lg p-4 bg-muted/10"
-                onDragOver={handleDragOver}
-                onDrop={handleDrop}
-              >
-                {formData.poengTyper && formData.poengTyper.length > 0 ? (
-                  <div className="space-y-3">
-                    {formData.poengTyper.map((poengType) => (
-                      <Card key={poengType.id} className="relative">
-                        <CardHeader className="pb-2">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <GripVertical className="h-4 w-4 text-muted-foreground" />
-                              <CardTitle className="text-sm">{poengType.navn}</CardTitle>
-                            </div>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => fjernPoengType(poengType.id)}
-                              className="h-6 w-6 p-0"
-                            >
-                              <X className="h-3 w-3" />
-                            </Button>
-                          </div>
-                        </CardHeader>
-                        <CardContent className="pt-0">
-                          <Badge className={getPoengTypeColor(poengType.type)}>
-                            {poengType.type}
-                          </Badge>
-                          {poengType.beskrivelse && (
-                            <p className="text-xs text-muted-foreground mt-1">
-                              {poengType.beskrivelse}
-                            </p>
-                          )}
-                        </CardContent>
-                      </Card>
-                    ))}
+            <div className="grid grid-cols-1 gap-2 max-h-[300px] overflow-y-auto border rounded-md p-3">
+              {tilgjengeligePoengTyper.map((poengType) => (
+                <div
+                  key={poengType.id}
+                  className="flex items-center space-x-3 p-2 rounded hover:bg-muted/50"
+                >
+                  <Checkbox
+                    id={`poengtype-${poengType.id}`}
+                    checked={isPoengTypeSelected(poengType.id)}
+                    onCheckedChange={(checked) =>
+                      handlePoengTypeToggle(poengType, checked as boolean)
+                    }
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <Label
+                        htmlFor={`poengtype-${poengType.id}`}
+                        className="text-sm font-medium cursor-pointer"
+                      >
+                        {poengType.navn}
+                      </Label>
+                      <Badge className={`text-xs ${getPoengTypeColor(poengType.type)}`}>
+                        {poengType.type}
+                      </Badge>
+                    </div>
+                    {poengType.beskrivelse && (
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {poengType.beskrivelse}
+                      </p>
+                    )}
                   </div>
-                ) : (
-                  <div className="text-center text-muted-foreground py-8">
-                    <Plus className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                    <p>Dra poengtyper hit for å bygge rangeringstypen</p>
-                  </div>
-                )}
-              </div>
-
-              {/* Live preview av formel */}
-              <div className="bg-muted/50 rounded-lg p-3">
-                <Label className="text-sm font-medium">Formel preview:</Label>
-                <p className="text-sm font-mono text-muted-foreground mt-1">
-                  {generateFormelPreview(formData.poengTyper || [])}
-                </p>
-              </div>
-            </div>
-
-            {/* Høyre side - Tilgjengelige PoengTyper */}
-            <div className="space-y-4">
-              <div>
-                <Label className="text-base font-medium">Tilgjengelige poengtyper</Label>
-                <p className="text-sm text-muted-foreground">
-                  Dra poengtyper til venstre for å inkludere dem
-                </p>
-              </div>
-
-              <div className="space-y-2 max-h-[400px] overflow-y-auto">
-                {tilgjengeligePoengTyperFiltrert.length > 0 ? (
-                  tilgjengeligePoengTyperFiltrert.map((poengType) => (
-                    <Card
-                      key={poengType.id}
-                      className="cursor-grab active:cursor-grabbing hover:shadow-md transition-shadow"
-                      draggable
-                      onDragStart={(e) => handleDragStart(e, poengType)}
-                    >
-                      <CardHeader className="pb-2">
-                        <CardTitle className="text-sm">{poengType.navn}</CardTitle>
-                      </CardHeader>
-                      <CardContent className="pt-0">
-                        <Badge className={getPoengTypeColor(poengType.type)}>
-                          {poengType.type}
-                        </Badge>
-                        {poengType.beskrivelse && (
-                          <p className="text-xs text-muted-foreground mt-1">
-                            {poengType.beskrivelse}
-                          </p>
-                        )}
-                      </CardContent>
-                    </Card>
-                  ))
-                ) : (
-                  <div className="text-center text-muted-foreground py-4">
-                    <p className="text-sm">Alle poengtyper er allerede valgt</p>
-                  </div>
-                )}
-              </div>
+                </div>
+              ))}
             </div>
           </div>
+
+          {/* Valgte poengtyper preview */}
+          {formData.poengTyper && formData.poengTyper.length > 0 && (
+            <div className="bg-muted/50 rounded-lg p-3">
+              <Label className="text-sm font-medium">
+                Valgte poengtyper ({formData.poengTyper.length}):
+              </Label>
+              <div className="flex flex-wrap gap-1 mt-2">
+                {formData.poengTyper.map((pt) => (
+                  <Badge key={pt.id} className={`text-xs ${getPoengTypeColor(pt.type)}`}>
+                    {pt.navn}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         <DialogFooter>
