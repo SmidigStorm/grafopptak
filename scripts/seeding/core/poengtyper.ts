@@ -12,39 +12,12 @@ export async function seedPoengtyper() {
 
     // ========== DOKUMENTBASERTE POENGTYPER ==========
     await session.run(`
-      CREATE (vitnemaalKaraktersnitt:PoengType {
+      CREATE (karaktersnittVitnemaal:PoengType {
         id: randomUUID(),
-        navn: 'karaktersnitt-vitnemaal',
+        navn: 'karaktersnitt-et-vitnemaal',
         type: 'dokumentbasert',
-        beskrivelse: 'Karaktersnitt fra vitnemål (snitt av alle karakterer)',
-        beregningsmåte: 'Snitt av alle tallkarakterer på vitnemål, multiplisert med 10',
-        aktiv: true,
-        opprettet: datetime()
-      })
-      CREATE (fagbrevKarakter:PoengType {
-        id: randomUUID(),
-        navn: 'fagbrev-karakter',
-        type: 'dokumentbasert',
-        beskrivelse: 'Karakter fra fagbrev/svennebrev',
-        beregningsmåte: 'Fagbrevkarakter multiplisert med 10',
-        aktiv: true,
-        opprettet: datetime()
-      })
-      CREATE (forkursKaraktersnitt:PoengType {
-        id: randomUUID(),
-        navn: 'karaktersnitt-forkurs',
-        type: 'dokumentbasert',
-        beskrivelse: 'Karaktersnitt fra forkurs',
-        beregningsmåte: 'Snitt av alle karakterer fra forkurs, multiplisert med 10',
-        aktiv: true,
-        opprettet: datetime()
-      })
-      CREATE (realfagssnitt:PoengType {
-        id: randomUUID(),
-        navn: 'realfagssnitt',
-        type: 'dokumentbasert',
-        beskrivelse: 'Karaktersnitt for realfag',
-        beregningsmåte: 'Snitt av karakterer i fysikk, kjemi, biologi, IT, multiplisert med 10',
+        beskrivelse: 'Karaktersnitt fra ett vitnemål',
+        beregningsmåte: 'Snitt av alle tallkarakterer på ett vitnemål, multiplisert med 10 (0-60 poeng)',
         aktiv: true,
         opprettet: datetime()
       })
@@ -56,26 +29,85 @@ export async function seedPoengtyper() {
         id: randomUUID(),
         navn: 'realfagspoeng',
         type: 'tilleggspoeng',
-        beskrivelse: 'Tilleggspoeng for realfag utover minstekrav',
-        beregningsmåte: 'Antall realfag utover minstekrav * 2.0 poeng',
+        beskrivelse: 'Tilleggspoeng for realfag fra videregående',
+        beregningsmåte: 'Kompleks tabell per fag, maks 4 poeng totalt (delt med språkpoeng)',
         aktiv: true,
         opprettet: datetime()
       })
-      CREATE (toppidrettspoeng:PoengType {
+      CREATE (spraakpoeng:PoengType {
         id: randomUUID(),
-        navn: 'toppidretts-poeng',
+        navn: 'språkpoeng',
         type: 'tilleggspoeng',
-        beskrivelse: 'Tilleggspoeng for toppidrett',
-        beregningsmåte: 'Fast 1.5 poeng for dokumentert toppidrett',
+        beskrivelse: 'Tilleggspoeng for fremmedspråk fra videregående',
+        beregningsmåte: 'Nivå I/II: 0,5p, Nivå III: 1p, maks 4 poeng totalt (delt med realfagspoeng)',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (folkehogskolePoeng:PoengType {
+        id: randomUUID(),
+        navn: 'folkehøgskole-poeng',
+        type: 'tilleggspoeng',
+        beskrivelse: 'Tilleggspoeng for folkehøgskole',
+        beregningsmåte: '2 poeng for godkjent folkehøgskole (33+ uker, 90%+ oppmøte)',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (militaertjenestePoeng:PoengType {
+        id: randomUUID(),
+        navn: 'militærtjeneste-poeng',
+        type: 'tilleggspoeng',
+        beskrivelse: 'Tilleggspoeng for militærtjeneste',
+        beregningsmåte: '2 poeng for fullført militærtjeneste/befalsskole/FN-tjeneste',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (siviltjenestePoeng:PoengType {
+        id: randomUUID(),
+        navn: 'siviltjeneste-poeng',
+        type: 'tilleggspoeng',
+        beskrivelse: 'Tilleggspoeng for siviltjeneste',
+        beregningsmåte: '2 poeng for fullført siviltjeneste',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (fagskolePoeng:PoengType {
+        id: randomUUID(),
+        navn: 'fagskole-poeng',
+        type: 'tilleggspoeng',
+        beskrivelse: 'Tilleggspoeng for fagskole',
+        beregningsmåte: '30-59 fagskolepoeng: 1p, 60+ fagskolepoeng: 2p',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (hoyereUtdanningPoeng:PoengType {
+        id: randomUUID(),
+        navn: 'høyere-utdanning-poeng',
+        type: 'tilleggspoeng',
+        beskrivelse: 'Tilleggspoeng for høyere utdanning',
+        beregningsmåte: '30-59 studiepoeng: 1p, 60+ studiepoeng: 2p',
+        aktiv: true,
+        opprettet: datetime()
+      })
+    `);
+    console.log('✅ Opprettet tilleggspoeng (maks 2 poeng totalt på tvers av alle typer)');
+
+    // ========== AUTOMATISKE POENGTYPER ==========
+    await session.run(`
+      CREATE (kjonnspoeng:PoengType {
+        id: randomUUID(),
+        navn: 'kjønnspoeng',
+        type: 'automatisk',
+        beskrivelse: 'Automatiske kjønnspoeng for spesielle studieprogram',
+        beregningsmåte: '1-2 poeng automatisk basert på kjønn og studieprogram',
         aktiv: true,
         opprettet: datetime()
       })
       CREATE (alderspoeng:PoengType {
         id: randomUUID(),
-        navn: 'alders-poeng',
-        type: 'tilleggspoeng',
-        beskrivelse: 'Tilleggspoeng for alder',
-        beregningsmåte: 'Antall år over 21 * 0.1 poeng, maks 2.0 poeng',
+        navn: 'alderspoeng',
+        type: 'automatisk',
+        beskrivelse: 'Automatiske alderspoeng',
+        beregningsmåte: '2 poeng/år fra 20 år (ordinær) eller 24 år (23/5), maks 8 poeng',
         aktiv: true,
         opprettet: datetime()
       })
@@ -83,30 +115,21 @@ export async function seedPoengtyper() {
 
     // ========== MANUELLE/VURDERTE POENGTYPER ==========
     await session.run(`
-      CREATE (arbeidserfaring:PoengType {
+      CREATE (opptaksprovePoeng:PoengType {
         id: randomUUID(),
-        navn: 'arbeidserfaring-poeng',
+        navn: 'opptaksprøve-poeng',
         type: 'manuell',
-        beskrivelse: 'Poeng for relevant arbeidserfaring',
-        beregningsmåte: 'Manuell vurdering av arbeidserfaring, 0-50 poeng',
+        beskrivelse: 'Poeng fra opptaksprøver',
+        beregningsmåte: 'Variabel skala avhengig av prøve - kan legges til karakterpoeng eller erstatte dem',
         aktiv: true,
         opprettet: datetime()
       })
-      CREATE (fagkompetanse:PoengType {
+      CREATE (realkompetansePoeng:PoengType {
         id: randomUUID(),
-        navn: 'fagkompetanse-vurdering',
+        navn: 'realkompetansevurderingspoeng',
         type: 'manuell',
-        beskrivelse: 'Vurdering av fagkompetanse',
-        beregningsmåte: 'Manuell vurdering av fagkompetanse, 0-50 poeng',
-        aktiv: true,
-        opprettet: datetime()
-      })
-      CREATE (opptaksprove:PoengType {
-        id: randomUUID(),
-        navn: 'opptaksprove-poeng',
-        type: 'manuell',
-        beskrivelse: 'Resultat fra opptaksprøve',
-        beregningsmåte: 'Poengsum fra opptaksprøve, normalt 0-100 poeng',
+        beskrivelse: 'Vurdering av realkompetanse',
+        beregningsmåte: 'Saksbehandler setter direkte poengsum 0-60 som erstatning for karakterpoeng',
         aktiv: true,
         opprettet: datetime()
       })
@@ -131,6 +154,14 @@ export async function seedPoengtyper() {
         console.log(`    - ${poengNavn}`);
       });
     });
+
+    console.log('\\n💡 Poengbegrensninger:');
+    console.log('  📘 Realfags- og språkpoeng: Maks 4 poeng totalt');
+    console.log(
+      '  📘 Tilleggspoeng (folkehøgskole/militær/sivil/fagskole/høyere): Maks 2 poeng totalt'
+    );
+    console.log('  📘 Alderspoeng: Maks 8 poeng');
+    console.log('  📘 Karaktersnitt: 0-60 poeng');
   } finally {
     await session.close();
   }

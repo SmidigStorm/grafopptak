@@ -628,51 +628,53 @@ export default function RegelbyggingPage() {
                 ) : (
                   <div className="space-y-3">
                     {/* Group by type */}
-                    {['dokumentbasert', 'tilleggspoeng', 'manuell'].map((kategori) => {
-                      const kategoriPoeng = poengtyper.filter((p) => p.type === kategori);
-                      if (kategoriPoeng.length === 0) return null;
+                    {['dokumentbasert', 'tilleggspoeng', 'automatisk', 'manuell'].map(
+                      (kategori) => {
+                        const kategoriPoeng = poengtyper.filter((p) => p.type === kategori);
+                        if (kategoriPoeng.length === 0) return null;
 
-                      return (
-                        <div key={kategori} className="space-y-2">
-                          <h5 className="text-sm font-medium text-muted-foreground capitalize">
-                            {kategori}
-                          </h5>
-                          <div className="space-y-2">
-                            {kategoriPoeng.map((item) => (
-                              <div key={item.id} className="border rounded-lg p-3 space-y-1">
-                                <div className="flex justify-between items-start">
-                                  <div className="flex-1">
-                                    <h4 className="text-sm font-medium">{item.navn}</h4>
-                                    {item.beregningsmåte && (
-                                      <p className="text-xs text-muted-foreground mt-1">
-                                        {item.beregningsmåte}
-                                      </p>
-                                    )}
+                        return (
+                          <div key={kategori} className="space-y-2">
+                            <h5 className="text-sm font-medium text-muted-foreground capitalize">
+                              {kategori}
+                            </h5>
+                            <div className="space-y-2">
+                              {kategoriPoeng.map((item) => (
+                                <div key={item.id} className="border rounded-lg p-3 space-y-1">
+                                  <div className="flex justify-between items-start">
+                                    <div className="flex-1">
+                                      <h4 className="text-sm font-medium">{item.navn}</h4>
+                                      {item.beregningsmåte && (
+                                        <p className="text-xs text-muted-foreground mt-1">
+                                          {item.beregningsmåte}
+                                        </p>
+                                      )}
+                                    </div>
+                                    <span
+                                      className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium ${
+                                        item.aktiv
+                                          ? 'bg-green-100 text-green-800'
+                                          : 'bg-yellow-100 text-yellow-800'
+                                      }`}
+                                    >
+                                      {item.aktiv ? 'Aktiv' : 'Inaktiv'}
+                                    </span>
                                   </div>
-                                  <span
-                                    className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium ${
-                                      item.aktiv
-                                        ? 'bg-green-100 text-green-800'
-                                        : 'bg-yellow-100 text-yellow-800'
-                                    }`}
-                                  >
-                                    {item.aktiv ? 'Aktiv' : 'Inaktiv'}
-                                  </span>
+                                  <div className="flex space-x-1 pt-1">
+                                    <Button variant="outline" size="sm" className="h-6 px-2">
+                                      <Edit className="h-3 w-3" />
+                                    </Button>
+                                    <Button variant="outline" size="sm" className="h-6 px-2">
+                                      <Trash2 className="h-3 w-3" />
+                                    </Button>
+                                  </div>
                                 </div>
-                                <div className="flex space-x-1 pt-1">
-                                  <Button variant="outline" size="sm" className="h-6 px-2">
-                                    <Edit className="h-3 w-3" />
-                                  </Button>
-                                  <Button variant="outline" size="sm" className="h-6 px-2">
-                                    <Trash2 className="h-3 w-3" />
-                                  </Button>
-                                </div>
-                              </div>
-                            ))}
+                              ))}
+                            </div>
                           </div>
-                        </div>
-                      );
-                    })}
+                        );
+                      }
+                    )}
                   </div>
                 )}
               </CardContent>
