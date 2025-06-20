@@ -18,6 +18,8 @@
 - **Anti-Yak Shaving**: Gå til roten av problemer, ikke symptomene
 - **Ingen quick-fixes**: Implementer fundamentale løsninger som varer over tid
 - **Forståelig arkitektur**: Alt skal være enkelt å forstå og jobbe videre på
+- **FØLG CLAUDE.MD**: Ikke lag nye strukturer - bruk det som allerede er definert her
+- **Test før commit**: Alltid kjør `npm run db:reset` eller tilsvarende før commit
 
 ## Språkbruk
 
@@ -52,14 +54,24 @@
 - Slå sammen relaterte konsepter i samme fil for bedre oversikt
 - Bruk konsistente begreper gjennom hele prosjektet
 
+## Git og Commit-praksis
+
+- **Test alltid før commit**: Kjør `npm run db:reset` eller relevant test
+- **Commit ofte**: Etter hver større endring, ikke i store batches
+- **Beskrivende meldinger**: Forklar hva og hvorfor, ikke bare hva
+- **Push etter commit**: Hold remote oppdatert
+- **Ikke lag nye strukturer**: Følg eksisterende patterns i CLAUDE.md
+
 ## Database
 
 - **Struktur**: Neo4j grafdatabase med noder og relasjoner
 - **Scripts**: Database admin-verktøy i `/scripts/db-admin.ts`
 - **Seeding**:
   - **VIKTIG**: ALL SEEDING SKJER I `/scripts/seed-all.ts` (monolitisk struktur)
+  - **ALDRI lag modulære seed-filer** - det skaper bare duplikater og konflikter
   - **Grunner**: Enklere å holde oversikt over rekkefølge og avhengigheter mellom entiteter
-  - **Rekkefølge viktig**: Fagkoder → Kravelementer/Grunnlag/Kvotetyper → PoengTyper → RangeringTyper (med relasjoner) → Institusjoner → Personer/Dokumentasjon
+  - **Karakterer**: Lagres som properties på `INNEHOLDER`-relasjoner, IKKE som separate noder
+  - **Rekkefølge viktig**: Fagkoder → Kravelementer/Grunnlag/Kvotetyper → PoengTyper → RangeringTyper → Regelsett → Institusjoner → OpptaksVeier → Personer/Dokumentasjon
 - **Reset**: `npm run db:reset` for full reset med constraints og seeding
 - **Admin**: `npm run db:admin` for interaktivt admin-verktøy
 
