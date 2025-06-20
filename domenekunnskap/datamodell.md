@@ -27,16 +27,6 @@ graph TD
     Kravelement -->|OPPFYLLES_AV| Faggruppe
     Kravelement -->|OPPFYLLES_AV| Dokumentasjon
     Kravelement -->|OPPFYLLES_AV| Fagkode
-    Regelsett -->|INNEHOLDER| GrunnlagImplementering
-    Regelsett -->|INNEHOLDER| KravImplementering
-    Regelsett -->|INNEHOLDER| KvoteImplementering
-    Regelsett -->|INNEHOLDER| RangeringImplementering
-
-    %% Implementeringer basert på standarder
-    GrunnlagImplementering -->|IMPLEMENTERER| Grunnlag
-    KravImplementering -->|IMPLEMENTERER| Kravelement
-    KvoteImplementering -->|IMPLEMENTERER| KvoteType
-    RangeringImplementering -->|IMPLEMENTERER| RangeringType
 ```
 
 ## 🏷️ Node-typer
@@ -304,84 +294,6 @@ CREATE CONSTRAINT kvotetype_id FOR (kt:KvoteType) REQUIRE kt.id IS UNIQUE;
 CREATE CONSTRAINT rangeringtype_id FOR (rt:RangeringType) REQUIRE rt.id IS UNIQUE;
 ```
 
-### 🏗️ GrunnlagImplementering
-
-**Node label:** `GrunnlagImplementering`
-
-**Properties:**
-
-- `id` (string, required, unique): Unik identifikator
-- `navn` (string, required): Navn på implementeringen
-- `beskrivelse` (string): Spesifikk beskrivelse for dette utdanningstilbudet
-- `prioritet` (integer): Visningsrekkefølge
-- `opprettet` (datetime): Når implementeringen ble opprettet
-- `aktiv` (boolean): Om implementeringen er aktiv
-
-**Constraints:**
-
-```cypher
-CREATE CONSTRAINT grunnlagimplementering_id FOR (gi:GrunnlagImplementering) REQUIRE gi.id IS UNIQUE;
-```
-
-### ✅ KravImplementering
-
-**Node label:** `KravImplementering`
-
-**Properties:**
-
-- `id` (string, required, unique): Unik identifikator
-- `navn` (string, required): Navn på kravimplementeringen
-- `spesifikkeKrav` (string): Utdanningstilbud-spesifikke krav og verdier
-- `beskrivelse` (string): Detaljert beskrivelse
-- `opprettet` (datetime): Når implementeringen ble opprettet
-- `aktiv` (boolean): Om implementeringen er aktiv
-
-**Constraints:**
-
-```cypher
-CREATE CONSTRAINT kravimplementering_id FOR (ki:KravImplementering) REQUIRE ki.id IS UNIQUE;
-```
-
-### 📊 KvoteImplementering
-
-**Node label:** `KvoteImplementering`
-
-**Properties:**
-
-- `id` (string, required, unique): Unik identifikator
-- `navn` (string, required): Navn på kvoteimplementeringen
-- `antallPlasser` (integer): Antall studieplasser i kvoten
-- `prosentAndel` (float): Prosentandel av totale plasser (hvis ikke fast antall)
-- `beskrivelse` (string): Beskrivelse av kvoten
-- `opprettet` (datetime): Når implementeringen ble opprettet
-- `aktiv` (boolean): Om implementeringen er aktiv
-
-**Constraints:**
-
-```cypher
-CREATE CONSTRAINT kvoteimplementering_id FOR (ki:KvoteImplementering) REQUIRE ki.id IS UNIQUE;
-```
-
-### 📈 RangeringImplementering
-
-**Node label:** `RangeringImplementering`
-
-**Properties:**
-
-- `id` (string, required, unique): Unik identifikator
-- `navn` (string, required): Navn på rangeringsimplementeringen
-- `formel` (string): Konkret rangeringsformel for dette utdanningstilbudet
-- `vektinger` (string): Spesifikke vektinger og parametre
-- `beskrivelse` (string): Detaljert beskrivelse
-- `opprettet` (datetime): Når implementeringen ble opprettet
-- `aktiv` (boolean): Om implementeringen er aktiv
-
-**Constraints:**
-
-```cypher
-CREATE CONSTRAINT rangeringimplementering_id FOR (ri:RangeringImplementering) REQUIRE ri.id IS UNIQUE;
-```
-
 ### 📚 Fagkode
 
 **Node label:** `Fagkode`
@@ -577,12 +489,12 @@ CREATE (fagbrev)-[:INNEHOLDER {
 
 ## 🌳 Regelsett som tre-struktur
 
-Et regelsett bygges opp som en tre-struktur hvor:
+Et regelsett bygges opp som en tre-struktur hvor hver OpptaksVei definerer en komplett regel:
 
-1. **GrunnlagImplementering** definerer hva som kvalifiserer (basert på standard Grunnlag)
-2. **KravImplementering** knyttes til grunnlag (basert på standard Kravelement)
-3. **KvoteImplementering** som grunnlaget gir tilgang til (basert på standard KvoteType)
-4. **RangeringImplementering** som brukes innenfor hver kvote (basert på standard RangeringType)
+1. **Grunnlag** - Hva søker må ha som utgangspunkt
+2. **Kravelement** - Spesifikke krav som må oppfylles
+3. **KvoteType** - Hvilken kvote søker konkurrerer i
+4. **RangeringType** - Hvordan søkere rangeres innenfor kvoten
 
 **Eksempel på beslutningstre med OpptaksVeier:**
 
@@ -614,30 +526,12 @@ Et regelsett bygges opp som en tre-struktur hvor:
     └── 📊 Rangering: Kun forkurskarakterer
 ```
 
-## ⚡ Gjenbruk og propagering
+## ⚡ Gjenbruk og tilpasning
 
-- **Standard-komponenter** kan gjenbrukes på tvers av institusjoner
-- Endringer i **standarder** kan propageres til alle **implementeringer**
-- **Implementeringer** kan tilpasses uten å påvirke standardene
-- Historikk bevares ved versjonering av både standarder og implementeringer
-
-## 🔍 Design-beslutning: KravImplementering vs direkte referanse
-
-**Spørsmål:** Skal GrunnlagImplementering peke direkte på Kravelement eller via KravImplementering?
-
-**Svar:** Via KravImplementering, fordi krav kan ha utdanningstilbud-spesifikke parametre:
-
-**Eksempel:**
-
-- **Standard Kravelement:** "Matematikk R2"
-- **NTNU KravImplementering:** "Matematikk R2 med minimum karakter 4.0"
-- **UiO KravImplementering:** "Matematikk R2 med minimum karakter 3.5"
-
-**Struktur:**
-
-```
-GrunnlagImplementering -[:KREVER]-> KravImplementering -[:IMPLEMENTERER]-> Kravelement
-```
+- **Standard-komponenter** (Grunnlag, Kravelement, KvoteType, RangeringType) kan gjenbrukes på tvers av institusjoner
+- Hver OpptaksVei kombinerer standard-komponenter til en spesifikk regel
+- Institusjoner kan lage egne standard-komponenter for spesielle behov
+- Historikk bevares ved versjonering av komponenter og OpptaksVeier
 
 ## 🎯 Karakterhåndtering og historikk
 
@@ -692,11 +586,10 @@ RETURN count(DISTINCT fk) > 0 as oppfyllerKrav;
 **Finn alle utdanningstilbud med mattekrav:**
 
 ```cypher
-// Grunnleggende query
+// Via OpptaksVei-struktur
 MATCH (u:Utdanningstilbud)-[:HAR_REGELSETT]->(r:Regelsett)
-      -[:INNEHOLDER]->(gi:GrunnlagImplementering)
-      -[:KREVER]->(ki:KravImplementering)
-      -[:IMPLEMENTERER]->(ke:Kravelement)
+      -[:HAR_OPPTAKSVEI]->(ov:OpptaksVei)
+      -[:KREVER]->(ke:Kravelement)
 WHERE ke.type CONTAINS "matematikk"
 RETURN u;
 
@@ -709,22 +602,23 @@ WHERE ke.type CONTAINS "matematikk"
 RETURN u;
 ```
 
-**Finn spesifikke implementeringer:**
+**Finn kvalifiserende OpptaksVeier:**
 
 ```cypher
-// Alle utdanningstilbud som krever Matte R2 med karakter 4+
-MATCH (u:Utdanningstilbud)-[*]-(ki:KravImplementering)-[:IMPLEMENTERER]->(ke:Kravelement)
+// Alle OpptaksVeier som krever Matematikk R2
+MATCH (u:Utdanningstilbud)-[:HAR_REGELSETT]->(r:Regelsett)
+      -[:HAR_OPPTAKSVEI]->(ov:OpptaksVei)
+      -[:KREVER]->(ke:Kravelement)
 WHERE ke.type = "matematikk-r2"
-  AND ki.spesifikkeKrav CONTAINS "karakter 4"
-RETURN u, ki.spesifikkeKrav;
+RETURN u.navn, ov.navn, ke.navn;
 ```
 
-**Fordeler med implementerings-lag:**
+**Fordeler med OpptaksVei-struktur:**
 
-- ✅ Fleksibilitet: Utdanningstilbud kan tilpasse standardkrav
-- ✅ Querybarhet: Kan søke både generelt ("alle med matte") og spesifikt ("matte R2 karakter 4+")
-- ✅ Performance: Neo4j optimalisert for relasjonstraversering
-- ✅ Gjenbruk: Standardkrav kan brukes av mange implementeringer
+- ✅ Fleksibilitet: Hver vei er selvstendig og kan tilpasses
+- ✅ Klarhet: Tydelige regler uten komplekse avhengigheter
+- ✅ Performance: Neo4j optimalisert for grafdatatraversering
+- ✅ Gjenbruk: Standard-komponenter brukes på tvers av veier
 
 ## 🔗 Relationship-typer
 
@@ -802,72 +696,6 @@ RETURN u, ki.spesifikkeKrav;
 **Properties:** (ingen)
 
 **Beskrivelse:** En opptaksvei bruker en spesifikk rangeringstype for å sortere søkere
-
-### Regelsett INNEHOLDER GrunnlagImplementering
-
-**Properties:** (ingen)
-
-**Beskrivelse:** Et regelsett inneholder grunnlagimplementeringer
-
-### Regelsett INNEHOLDER KravImplementering
-
-**Properties:** (ingen)
-
-**Beskrivelse:** Et regelsett inneholder kravimplementeringer
-
-### Regelsett INNEHOLDER KvoteImplementering
-
-**Properties:** (ingen)
-
-**Beskrivelse:** Et regelsett inneholder kvoteimplementeringer
-
-### Regelsett INNEHOLDER RangeringImplementering
-
-**Properties:** (ingen)
-
-**Beskrivelse:** Et regelsett inneholder rangeringimplementeringer
-
-### GrunnlagImplementering IMPLEMENTERER Grunnlag
-
-**Properties:** (ingen)
-
-**Beskrivelse:** En grunnlagimplementering implementerer et standard grunnlag
-
-### KravImplementering IMPLEMENTERER Kravelement
-
-**Properties:** (ingen)
-
-**Beskrivelse:** En kravimplementering implementerer et standard kravelement
-
-### KvoteImplementering IMPLEMENTERER KvoteType
-
-**Properties:** (ingen)
-
-**Beskrivelse:** En kvoteimplementering implementerer en standard kvotetype
-
-### RangeringImplementering IMPLEMENTERER RangeringType
-
-**Properties:** (ingen)
-
-**Beskrivelse:** En rangeringimplementering implementerer en standard rangeringstype
-
-### GrunnlagImplementering KREVER KravImplementering
-
-**Properties:** (ingen)
-
-**Beskrivelse:** En grunnlagimplementering krever at visse kravimplementeringer er oppfylt
-
-### GrunnlagImplementering GIR_TILGANG_TIL KvoteImplementering
-
-**Properties:** (ingen)
-
-**Beskrivelse:** En grunnlagimplementering gir tilgang til en eller flere kvoteimplementeringer
-
-### KvoteImplementering BRUKER RangeringImplementering
-
-**Properties:** (ingen)
-
-**Beskrivelse:** En kvoteimplementering bruker en rangeringimplementering for å sortere søkere
 
 ### Dokumentasjon INNEHOLDER Fagkode
 

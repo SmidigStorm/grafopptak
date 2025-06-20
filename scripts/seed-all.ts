@@ -372,59 +372,138 @@ async function seedAll() {
     console.log('🏗️ Oppretter grunnlag...');
 
     await session.run(`
+      // Videregående/Gymnasial
       CREATE (grunnlag1:Grunnlag {
         id: randomUUID(),
-        navn: 'Førstegangsvitnemål videregående',
-        type: 'forstegangsvitnemaal-vgs',
-        beskrivelse: 'Vitnemål fra videregående skole, maksimalt 2 år siden fullført',
+        navn: 'Førstegangsvitnemål',
+        type: 'forstegangsvitnemaal',
+        beskrivelse: 'Søker med sitt første vitnemål fra videregående opplæring',
         aktiv: true,
         opprettet: datetime()
       })
       CREATE (grunnlag2:Grunnlag {
         id: randomUUID(),
-        navn: 'Ordinært vitnemål videregående',
-        type: 'ordinaert-vitnemaal-vgs',
-        beskrivelse: 'Standard vitnemål fra videregående skole',
+        navn: 'Ordinært vitnemål',
+        type: 'ordinaert-vitnemaal',
+        beskrivelse: 'Standard vitnemål fra videregående opplæring',
         aktiv: true,
         opprettet: datetime()
       })
       CREATE (grunnlag3:Grunnlag {
         id: randomUUID(),
-        navn: 'Fagbrev',
-        type: 'fagbrev',
-        beskrivelse: 'Fagbrev/svennebrev fra yrkesfag',
+        navn: 'Flere vitnemål',
+        type: 'flere-vitnemaal',
+        beskrivelse: 'Søker med multiple vitnemål (annen poengformel)',
         aktiv: true,
         opprettet: datetime()
       })
       CREATE (grunnlag4:Grunnlag {
         id: randomUUID(),
-        navn: 'FagskoleUtdanning',
-        type: 'fagskole',
-        beskrivelse: 'Fullført fagskoleUtdanning (120 studiepoeng)',
+        navn: 'Vitnemål med kompetansebevis',
+        type: 'vitnemaal-kompetansebevis',
+        beskrivelse: 'Ordinært vitnemål med privatist-forbedringer',
         aktiv: true,
         opprettet: datetime()
       })
       CREATE (grunnlag5:Grunnlag {
         id: randomUUID(),
-        navn: 'Utenlandsk utdanning',
-        type: 'utenlandsk',
-        beskrivelse: 'Godkjent utenlandsk utdanning',
+        navn: 'IB (International Baccalaureate)',
+        type: 'ib',
+        beskrivelse: 'Internasjonal studentereksamen',
         aktiv: true,
         opprettet: datetime()
       })
+      
+      // Yrkesfag
       CREATE (grunnlag6:Grunnlag {
         id: randomUUID(),
-        navn: 'Realkompetanse',
-        type: 'realkompetanse',
-        beskrivelse: 'Vurdering basert på arbeidserfaring',
+        navn: 'Fagbrev/svennebrev',
+        type: 'fagbrev',
+        beskrivelse: 'Fullført lærlingtid med fagbrev eller svennebrev',
         aktiv: true,
         opprettet: datetime()
       })
       CREATE (grunnlag7:Grunnlag {
         id: randomUUID(),
-        navn: 'Forkurs ingeniør',
-        type: 'forkurs-ingenior',
-        beskrivelse: '1-årig forkurs for ingeniørutdanning',
+        navn: '3-årig yrkesutdanning',
+        type: 'yrkesfag-3aar',
+        beskrivelse: 'Treårig yrkesfaglig utdanning uten lærlingtid',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (grunnlag8:Grunnlag {
+        id: randomUUID(),
+        navn: 'Yrkesfag med påbygg',
+        type: 'yrkesfag-pabygg',
+        beskrivelse: 'Yrkesfaglig utdanning med påbyggingsår',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      
+      // Høyere utdanning
+      CREATE (grunnlag9:Grunnlag {
+        id: randomUUID(),
+        navn: 'Bachelorgrad',
+        type: 'bachelor',
+        beskrivelse: 'Fullført bachelorutdanning (180 studiepoeng)',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (grunnlag10:Grunnlag {
+        id: randomUUID(),
+        navn: 'Mastergrad',
+        type: 'master',
+        beskrivelse: 'Fullført masterutdanning (120 studiepoeng)',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      
+      // Alternative veier
+      CREATE (grunnlag11:Grunnlag {
+        id: randomUUID(),
+        navn: '23/5-regel',
+        type: '23-5-regel',
+        beskrivelse: '23 år med 5 års arbeids- eller utdanningserfaring',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (grunnlag12:Grunnlag {
+        id: randomUUID(),
+        navn: 'Realkompetanse UH',
+        type: 'realkompetanse-uh',
+        beskrivelse: '25+ år med relevant erfaring for universitet/høgskole',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (grunnlag13:Grunnlag {
+        id: randomUUID(),
+        navn: 'Realkompetanse fagskole',
+        type: 'realkompetanse-fagskole',
+        beskrivelse: '23+ år med relevant erfaring for fagskole',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (grunnlag14:Grunnlag {
+        id: randomUUID(),
+        navn: 'Godkjent fagskole',
+        type: 'fagskole-godkjent',
+        beskrivelse: 'Fullført fagskoleUtdanning (120 studiepoeng)',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (grunnlag15:Grunnlag {
+        id: randomUUID(),
+        navn: 'Godkjent utenlandsk utdanning',
+        type: 'utenlandsk-godkjent',
+        beskrivelse: 'Utenlandsk utdanning vurdert som likeverdig',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (grunnlag16:Grunnlag {
+        id: randomUUID(),
+        navn: 'Y-veien/ingeniørforberedende',
+        type: 'y-veien',
+        beskrivelse: 'Spesielle forkurs for ingeniørutdanning',
         aktiv: true,
         opprettet: datetime()
       })

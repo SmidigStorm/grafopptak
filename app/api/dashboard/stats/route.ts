@@ -72,10 +72,32 @@ export async function GET() {
       }) as faggrupper
     `);
 
-    const stats = statsResult.records[0].get('stats');
-    const karakterfordeling = karakterStatsResult.records[0].get('karakterfordeling');
-    const topInstitusjoner = institusjonStatsResult.records[0].get('topInstitusjoner');
-    const faggrupper = faggruppeStatsResult.records[0].get('faggrupper');
+    const stats =
+      statsResult.records.length > 0
+        ? statsResult.records[0].get('stats')
+        : {
+            institusjoner: 0,
+            utdanningstilbud: 0,
+            sokere: 0,
+            regelsett: 0,
+            dokumenter: 0,
+            fagkoder: 0,
+          };
+
+    const karakterfordeling =
+      karakterStatsResult.records.length > 0
+        ? karakterStatsResult.records[0].get('karakterfordeling')
+        : [];
+
+    const topInstitusjoner =
+      institusjonStatsResult.records.length > 0
+        ? institusjonStatsResult.records[0].get('topInstitusjoner')
+        : [];
+
+    const faggrupper =
+      faggruppeStatsResult.records.length > 0
+        ? faggruppeStatsResult.records[0].get('faggrupper')
+        : [];
 
     // Convert Neo4j integers to regular numbers
     const convertNeo4jIntegers = (obj: any): any => {

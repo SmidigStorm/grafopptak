@@ -22,6 +22,7 @@ import {
   BarChart3,
   Database,
   Hammer,
+  Code,
 } from 'lucide-react';
 import Link from 'next/link';
 import { ThemeToggle } from '@/components/theme-toggle';
@@ -61,6 +62,11 @@ const menuItems = [
     title: 'Søkere',
     icon: Users,
     href: '/admin/sokere',
+  },
+  {
+    title: 'API Docs',
+    icon: Code,
+    href: '/admin/api-docs',
   },
   {
     title: 'Innstillinger',

@@ -1,0 +1,519 @@
+import { describe, it, expect, beforeEach } from 'vitest'
+import { NextRequest } from 'next/server'
+import { driver, createQueryRunner } from '@/lib/neo4j'
+
+// Mock en GET og POST route for regelsett (disse må implementeres)
+// import { GET, POST } from '@/app/api/regelsett/route'
+
+describe('Regelsett API', () => {
+  const queryRunner = createQueryRunner()
+
+  beforeEach(async () => {
+    // Reset test data
+    await queryRunner(`
+      MATCH (r:Regelsett)-[:HAR_OPPTAKSVEI]->(ov:OpptaksVei)
+      DETACH DELETE r, ov
+    `)
+  })
+
+  describe('GET /api/regelsett', () => {
+    it('henter alle regelsett med OpptaksVeier', async () => {
+      // Arrange: Opprett test regelsett
+      await queryRunner(`
+        CREATE (r:Regelsett {
+          id: 'test-regelsett-1',
+          navn: 'Test Regelsett 1',
+          versjon: '1.0',
+          beskrivelse: 'Test regelsett for API testing'
+        })
+        CREATE (ov1:OpptaksVei {
+          id: 'test-opptaksvei-1',
+          navn: 'Førstegangsvitnemål',
+          beskrivelse: 'Test opptaksvei'
+        })
+        CREATE (ov2:OpptaksVei {
+          id: 'test-opptaksvei-2', 
+          navn: 'Fagbrev',
+          beskrivelse: 'Test fagbrev vei'
+        })
+        CREATE (r)-[:HAR_OPPTAKSVEI]->(ov1)
+        CREATE (r)-[:HAR_OPPTAKSVEI]->(ov2)
+      `)
+
+      // Act
+      const response = await mockGetRegelsett()
+
+      // Assert
+      expect(response.status).toBe(200)
+      const data = await response.json()
+      expect(data.regelsett).toHaveLength(1)
+      expect(data.regelsett[0].opptaksveier).toHaveLength(2)
+      expect(data.regelsett[0].navn).toBe('Test Regelsett 1')
+    })
+
+    it('returnerer tomt array når ingen regelsett finnes', async () => {
+      // Act
+      const response = await mockGetRegelsett()
+
+      // Assert
+      expect(response.status).toBe(200)
+      const data = await response.json()
+      expect(data.regelsett).toHaveLength(0)
+    })
+  })
+
+  describe('GET /api/regelsett/[id]', () => {
+    it('henter spesifikt regelsett med alle komponenter', async () => {
+      // Arrange: Opprett komplett regelsett med komponenter
+      await queryRunner(`
+        CREATE (r:Regelsett {
+          id: 'test-komplett-regelsett',
+          navn: 'Komplett Regelsett',
+          versjon: '2.0'
+        })
+        CREATE (ov:OpptaksVei {
+          id: 'test-komplett-vei',
+          navn: 'Komplett OpptaksVei'
+        })
+        CREATE (g:Grunnlag {
+          id: 'test-grunnlag',
+          navn: 'Test Grunnlag',
+          type: 'forstegangsvitnemaal-vgs'
+        })
+        CREATE (k:Kravelement {
+          id: 'test-krav',
+          navn: 'Test Krav',
+          type: 'matematikk-r2'
+        })
+        CREATE (kv:KvoteType {
+          id: 'test-kvote',
+          navn: 'Test Kvote',
+          type: 'forstegangsvitnemaal'
+        })
+        CREATE (rt:RangeringType {
+          id: 'test-rangering',
+          navn: 'Test Rangering',
+          type: 'karaktersnitt'
+        })
+        
+        CREATE (r)-[:HAR_OPPTAKSVEI]->(ov)
+        CREATE (ov)-[:BASERT_PÅ]->(g)
+        CREATE (ov)-[:KREVER]->(k)
+        CREATE (ov)-[:GIR_TILGANG_TIL]->(kv)
+        CREATE (ov)-[:BRUKER_RANGERING]->(rt)
+      `)
+
+      // Act
+      const response = await mockGetRegelsettById('test-komplett-regelsett')
+
+      // Assert
+      expect(response.status).toBe(200)
+      const data = await response.json()
+      expect(data.regelsett.id).toBe('test-komplett-regelsett')
+      expect(data.regelsett.opptaksveier).toHaveLength(1)
+      
+      const vei = data.regelsett.opptaksveier[0]
+      expect(vei.grunnlag).toBeDefined()
+      expect(vei.krav).toHaveLength(1)
+      expect(vei.kvote).toBeDefined()
+      expect(vei.rangering).toBeDefined()
+    })
+
+    it('returnerer 404 for ikke-eksisterende regelsett', async () => {
+      // Act
+      const response = await mockGetRegelsettById('ikke-eksisterende')
+
+      // Assert
+      expect(response.status).toBe(404)
+      const data = await response.json()
+      expect(data.error).toContain('ikke funnet')
+    })
+  })
+
+  describe('POST /api/regelsett', () => {
+    it('oppretter nytt regelsett med OpptaksVeier', async () => {
+      // Arrange: Sørg for at nødvendige komponenter finnes
+      await queryRunner(`
+        CREATE (g:Grunnlag {
+          id: 'forstegangsvitnemaal-vgs',
+          navn: 'Førstegangsvitnemål VGS',
+          type: 'forstegangsvitnemaal-vgs'
+        })
+        CREATE (k1:Kravelement {
+          id: 'gsk',
+          navn: 'Generell studiekompetanse',
+          type: 'gsk'
+        })
+        CREATE (k2:Kravelement {
+          id: 'matematikk-r2',
+          navn: 'Matematikk R2',
+          type: 'matematikk-r2'
+        })
+        CREATE (kv:KvoteType {
+          id: 'forstegangsvitnemaal',
+          navn: 'Førstegangsvitnemål kvote',
+          type: 'forstegangsvitnemaal'
+        })
+        CREATE (rt:RangeringType {
+          id: 'karaktersnitt-realfag',
+          navn: 'Karaktersnitt + realfagspoeng',
+          type: 'karaktersnitt-realfag'
+        })
+      `)
+
+      const requestBody = {
+        navn: 'Nytt Test Regelsett',
+        versjon: '1.0',
+        beskrivelse: 'API test regelsett',
+        opptaksveier: [{
+          navn: 'Test OpptaksVei',
+          beskrivelse: 'Test vei for API',
+          grunnlagId: 'forstegangsvitnemaal-vgs',
+          kravIds: ['gsk', 'matematikk-r2'],
+          kvoteId: 'forstegangsvitnemaal',
+          rangeringId: 'karaktersnitt-realfag'
+        }]
+      }
+
+      // Act
+      const response = await mockPostRegelsett(requestBody)
+
+      // Assert
+      expect(response.status).toBe(201)
+      const data = await response.json()
+      expect(data.regelsett.navn).toBe('Nytt Test Regelsett')
+      expect(data.regelsett.opptaksveier).toHaveLength(1)
+
+      // Verifiser at det ble lagret i database
+      const dbResult = await queryRunner(`
+        MATCH (r:Regelsett {navn: 'Nytt Test Regelsett'})-[:HAR_OPPTAKSVEI]->(ov:OpptaksVei)
+        RETURN count(ov) as antallVeier
+      `)
+      expect(dbResult[0].antallVeier).toBe(1)
+    })
+
+    it('validerer påkrevde felter', async () => {
+      const ugyldigRequest = {
+        // Mangler navn
+        versjon: '1.0',
+        opptaksveier: []
+      }
+
+      // Act
+      const response = await mockPostRegelsett(ugyldigRequest)
+
+      // Assert
+      expect(response.status).toBe(400)
+      const data = await response.json()
+      expect(data.error).toContain('navn')
+    })
+
+    it('håndterer ikke-eksisterende komponenter gracefully', async () => {
+      const requestBody = {
+        navn: 'Test med ugyldig komponent',
+        versjon: '1.0',
+        opptaksveier: [{
+          navn: 'Ugyldig vei',
+          grunnlagId: 'ikke-eksisterende-grunnlag',
+          kravIds: ['ikke-eksisterende-krav'],
+          kvoteId: 'ikke-eksisterende-kvote',
+          rangeringId: 'ikke-eksisterende-rangering'
+        }]
+      }
+
+      // Act
+      const response = await mockPostRegelsett(requestBody)
+
+      // Assert
+      expect(response.status).toBe(400)
+      const data = await response.json()
+      expect(data.error).toContain('komponenter')
+    })
+  })
+
+  describe('PUT /api/regelsett/[id]', () => {
+    it('oppdaterer eksisterende regelsett', async () => {
+      // Arrange: Opprett eksisterende regelsett
+      await queryRunner(`
+        CREATE (r:Regelsett {
+          id: 'test-update-regelsett',
+          navn: 'Gammelt navn',
+          versjon: '1.0'
+        })
+      `)
+
+      const updateData = {
+        navn: 'Oppdatert navn',
+        versjon: '1.1',
+        beskrivelse: 'Oppdatert beskrivelse'
+      }
+
+      // Act
+      const response = await mockPutRegelsett('test-update-regelsett', updateData)
+
+      // Assert
+      expect(response.status).toBe(200)
+      const data = await response.json()
+      expect(data.regelsett.navn).toBe('Oppdatert navn')
+      expect(data.regelsett.versjon).toBe('1.1')
+    })
+  })
+
+  describe('DELETE /api/regelsett/[id]', () => {
+    it('sletter regelsett og tilhørende OpptaksVeier', async () => {
+      // Arrange
+      await queryRunner(`
+        CREATE (r:Regelsett {
+          id: 'test-delete-regelsett',
+          navn: 'Regelsett til sletting'
+        })
+        CREATE (ov:OpptaksVei {
+          id: 'test-delete-vei',
+          navn: 'Vei til sletting'
+        })
+        CREATE (r)-[:HAR_OPPTAKSVEI]->(ov)
+      `)
+
+      // Act
+      const response = await mockDeleteRegelsett('test-delete-regelsett')
+
+      // Assert
+      expect(response.status).toBe(200)
+
+      // Verifiser at det ble slettet
+      const dbResult = await queryRunner(`
+        MATCH (r:Regelsett {id: 'test-delete-regelsett'})
+        RETURN count(r) as antall
+      `)
+      expect(dbResult[0].antall).toBe(0)
+    })
+  })
+})
+
+// Mock hjelpefunksjoner (disse erstatter faktiske API-kall til testen kan kjøre)
+
+async function mockGetRegelsett() {
+  const queryRunner = createQueryRunner()
+  
+  const result = await queryRunner(`
+    MATCH (r:Regelsett)
+    OPTIONAL MATCH (r)-[:HAR_OPPTAKSVEI]->(ov:OpptaksVei)
+    WITH r, collect(ov) as opptaksveier
+    RETURN {
+      regelsett: collect({
+        id: r.id,
+        navn: r.navn,
+        versjon: r.versjon,
+        beskrivelse: r.beskrivelse,
+        opptaksveier: [vei IN opptaksveier | {
+          id: vei.id,
+          navn: vei.navn,
+          beskrivelse: vei.beskrivelse
+        }]
+      })
+    } as data
+  `)
+
+  return {
+    status: 200,
+    json: async () => result[0]?.data || { regelsett: [] }
+  }
+}
+
+async function mockGetRegelsettById(id: string) {
+  const queryRunner = createQueryRunner()
+  
+  const result = await queryRunner(`
+    MATCH (r:Regelsett {id: $id})
+    OPTIONAL MATCH (r)-[:HAR_OPPTAKSVEI]->(ov:OpptaksVei)
+    OPTIONAL MATCH (ov)-[:BASERT_PÅ]->(g:Grunnlag)
+    OPTIONAL MATCH (ov)-[:KREVER]->(k:Kravelement)
+    OPTIONAL MATCH (ov)-[:GIR_TILGANG_TIL]->(kv:KvoteType)
+    OPTIONAL MATCH (ov)-[:BRUKER_RANGERING]->(rt:RangeringType)
+    
+    WITH r, ov, g, collect(k) as krav, kv, rt
+    WITH r, collect({
+      id: ov.id,
+      navn: ov.navn,
+      beskrivelse: ov.beskrivelse,
+      grunnlag: g,
+      krav: krav,
+      kvote: kv,
+      rangering: rt
+    }) as opptaksveier
+    
+    RETURN {
+      regelsett: {
+        id: r.id,
+        navn: r.navn,
+        versjon: r.versjon,
+        beskrivelse: r.beskrivelse,
+        opptaksveier: opptaksveier
+      }
+    } as data
+  `, { id })
+
+  if (result.length === 0) {
+    return {
+      status: 404,
+      json: async () => ({ error: `Regelsett med id ${id} ikke funnet` })
+    }
+  }
+
+  return {
+    status: 200,
+    json: async () => result[0].data
+  }
+}
+
+async function mockPostRegelsett(requestBody: any) {
+  if (!requestBody.navn) {
+    return {
+      status: 400,
+      json: async () => ({ error: 'navn er påkrevd' })
+    }
+  }
+
+  const queryRunner = createQueryRunner()
+  
+  try {
+    // Opprett regelsett
+    const regelsetId = `regelsett-${Date.now()}`
+    await queryRunner(`
+      CREATE (r:Regelsett {
+        id: $id,
+        navn: $navn,
+        versjon: $versjon,
+        beskrivelse: $beskrivelse,
+        opprettet: datetime(),
+        aktiv: true
+      })
+    `, {
+      id: regelsetId,
+      navn: requestBody.navn,
+      versjon: requestBody.versjon || '1.0',
+      beskrivelse: requestBody.beskrivelse || ''
+    })
+
+    // Opprett OpptaksVeier
+    for (const vei of requestBody.opptaksveier || []) {
+      const veiId = `opptaksvei-${Date.now()}-${Math.random()}`
+      
+      // Verifiser at komponenter eksisterer
+      const komponenterCheck = await queryRunner(`
+        MATCH (g:Grunnlag {id: $grunnlagId})
+        MATCH (kv:KvoteType {id: $kvoteId})
+        MATCH (rt:RangeringType {id: $rangeringId})
+        RETURN count(*) as antall
+      `, {
+        grunnlagId: vei.grunnlagId,
+        kvoteId: vei.kvoteId,
+        rangeringId: vei.rangeringId
+      })
+
+      if (komponenterCheck[0].antall < 3) {
+        throw new Error('En eller flere komponenter eksisterer ikke')
+      }
+
+      // Opprett OpptaksVei
+      await queryRunner(`
+        MATCH (r:Regelsett {id: $regelsetId})
+        CREATE (ov:OpptaksVei {
+          id: $veiId,
+          navn: $navn,
+          beskrivelse: $beskrivelse,
+          opprettet: datetime(),
+          aktiv: true
+        })
+        CREATE (r)-[:HAR_OPPTAKSVEI]->(ov)
+        
+        // Koble komponenter
+        WITH ov
+        MATCH (g:Grunnlag {id: $grunnlagId})
+        MATCH (kv:KvoteType {id: $kvoteId})
+        MATCH (rt:RangeringType {id: $rangeringId})
+        CREATE (ov)-[:BASERT_PÅ]->(g)
+        CREATE (ov)-[:GIR_TILGANG_TIL]->(kv)
+        CREATE (ov)-[:BRUKER_RANGERING]->(rt)
+      `, {
+        regelsetId,
+        veiId,
+        navn: vei.navn,
+        beskrivelse: vei.beskrivelse || '',
+        grunnlagId: vei.grunnlagId,
+        kvoteId: vei.kvoteId,
+        rangeringId: vei.rangeringId
+      })
+
+      // Koble krav
+      for (const kravId of vei.kravIds || []) {
+        await queryRunner(`
+          MATCH (ov:OpptaksVei {id: $veiId})
+          MATCH (k:Kravelement {id: $kravId})
+          CREATE (ov)-[:KREVER]->(k)
+        `, { veiId, kravId })
+      }
+    }
+
+    return {
+      status: 201,
+      json: async () => ({
+        regelsett: {
+          id: regelsetId,
+          navn: requestBody.navn,
+          versjon: requestBody.versjon || '1.0',
+          opptaksveier: requestBody.opptaksveier || []
+        }
+      })
+    }
+  } catch (error) {
+    return {
+      status: 400,
+      json: async () => ({ error: `Feil ved opprettelse: ${error.message}` })
+    }
+  }
+}
+
+async function mockPutRegelsett(id: string, updateData: any) {
+  const queryRunner = createQueryRunner()
+  
+  await queryRunner(`
+    MATCH (r:Regelsett {id: $id})
+    SET r.navn = $navn,
+        r.versjon = $versjon,
+        r.beskrivelse = $beskrivelse,
+        r.oppdatert = datetime()
+  `, {
+    id,
+    navn: updateData.navn,
+    versjon: updateData.versjon,
+    beskrivelse: updateData.beskrivelse || ''
+  })
+
+  return {
+    status: 200,
+    json: async () => ({
+      regelsett: {
+        id,
+        navn: updateData.navn,
+        versjon: updateData.versjon,
+        beskrivelse: updateData.beskrivelse
+      }
+    })
+  }
+}
+
+async function mockDeleteRegelsett(id: string) {
+  const queryRunner = createQueryRunner()
+  
+  await queryRunner(`
+    MATCH (r:Regelsett {id: $id})
+    OPTIONAL MATCH (r)-[:HAR_OPPTAKSVEI]->(ov:OpptaksVei)
+    DETACH DELETE r, ov
+  `, { id })
+
+  return {
+    status: 200,
+    json: async () => ({ message: 'Regelsett slettet' })
+  }
+}

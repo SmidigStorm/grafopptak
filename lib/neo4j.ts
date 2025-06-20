@@ -53,3 +53,31 @@ export class Neo4jDatabase {
     await this.driver.close();
   }
 }
+
+// Helper function for testing
+export function createQueryRunner() {
+  return async (query: string, params: any = {}) => {
+    const session = getSession();
+    try {
+      const result = await session.run(query, params);
+      return result.records.map((record) => {
+        const obj: any = {};
+        record.keys.forEach((key) => {
+          const value = record.get(key);
+          // Convert Neo4j types to plain objects
+          if (value && typeof value.properties === 'object') {
+            obj[key] = value.properties;
+          } else {
+            obj[key] = value;
+          }
+        });
+        return obj;
+      });
+    } finally {
+      await session.close();
+    }
+  };
+}
+
+// Export driver for compatibility
+export { driver };

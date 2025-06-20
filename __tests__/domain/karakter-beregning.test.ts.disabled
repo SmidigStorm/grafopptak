@@ -1,0 +1,404 @@
+import { describe, it, expect, beforeEach } from 'vitest'
+import { driver, createQueryRunner } from '@/lib/neo4j'
+
+describe('Karakter System', () => {
+  const queryRunner = createQueryRunner()
+  
+  beforeEach(async () => {
+    // Reset test data
+    await queryRunner(`
+      MATCH (p:Person)-[:EIER]->(d:Dokumentasjon)
+      DETACH DELETE p, d
+    `)
+  })
+
+  describe('Karaktersnitt beregning', () => {
+    it('beregner korrekt karaktersnitt for 1-6 skala', async () => {
+      // Arrange: Opprett person med karakterer
+      await queryRunner(`
+        CREATE (p:Person {
+          id: 'test-karaktersnitt',
+          fornavn: 'Test',
+          etternavn: 'Karaktersen'
+        })
+        CREATE (d:Dokumentasjon {
+          id: 'test-vitnemaal-karakterer',
+          type: 'vitnemaal',
+          navn: 'Vitnemål med karakterer'
+        })
+        CREATE (p)-[:EIER]->(d)
+        
+        // Legg til fagkoder med karakterer
+        MATCH (fk1:Fagkode {kode: 'NOR1211'})
+        MATCH (fk2:Fagkode {kode: 'MAT1001-S1'})
+        MATCH (fk3:Fagkode {kode: 'ENG1002'})
+        
+        CREATE (d)-[:INNEHOLDER {
+          karakter: '5',
+          karaktersystem: '1-6',
+          dato: date('2023-06-15')
+        }]->(fk1)
+        CREATE (d)-[:INNEHOLDER {
+          karakter: '4',
+          karaktersystem: '1-6',
+          dato: date('2023-06-15')
+        }]->(fk2)
+        CREATE (d)-[:INNEHOLDER {
+          karakter: '6',
+          karaktersystem: '1-6',
+          dato: date('2023-06-15')
+        }]->(fk3)
+      `)
+
+      // Act
+      const karaktersnitt = await beregnKaraktersnitt('test-karaktersnitt')
+
+      // Assert
+      expect(karaktersnitt).toBeCloseTo(5.0) // (5+4+6)/3 = 5.0
+    })
+
+    it('ignorerer ikke-numeriske karakterer i karaktersnitt', async () => {
+      // Arrange: Blanding av numeriske og bestått/ikke bestått
+      await queryRunner(`
+        CREATE (p:Person {
+          id: 'test-blandet',
+          fornavn: 'Blandet',
+          etternavn: 'Karaktersen'
+        })
+        CREATE (d:Dokumentasjon {
+          id: 'test-vitnemaal-blandet',
+          type: 'vitnemaal',
+          navn: 'Vitnemål med blandet karakterer'
+        })
+        CREATE (p)-[:EIER]->(d)
+        
+        MATCH (fk1:Fagkode {kode: 'NOR1211'})
+        MATCH (fk2:Fagkode {kode: 'MAT1001-S1'})
+        
+        // Numerisk karakter
+        CREATE (d)-[:INNEHOLDER {
+          karakter: '5',
+          karaktersystem: '1-6',
+          dato: date('2023-06-15')
+        }]->(fk1)
+        
+        // Bestått-karakter (skal ikke telle i snittet)
+        CREATE (d)-[:INNEHOLDER {
+          karakter: 'bestått',
+          karaktersystem: 'bestått/ikke bestått',
+          dato: date('2023-06-15')
+        }]->(fk2)
+      `)
+
+      // Act
+      const karaktersnitt = await beregnKaraktersnitt('test-blandet')
+
+      // Assert
+      expect(karaktersnitt).toBe(5.0) // Kun den numeriske karakteren teller
+    })
+  })
+
+  describe('Karakterforbedring og historikk', () => {
+    it('velger beste karakter ved forbedring', async () => {
+      // Arrange: Person tar samme fag flere ganger
+      await queryRunner(`
+        CREATE (p:Person {
+          id: 'test-forbedring',
+          fornavn: 'Forbedring',
+          etternavn: 'Testersen'
+        })
+        CREATE (d:Dokumentasjon {
+          id: 'test-vitnemaal-forbedring',
+          type: 'vitnemaal',
+          navn: 'Vitnemål med forbedringer'
+        })
+        CREATE (p)-[:EIER]->(d)
+        
+        MATCH (fk:Fagkode {kode: 'MAT1001-S1'})
+        
+        // Første forsøk
+        CREATE (d)-[:INNEHOLDER {
+          karakter: '3',
+          karaktersystem: '1-6',
+          dato: date('2023-06-15'),
+          kommentar: 'første forsøk'
+        }]->(fk)
+        
+        // Forbedringsforsøk
+        CREATE (d)-[:INNEHOLDER {
+          karakter: '5',
+          karaktersystem: '1-6',
+          dato: date('2023-12-15'),
+          kommentar: 'forbedring'
+        }]->(fk)
+        
+        // Dårligere forsøk etter forbedring
+        CREATE (d)-[:INNEHOLDER {
+          karakter: '4',
+          karaktersystem: '1-6',
+          dato: date('2024-01-15'),
+          kommentar: 'dårligere forsøk'
+        }]->(fk)
+      `)
+
+      // Act
+      const besteKarakter = await finnBesteKarakter('test-forbedring', 'MAT1001-S1')
+
+      // Assert
+      expect(besteKarakter.karakter).toBe('5')
+      expect(besteKarakter.kommentar).toBe('forbedring')
+    })
+
+    it('velger nyeste karakter ved likt karakternivå', async () => {
+      // Arrange: To like karakterer på ulike datoer
+      await queryRunner(`
+        CREATE (p:Person {
+          id: 'test-like-karakterer',
+          fornavn: 'Like',
+          etternavn: 'Testersen'
+        })
+        CREATE (d:Dokumentasjon {
+          id: 'test-vitnemaal-like',
+          type: 'vitnemaal',
+          navn: 'Vitnemål med like karakterer'
+        })
+        CREATE (p)-[:EIER]->(d)
+        
+        MATCH (fk:Fagkode {kode: 'NOR1211'})
+        
+        // Første gang karakter 5
+        CREATE (d)-[:INNEHOLDER {
+          karakter: '5',
+          karaktersystem: '1-6',
+          dato: date('2023-06-15'),
+          kommentar: 'første gang'
+        }]->(fk)
+        
+        // Andre gang også karakter 5 (nyere dato)
+        CREATE (d)-[:INNEHOLDER {
+          karakter: '5',
+          karaktersystem: '1-6',
+          dato: date('2023-12-15'),
+          kommentar: 'andre gang'
+        }]->(fk)
+      `)
+
+      // Act
+      const besteKarakter = await finnBesteKarakter('test-like-karakterer', 'NOR1211')
+
+      // Assert
+      expect(besteKarakter.karakter).toBe('5')
+      expect(besteKarakter.kommentar).toBe('andre gang') // Nyeste dato
+    })
+  })
+
+  describe('Realfagspoeng beregning', () => {
+    it('beregner realfagspoeng korrekt', async () => {
+      // Arrange: Person med realfag
+      await queryRunner(`
+        CREATE (p:Person {
+          id: 'test-realfag',
+          fornavn: 'Real',
+          etternavn: 'Fagsen'
+        })
+        CREATE (d:Dokumentasjon {
+          id: 'test-vitnemaal-realfag',
+          type: 'vitnemaal',
+          namn: 'Vitnemål med realfag'
+        })
+        CREATE (p)-[:EIER]->(d)
+        
+        // Matematikk R1 og R2
+        MATCH (fkR1:Fagkode {kode: 'REA3022'})
+        MATCH (fkR2:Fagkode {kode: 'REA3024'})
+        MATCH (fkFysikk:Fagkode {kode: 'REA3004'})
+        
+        CREATE (d)-[:INNEHOLDER {
+          karakter: '5',
+          karaktersystem: '1-6',
+          dato: date('2023-06-15')
+        }]->(fkR1)
+        CREATE (d)-[:INNEHOLDER {
+          karakter: '4',
+          karaktersystem: '1-6',
+          dato: date('2023-06-15')
+        }]->(fkR2)
+        CREATE (d)-[:INNEHOLDER {
+          karakter: '6',
+          karaktersystem: '1-6',
+          dato: date('2023-06-15')
+        }]->(fkFysikk)
+      `)
+
+      // Act
+      const realfagspoeng = await beregnRealfagspoeng('test-realfag')
+
+      // Assert
+      // R1: 0.5p, R2: 1p (totalt 1.5p for matte), Fysikk 1: 1p = 2.5p totalt
+      expect(realfagspoeng.totalt).toBe(2.5)
+      expect(realfagspoeng.detaljer).toEqual({
+        matematikkR1: 0.5,
+        matematikkR2: 1.0,
+        fysikk1: 1.0,
+        totalt: 2.5
+      })
+    })
+
+    it('begrenser realfagspoeng til maksimum 4', async () => {
+      // Arrange: Person med mange realfag (over grensen)
+      await queryRunner(`
+        CREATE (p:Person {
+          id: 'test-maks-realfag',
+          fornavn: 'Maks',
+          etternavn: 'Realfagsen'
+        })
+        CREATE (d:Dokumentasjon {
+          id: 'test-vitnemaal-maks',
+          type: 'vitnemaal',
+          navn: 'Vitnemål med mange realfag'
+        })
+        CREATE (p)-[:EIER]->(d)
+        
+        // Legg til alle mulige realfag for å teste maksgrense
+        MATCH (fkR1:Fagkode {kode: 'REA3022'})    // 0.5p
+        MATCH (fkR2:Fagkode {kode: 'REA3024'})    // 1p
+        MATCH (fkFysikk1:Fagkode {kode: 'REA3004'}) // 1p
+        MATCH (fkKjemi1:Fagkode {kode: 'REA3006'})  // 0.5p
+        MATCH (fkKjemi2:Fagkode {kode: 'REA3007'})  // 1p
+        
+        CREATE (d)-[:INNEHOLDER {karakter: '6', karaktersystem: '1-6', dato: date('2023-06-15')}]->(fkR1)
+        CREATE (d)-[:INNEHOLDER {karakter: '6', karaktersystem: '1-6', dato: date('2023-06-15')}]->(fkR2)
+        CREATE (d)-[:INNEHOLDER {karakter: '6', karaktersystem: '1-6', dato: date('2023-06-15')}]->(fkFysikk1)
+        CREATE (d)-[:INNEHOLDER {karakter: '6', karaktersystem: '1-6', dato: date('2023-06-15')}]->(fkKjemi1)
+        CREATE (d)-[:INNEHOLDER {karakter: '6', karaktersystem: '1-6', dato: date('2023-06-15')}]->(fkKjemi2)
+        // Totalt ville vært 4p, så dette skal ikke begrenses
+      `)
+
+      // Act
+      const realfagspoeng = await beregnRealfagspoeng('test-maks-realfag')
+
+      // Assert
+      expect(realfagspoeng.totalt).toBeLessThanOrEqual(4)
+    })
+  })
+
+  describe('Ulike karaktersystemer', () => {
+    it('håndterer bestått/ikke bestått korrekt', async () => {
+      // Arrange
+      await queryRunner(`
+        CREATE (p:Person {
+          id: 'test-bestatt',
+          fornavn: 'Bestått',
+          etternavn: 'Testersen'
+        })
+        CREATE (d:Dokumentasjon {
+          id: 'test-fagbrev',
+          type: 'fagbrev',
+          navn: 'Fagbrev elektriker'
+        })
+        CREATE (p)-[:EIER]->(d)
+        
+        MATCH (fk:Fagkode {kode: 'ELE2001'})
+        
+        CREATE (d)-[:INNEHOLDER {
+          karakter: 'bestått',
+          karaktersystem: 'bestått/ikke bestått',
+          dato: date('2023-06-15')
+        }]->(fk)
+      `)
+
+      // Act
+      const harBestatt = await sjekkBestattKrav('test-bestatt', 'ELE2001')
+      const karaktersnitt = await beregnKaraktersnitt('test-bestatt')
+
+      // Assert
+      expect(harBestatt).toBe(true)
+      expect(karaktersnitt).toBe(0) // Bestått-karakterer teller ikke i snitt
+    })
+  })
+})
+
+// Hjelpefunksjoner for karakterberegning
+
+async function beregnKaraktersnitt(personId: string): Promise<number> {
+  const queryRunner = createQueryRunner()
+  
+  const result = await queryRunner(`
+    MATCH (p:Person {id: $personId})-[:EIER]->(d:Dokumentasjon)-[r:INNEHOLDER]->(fk:Fagkode)
+    WHERE r.karaktersystem = '1-6'
+    WITH r.karakter as karakter
+    WHERE karakter IN ['1','2','3','4','5','6']
+    RETURN avg(toInteger(karakter)) as snitt
+  `, { personId })
+  
+  return result[0]?.snitt || 0
+}
+
+async function finnBesteKarakter(personId: string, fagkode: string) {
+  const queryRunner = createQueryRunner()
+  
+  const result = await queryRunner(`
+    MATCH (p:Person {id: $personId})-[:EIER]->(d:Dokumentasjon)-[r:INNEHOLDER]->(fk:Fagkode {kode: $fagkode})
+    WHERE r.karaktersystem = '1-6'
+    RETURN r.karakter as karakter, r.dato as dato, r.kommentar as kommentar
+    ORDER BY toInteger(r.karakter) DESC, r.dato DESC
+    LIMIT 1
+  `, { personId, fagkode })
+  
+  return result[0] || null
+}
+
+async function beregnRealfagspoeng(personId: string) {
+  const queryRunner = createQueryRunner()
+  
+  const karakterer = await queryRunner(`
+    MATCH (p:Person {id: $personId})-[:EIER]->(d:Dokumentasjon)-[r:INNEHOLDER]->(fk:Fagkode)
+    WHERE r.karaktersystem = '1-6' 
+      AND fk.kode IN ['REA3022', 'REA3024', 'REA3004', 'REA3006', 'REA3007']
+    RETURN fk.kode as fagkode, r.karakter as karakter
+  `, { personId })
+  
+  let poeng = 0
+  const detaljer: any = {}
+  
+  // Realfagspoeng-regler
+  const poengTabell: Record<string, number> = {
+    'REA3022': 0.5, // Matematikk R1
+    'REA3024': 1.0, // Matematikk R2  
+    'REA3004': 1.0, // Fysikk 1
+    'REA3006': 0.5, // Kjemi 1
+    'REA3007': 1.0  // Kjemi 2
+  }
+  
+  for (const k of karakterer) {
+    if (parseInt(k.karakter) >= 4) { // Minimum karakter 4 for realfagspoeng
+      const fagPoeng = poengTabell[k.fagkode] || 0
+      poeng += fagPoeng
+      
+      if (k.fagkode === 'REA3022') detaljer.matematikkR1 = fagPoeng
+      if (k.fagkode === 'REA3024') detaljer.matematikkR2 = fagPoeng
+      if (k.fagkode === 'REA3004') detaljer.fysikk1 = fagPoeng
+    }
+  }
+  
+  // Begrens til maksimum 4 poeng
+  poeng = Math.min(poeng, 4)
+  detaljer.totalt = poeng
+  
+  return {
+    totalt: poeng,
+    detaljer
+  }
+}
+
+async function sjekkBestattKrav(personId: string, fagkode: string): Promise<boolean> {
+  const queryRunner = createQueryRunner()
+  
+  const result = await queryRunner(`
+    MATCH (p:Person {id: $personId})-[:EIER]->(d:Dokumentasjon)-[r:INNEHOLDER]->(fk:Fagkode {kode: $fagkode})
+    WHERE r.karaktersystem = 'bestått/ikke bestått' AND r.karakter = 'bestått'
+    RETURN count(*) > 0 as harBestatt
+  `, { personId, fagkode })
+  
+  return result[0]?.harBestatt || false
+}

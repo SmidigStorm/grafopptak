@@ -1,0 +1,386 @@
+import React from 'react'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { render, screen, waitFor } from '@testing-library/react'
+import AdminDashboard from '@/app/admin/page'
+
+// Mock Next.js Link component
+vi.mock('next/link', () => ({
+  default: ({ children, href }: { children: React.ReactNode; href: string }) => (
+    <a href={href}>{children}</a>
+  ),
+}))
+
+// Mock InstitutionsMap component
+vi.mock('@/components/institutions-map', () => ({
+  default: () => <div data-testid="institutions-map">Institusjonskart</div>,
+}))
+
+// Mock fetch for API calls
+const mockFetch = vi.fn()
+global.fetch = mockFetch
+
+describe('AdminDashboard', () => {
+  beforeEach(() => {
+    mockFetch.mockClear()
+  })
+
+  describe('Loading state', () => {
+    it('viser loading-melding mens data hentes', () => {
+      // Arrange: Mock pending fetch
+      mockFetch.mockImplementationOnce(() => new Promise(() => {})) // Never resolves
+
+      // Act
+      render(<AdminDashboard />)
+
+      // Assert
+      expect(screen.getByText('Laster dashboard data...')).toBeInTheDocument()
+      expect(screen.getByText('Dashboard')).toBeInTheDocument()
+      expect(screen.getByText('Oversikt over opptakssystemet')).toBeInTheDocument()
+    })
+  })
+
+  describe('Success state', () => {
+    it('viser korrekt statistikk når data er hentet', async () => {
+      // Arrange: Mock successful API response
+      const mockData = {
+        success: true,
+        data: {
+          stats: {
+            institusjoner: 5,
+            utdanningstilbud: 23,
+            sokere: 150,
+            regelsett: 18,
+            dokumenter: 450,
+            fagkoder: 89,
+          },
+          karakterfordeling: [
+            { karakter: 1, antall: 5 },
+            { karakter: 2, antall: 12 },
+            { karakter: 3, antall: 25 },
+            { karakter: 4, antall: 45 },
+            { karakter: 5, antall: 38 },
+            { karakter: 6, antall: 15 },
+          ],
+          topInstitusjoner: [
+            { navn: 'Norges teknisk-naturvitenskapelige universitet', kortNavn: 'NTNU', antallTilbud: 8 },
+            { navn: 'Universitetet i Oslo', kortNavn: 'UiO', antallTilbud: 6 },
+            { navn: 'Universitetet i Bergen', kortNavn: 'UiB', antallTilbud: 4 },
+          ],
+          faggrupper: [
+            { navn: 'Matematikk R1-nivå', type: 'matematikk', antallFagkoder: 3 },
+            { navn: 'Norsk språk', type: 'språk', antallFagkoder: 5 },
+            { navn: 'Realfag', type: 'realfag', antallFagkoder: 12 },
+          ],
+        },
+      }
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockData,
+      })
+
+      // Act
+      render(<AdminDashboard />)
+
+      // Assert: Wait for data to load and check statistics
+      await waitFor(() => {
+        expect(screen.getByText('5')).toBeInTheDocument() // Institusjoner
+        expect(screen.getByText('23')).toBeInTheDocument() // Utdanningstilbud
+        expect(screen.getByText('150')).toBeInTheDocument() // Søkere
+        expect(screen.getByText('18')).toBeInTheDocument() // Regelsett
+        expect(screen.getByText('450')).toBeInTheDocument() // Dokumenter
+        expect(screen.getByText('89')).toBeInTheDocument() // Fagkoder
+      })
+
+      // Check that labels are present
+      expect(screen.getByText('Institusjoner')).toBeInTheDocument()
+      expect(screen.getByText('Utdanningstilbud')).toBeInTheDocument()
+      expect(screen.getByText('Søkere')).toBeInTheDocument()
+      expect(screen.getByText('Regelsett')).toBeInTheDocument()
+      expect(screen.getByText('Dokumenter')).toBeInTheDocument()
+      expect(screen.getByText('Fagkoder')).toBeInTheDocument()
+    })
+
+    it('viser top institusjoner korrekt', async () => {
+      // Arrange
+      const mockData = {
+        success: true,
+        data: {
+          stats: {
+            institusjoner: 5,
+            utdanningstilbud: 23,
+            sokere: 150,
+            regelsett: 18,
+            dokumenter: 450,
+            fagkoder: 89,
+          },
+          topInstitusjoner: [
+            { navn: 'Norges teknisk-naturvitenskapelige universitet', kortNavn: 'NTNU', antallTilbud: 8 },
+            { navn: 'Universitetet i Oslo', kortNavn: 'UiO', antallTilbud: 6 },
+          ],
+          faggrupper: [],
+          karakterfordeling: [],
+        },
+      }
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockData,
+      })
+
+      // Act
+      render(<AdminDashboard />)
+
+      // Assert
+      await waitFor(() => {
+        expect(screen.getByText('Top institusjoner')).toBeInTheDocument()
+        expect(screen.getByText('NTNU')).toBeInTheDocument()
+        expect(screen.getByText('UiO')).toBeInTheDocument()
+        expect(screen.getByText('8')).toBeInTheDocument() // NTNU antall tilbud
+        expect(screen.getByText('6')).toBeInTheDocument() // UiO antall tilbud
+      })
+    })
+
+    it('viser faggrupper korrekt', async () => {
+      // Arrange
+      const mockData = {
+        success: true,
+        data: {
+          stats: {
+            institusjoner: 5,
+            utdanningstilbud: 23,
+            sokere: 150,
+            regelsett: 18,
+            dokumenter: 450,
+            fagkoder: 89,
+          },
+          faggrupper: [
+            { navn: 'Matematikk R1-nivå', type: 'matematikk', antallFagkoder: 3 },
+            { navn: 'Norsk språk', type: 'språk', antallFagkoder: 5 },
+          ],
+          topInstitusjoner: [],
+          karakterfordeling: [],
+        },
+      }
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockData,
+      })
+
+      // Act
+      render(<AdminDashboard />)
+
+      // Assert
+      await waitFor(() => {
+        expect(screen.getByText('Faggrupper')).toBeInTheDocument()
+        expect(screen.getByText('Matematikk R1-nivå')).toBeInTheDocument()
+        expect(screen.getByText('Norsk språk')).toBeInTheDocument()
+        expect(screen.getByText('matematikk')).toBeInTheDocument()
+        expect(screen.getByText('språk')).toBeInTheDocument()
+      })
+    })
+
+    it('viser karakterfordeling når data finnes', async () => {
+      // Arrange
+      const mockData = {
+        success: true,
+        data: {
+          stats: {
+            institusjoner: 5,
+            utdanningstilbud: 23,
+            sokere: 150,
+            regelsett: 18,
+            dokumenter: 450,
+            fagkoder: 89,
+          },
+          karakterfordeling: [
+            { karakter: 4, antall: 45 },
+            { karakter: 5, antall: 38 },
+            { karakter: 6, antall: 15 },
+          ],
+          topInstitusjoner: [],
+          faggrupper: [],
+        },
+      }
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockData,
+      })
+
+      // Act
+      render(<AdminDashboard />)
+
+      // Assert
+      await waitFor(() => {
+        expect(screen.getByText('Karakterfordeling')).toBeInTheDocument()
+        expect(screen.getByText('Fordeling av karakterer (1-6 skala)')).toBeInTheDocument()
+        // Sjekk at alle karakterer 1-6 vises, selv om noen har 0 forekomster
+        for (let i = 1; i <= 6; i++) {
+          expect(screen.getByText(i.toString())).toBeInTheDocument()
+        }
+      })
+    })
+
+    it('skjuler karakterfordeling når ingen data finnes', async () => {
+      // Arrange
+      const mockData = {
+        success: true,
+        data: {
+          stats: {
+            institusjoner: 5,
+            utdanningstilbud: 23,
+            sokere: 150,
+            regelsett: 18,
+            dokumenter: 450,
+            fagkoder: 89,
+          },
+          karakterfordeling: [], // Tomt array
+          topInstitusjoner: [],
+          faggrupper: [],
+        },
+      }
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockData,
+      })
+
+      // Act
+      render(<AdminDashboard />)
+
+      // Assert
+      await waitFor(() => {
+        expect(screen.queryByText('Karakterfordeling')).not.toBeInTheDocument()
+      })
+    })
+  })
+
+  describe('Error handling', () => {
+    it('håndterer API-feil gracefully', async () => {
+      // Arrange: Mock API error
+      mockFetch.mockRejectedValueOnce(new Error('API Error'))
+
+      // Act
+      render(<AdminDashboard />)
+
+      // Assert: Should not crash and show default values
+      await waitFor(() => {
+        expect(screen.getByText('0')).toBeInTheDocument() // Default stat values
+      })
+    })
+
+    it('håndterer feil respons-format', async () => {
+      // Arrange: Mock invalid response
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ success: false }),
+      })
+
+      // Act
+      render(<AdminDashboard />)
+
+      // Assert: Should show default values
+      await waitFor(() => {
+        expect(screen.getByText('0')).toBeInTheDocument()
+      })
+    })
+  })
+
+  describe('Navigation links', () => {
+    it('har korrekte navigasjonslenker på statistikk-kort', async () => {
+      // Arrange
+      const mockData = {
+        success: true,
+        data: {
+          stats: {
+            institusjoner: 5,
+            utdanningstilbud: 23,
+            sokere: 150,
+            regelsett: 18,
+            dokumenter: 450,
+            fagkoder: 89,
+          },
+          topInstitusjoner: [],
+          faggrupper: [],
+          karakterfordeling: [],
+        },
+      }
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockData,
+      })
+
+      // Act
+      render(<AdminDashboard />)
+
+      // Assert: Check that clickable cards have correct hrefs
+      await waitFor(() => {
+        expect(screen.getByRole('link', { name: /5.*Institusjoner/s })).toHaveAttribute('href', '/admin/institusjoner')
+        expect(screen.getByRole('link', { name: /23.*Utdanningstilbud/s })).toHaveAttribute('href', '/admin/utdanningstilbud')
+        expect(screen.getByRole('link', { name: /150.*Søkere/s })).toHaveAttribute('href', '/admin/sokere')
+        expect(screen.getByRole('link', { name: /18.*Regelsett/s })).toHaveAttribute('href', '/admin/regelsett')
+        expect(screen.getByRole('link', { name: /89.*Fagkoder/s })).toHaveAttribute('href', '/admin/fagkoder')
+      })
+    })
+  })
+
+  describe('InstitutionsMap integration', () => {
+    it('rendrer institusjonskart-komponenten', async () => {
+      // Arrange
+      const mockData = {
+        success: true,
+        data: {
+          stats: { institusjoner: 5, utdanningstilbud: 23, sokere: 150, regelsett: 18, dokumenter: 450, fagkoder: 89 },
+          topInstitusjoner: [],
+          faggrupper: [],
+          karakterfordeling: [],
+        },
+      }
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockData,
+      })
+
+      // Act
+      render(<AdminDashboard />)
+
+      // Assert
+      await waitFor(() => {
+        expect(screen.getByTestId('institutions-map')).toBeInTheDocument()
+      })
+    })
+  })
+
+  describe('Responsive design elements', () => {
+    it('har riktige CSS-klasser for responsive design', async () => {
+      // Arrange
+      const mockData = {
+        success: true,
+        data: {
+          stats: { institusjoner: 5, utdanningstilbud: 23, sokere: 150, regelsett: 18, dokumenter: 450, fagkoder: 89 },
+          topInstitusjoner: [],
+          faggrupper: [],
+          charakterdeling: [],
+        },
+      }
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockData,
+      })
+
+      // Act
+      render(<AdminDashboard />)
+
+      // Assert: Check that main grid has responsive classes
+      await waitFor(() => {
+        const mainGrid = screen.getByText('5').closest('.grid')
+        expect(mainGrid).toHaveClass('grid-cols-1', 'md:grid-cols-6', 'lg:grid-cols-12')
+      })
+    })
+  })
+})

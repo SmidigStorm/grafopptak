@@ -1,0 +1,326 @@
+import { describe, it, expect, beforeEach } from 'vitest'
+import { Neo4jDatabase } from '@/lib/neo4j'
+
+const testDb = new Neo4jDatabase({
+  uri: process.env.NEO4J_TEST_URI || 'bolt://localhost:7687',
+  user: process.env.NEO4J_TEST_USER || 'neo4j',
+  password: process.env.NEO4J_TEST_PASSWORD || 'grafopptak123',
+})
+
+describe('OpttaksVei Evaluering', () => {
+  
+  beforeEach(async () => {
+    // Reset relevant test data before each test
+    await testDb.runQuery(`
+      MATCH (p:Person)-[:EIER]->(d:Dokumentasjon)
+      DETACH DELETE p, d
+    `)
+  })
+
+  describe('Førstegangsvitnemål OpptaksVei', () => {
+    it('kvalifiserer søker med førstegangsvitnemål og riktige fag', async () => {
+      // Arrange: Opprett test-søker med førstegangsvitnemål
+      const testPerson = await testDb.runQuery(`
+        CREATE (p:Person {
+          id: 'test-person-1',
+          fornavn: 'Test',
+          etternavn: 'Testersen',
+          fodselsdato: date('2003-01-01'),
+          epost: 'test@example.com'
+        })
+        CREATE (d:Dokumentasjon {
+          id: 'test-vitnemaal-1',
+          type: 'vitnemaal',
+          navn: 'Vitnemål videregående skole',
+          utstedt: date('2023-06-15'),
+          utsteder: 'Oslo katedralskole'
+        })
+        CREATE (p)-[:EIER]->(d)
+        
+        // Legg til matematikk R1 og R2 karakterer
+        MATCH (fk1:Fagkode {kode: 'REA3022'}) // Matte R1
+        MATCH (fk2:Fagkode {kode: 'REA3024'}) // Matte R2
+        CREATE (d)-[:INNEHOLDER {
+          karakter: '5',
+          karaktersystem: '1-6',
+          dato: date('2023-06-15')
+        }]->(fk1)
+        CREATE (d)-[:INNEHOLDER {
+          karakter: '4',
+          karaktersystem: '1-6',
+          dato: date('2023-06-15')
+        }]->(fk2)
+        
+        RETURN p.id as personId
+      `)
+
+      const personId = testPerson[0].personId
+
+      // Act: Evaluer om personen kvalifiserer for en OpptaksVei
+      const result = await evaluerOpptaksVeiKvalifisering(personId, 'forstegangsvitnemaal')
+
+      // Assert
+      expect(result.kvalifisert).toBe(true)
+      expect(result.alder).toBeLessThanOrEqual(21)
+      expect(result.harMatematikkR2).toBe(true)
+      expect(result.harVitnemaal).toBe(true)
+    })
+
+    it('avviser søker som er for gammel for førstegangsvitnemål', async () => {
+      // Arrange: Opprett test-søker som er 23 år
+      const testPerson = await testDb.runQuery(`
+        CREATE (p:Person {
+          id: 'test-person-2',
+          fornavn: 'Gammel',
+          etternavn: 'Testersen',
+          fodselsdato: date('2000-01-01'),
+          epost: 'gammel@example.com'
+        })
+        CREATE (d:Dokumentasjon {
+          id: 'test-vitnemaal-2',
+          type: 'vitnemaal',
+          navn: 'Vitnemål videregående skole',
+          utstedt: date('2020-06-15')
+        })
+        CREATE (p)-[:EIER]->(d)
+        RETURN p.id as personId
+      `)
+
+      const personId = testPerson[0].personId
+
+      // Act
+      const result = await evaluerOpptaksVeiKvalifisering(personId, 'forstegangsvitnemaal')
+
+      // Assert
+      expect(result.kvalifisert).toBe(false)
+      expect(result.alder).toBeGreaterThan(21)
+      expect(result.avvisningsgrunn).toContain('alder')
+    })
+
+    it('avviser søker som mangler matematikk R2', async () => {
+      // Arrange: Opprett test-søker uten matematikk R2
+      const testPerson = await testDb.runQuery(`
+        CREATE (p:Person {
+          id: 'test-person-3',
+          fornavn: 'Uten',
+          etternavn: 'Matte',
+          fodselsdato: date('2003-01-01'),
+          epost: 'uten.matte@example.com'
+        })
+        CREATE (d:Dokumentasjon {
+          id: 'test-vitnemaal-3',
+          type: 'vitnemaal',
+          navn: 'Vitnemål videregående skole',
+          utstedt: date('2023-06-15')
+        })
+        CREATE (p)-[:EIER]->(d)
+        
+        // Kun matematikk R1, ikke R2
+        MATCH (fk1:Fagkode {kode: 'REA3022'}) // Matte R1
+        CREATE (d)-[:INNEHOLDER {
+          karakter: '5',
+          karaktersystem: '1-6',
+          dato: date('2023-06-15')
+        }]->(fk1)
+        
+        RETURN p.id as personId
+      `)
+
+      const personId = testPerson[0].personId
+
+      // Act
+      const result = await evaluerOpptaksVeiKvalifisering(personId, 'forstegangsvitnemaal')
+
+      // Assert
+      expect(result.kvalifisert).toBe(false)
+      expect(result.harMatematikkR2).toBe(false)
+      expect(result.avvisningsgrunn).toContain('matematikk R2')
+    })
+  })
+
+  describe('Fagbrev OpptaksVei', () => {
+    it('kvalifiserer søker med relevant fagbrev og matematikk R1', async () => {
+      // Arrange: Opprett test-søker med fagbrev
+      const testPerson = await testDb.runQuery(`
+        CREATE (p:Person {
+          id: 'test-person-fagbrev',
+          fornavn: 'Fagbrev',
+          etternavn: 'Testersen',
+          fodselsdato: date('1995-01-01'),
+          epost: 'fagbrev@example.com'
+        })
+        CREATE (d:Dokumentasjon {
+          id: 'test-fagbrev-1',
+          type: 'fagbrev',
+          navn: 'Fagbrev elektriker',
+          utstedt: date('2020-06-15'),
+          utsteder: 'Fagopplæring i Oslo'
+        })
+        CREATE (p)-[:EIER]->(d)
+        
+        // Legg til matematikk R1
+        MATCH (fk1:Fagkode {kode: 'REA3022'}) // Matte R1
+        CREATE (d)-[:INNEHOLDER {
+          karakter: 'bestått',
+          karaktersystem: 'bestått/ikke bestått',
+          dato: date('2020-06-15')
+        }]->(fk1)
+        
+        RETURN p.id as personId
+      `)
+
+      const personId = testPerson[0].personId
+
+      // Act
+      const result = await evaluerOpptaksVeiKvalifisering(personId, 'fagbrev')
+
+      // Assert
+      expect(result.kvalifisert).toBe(true)
+      expect(result.harFagbrev).toBe(true)
+      expect(result.harMatematikkR1).toBe(true)
+    })
+  })
+
+  describe('Kombinert S1+S2 som R1-ekvivalent', () => {
+    it('godtar S1+S2 som erstatning for R1', async () => {
+      // Arrange: Opprett søker med S1 og S2 istedenfor R1
+      const testPerson = await testDb.runQuery(`
+        CREATE (p:Person {
+          id: 'test-person-s1s2',
+          fornavn: 'S1S2',
+          etternavn: 'Testersen',
+          fodselsdato: date('2003-01-01'),
+          epost: 's1s2@example.com'
+        })
+        CREATE (d:Dokumentasjon {
+          id: 'test-vitnemaal-s1s2',
+          type: 'vitnemaal',
+          navn: 'Vitnemål videregående skole',
+          utstedt: date('2023-06-15')
+        })
+        CREATE (p)-[:EIER]->(d)
+        
+        // Legg til S1 og S2
+        MATCH (fkS1:Fagkode {kode: 'MAT1001-S1'})
+        MATCH (fkS2:Fagkode {kode: 'MAT1002-S2'})
+        CREATE (d)-[:INNEHOLDER {
+          karakter: '4',
+          karaktersystem: '1-6',
+          dato: date('2023-06-15')
+        }]->(fkS1)
+        CREATE (d)-[:INNEHOLDER {
+          karakter: '5',
+          karaktersystem: '1-6',
+          dato: date('2023-06-15')
+        }]->(fkS2)
+        
+        RETURN p.id as personId
+      `)
+
+      const personId = testPerson[0].personId
+
+      // Act
+      const result = await evaluerOpptaksVeiKvalifisering(personId, 'kombinert-s1s2')
+
+      // Assert
+      expect(result.kvalifisert).toBe(true)
+      expect(result.harMatematikkR1Ekvivalent).toBe(true)
+      expect(result.matematikkDetaljer).toEqual({
+        harS1: true,
+        harS2: true,
+        harR1: false,
+        ekvivalentR1: true
+      })
+    })
+  })
+})
+
+// Hjelpefunksjon for evaluering av OpptaksVei
+async function evaluerOpptaksVeiKvalifisering(personId: string, opptaksVeiType: string) {
+  const testDb.runQuery = createQueryRunner()
+  
+  // Hent person med dokumentasjon og karakterer
+  const personData = await testDb.runQuery(`
+    MATCH (p:Person {id: $personId})-[:EIER]->(d:Dokumentasjon)
+    OPTIONAL MATCH (d)-[r:INNEHOLDER]->(fk:Fagkode)
+    RETURN p, d, collect({
+      fagkode: fk.kode,
+      karakter: r.karakter,
+      karaktersystem: r.karaktersystem,
+      dato: r.dato
+    }) as karakterer
+  `, { personId })
+
+  if (personData.length === 0) {
+    throw new Error(`Person ${personId} not found`)
+  }
+
+  const person = personData[0].p.properties
+  const dokumentasjon = personData[0].d.properties
+  const karakterer = personData[0].karakterer
+
+  // Beregn alder
+  const fodselsdato = new Date(person.fodselsdato)
+  const idag = new Date()
+  const alder = idag.getFullYear() - fodselsdato.getFullYear()
+
+  // Sjekk fagkrav
+  const harVitnemaal = dokumentasjon.type === 'vitnemaal'
+  const harFagbrev = dokumentasjon.type === 'fagbrev'
+  
+  // Sjekk matematikk-krav
+  const matematikkFag = karakterer.filter(k => 
+    ['REA3022', 'REA3024', 'MAT1001-S1', 'MAT1002-S2'].includes(k.fagkode)
+  )
+  
+  const harMatematikkR1 = matematikkFag.some(fag => fag.fagkode === 'REA3022')
+  const harMatematikkR2 = matematikkFag.some(fag => fag.fagkode === 'REA3024')
+  const harS1 = matematikkFag.some(fag => fag.fagkode === 'MAT1001-S1')
+  const harS2 = matematikkFag.some(fag => fag.fagkode === 'MAT1002-S2')
+  const harMatematikkR1Ekvivalent = harMatematikkR1 || (harS1 && harS2)
+
+  // Evaluer basert på OpptaksVei-type
+  let kvalifisert = false
+  let avvisningsgrunn: string[] = []
+
+  switch (opptaksVeiType) {
+    case 'forstegangsvitnemaal':
+      if (!harVitnemaal) avvisningsgrunn.push('mangler vitnemål')
+      if (alder > 21) avvisningsgrunn.push('alder over 21 år')
+      if (!harMatematikkR2) avvisningsgrunn.push('mangler matematikk R2')
+      
+      kvalifisert = harVitnemaal && alder <= 21 && harMatematikkR2
+      break
+
+    case 'fagbrev':
+      if (!harFagbrev) avvisningsgrunn.push('mangler fagbrev')
+      if (!harMatematikkR1Ekvivalent) avvisningsgrunn.push('mangler matematikk R1 eller ekvivalent')
+      
+      kvalifisert = harFagbrev && harMatematikkR1Ekvivalent
+      break
+
+    case 'kombinert-s1s2':
+      if (!harVitnemaal) avvisningsgrunn.push('mangler vitnemål')
+      if (!harMatematikkR1Ekvivalent) avvisningsgrunn.push('mangler matematikk R1-ekvivalent')
+      
+      kvalifisert = harVitnemaal && harMatematikkR1Ekvivalent
+      break
+  }
+
+  return {
+    kvalifisert,
+    alder,
+    harVitnemaal,
+    harFagbrev,
+    harMatematikkR1,
+    harMatematikkR2,
+    harMatematikkR1Ekvivalent,
+    matematikkDetaljer: {
+      harS1,
+      harS2,
+      harR1: harMatematikkR1,
+      ekvivalentR1: harMatematikkR1Ekvivalent
+    },
+    avvisningsgrunn: avvisningsgrunn.join(', ') || undefined
+  }
+}

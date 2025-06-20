@@ -29,7 +29,11 @@
 ## Dokumentasjon
 
 - Domenekunnskap dokumenteres i markdown-filer i mappen `/domenekunnskap`
-- Oppretthold en oppdatert `entiteter.md` fil med alle hovedentiteter og relasjoner
+- **Hoveddokumenter**:
+  - `entiteter.md` - Alle entiteter, relasjoner og implementeringsstatus
+  - `opptaksveier.md` - Beslutningstre-struktur og OpptaksVei-konseptet
+  - `forretningsregler.md` - Domenelogikk og opptaksregler
+  - `dataflyt.md` - Hvordan data flyter gjennom systemet
 - Bruk relevante emojis i markdown-filer for bedre lesbarhet
 - Hold dokumentasjonen konsis og oppdatert når domeneforståelsen utvides
 
@@ -52,8 +56,12 @@
 
 - **Struktur**: Neo4j grafdatabase med noder og relasjoner
 - **Scripts**: Database admin-verktøy i `/scripts/db-admin.ts`
-- **Seeding**: Fagkoder og faggrupper seeding i `/scripts/seed-fagkoder.ts`
+- **Seeding**:
+  - Hovedscript: `/scripts/seed-all.ts` - Seeder alle entiteter
+  - Fagkoder: `/scripts/seed-fagkoder.ts` - Fagkoder og faggrupper
+  - Karakterer: `/scripts/seed-karakterer.ts` - Testdata for personer og karakterer
 - **Reset**: `npm run db:reset` for full reset med constraints og seeding
+- **Admin**: `npm run db:admin` for interaktivt admin-verktøy
 
 ## Development Server
 
@@ -69,6 +77,13 @@
 - **Viktig**: Params er nå Promise i Next.js 15
 - **Pattern**: `{ params }: { params: Promise<{ id: string }> }`
 - **Bruk**: `const { id } = await params` i starten av funksjonen
+
+## Hovedentiteter
+
+- **Implementerte**: Institusjon, Utdanningstilbud, Person, Dokumentasjon, Fagkode, Faggruppe, Regelsett, OpptaksVei
+- **Delvis implementerte**: Søknad (mangler full funksjonalitet)
+- **Ikke implementerte**: Opptak (kun definert i datamodell)
+- **Beslutningstre**: OpptaksVei-struktur med Grunnlag → Krav → Kvote → Rangering
 
 ## Hosting
 
