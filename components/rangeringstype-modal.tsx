@@ -135,7 +135,7 @@ export default function RangeringsTypeModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[800px]">
         <DialogHeader>
           <DialogTitle>
             {rangeringsType ? 'Rediger rangeringstype' : 'Ny rangeringstype'}
@@ -186,11 +186,11 @@ export default function RangeringsTypeModal({
               Velg hvilke poengtyper som skal inkluderes i rangeringstypen
             </p>
 
-            <div className="grid grid-cols-1 gap-2 max-h-[300px] overflow-y-auto border rounded-md p-3">
+            <div className="grid grid-cols-2 gap-3 border rounded-md p-4">
               {tilgjengeligePoengTyper.map((poengType) => (
                 <div
                   key={poengType.id}
-                  className="flex items-center space-x-3 p-2 rounded hover:bg-muted/50"
+                  className="flex items-start space-x-3 p-2 rounded hover:bg-muted/50"
                 >
                   <Checkbox
                     id={`poengtype-${poengType.id}`}
@@ -198,9 +198,10 @@ export default function RangeringsTypeModal({
                     onCheckedChange={(checked) =>
                       handlePoengTypeToggle(poengType, checked as boolean)
                     }
+                    className="mt-0.5"
                   />
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 mb-1">
                       <Label
                         htmlFor={`poengtype-${poengType.id}`}
                         className="text-sm font-medium cursor-pointer"
@@ -212,7 +213,7 @@ export default function RangeringsTypeModal({
                       </Badge>
                     </div>
                     {poengType.beskrivelse && (
-                      <p className="text-xs text-muted-foreground mt-0.5">
+                      <p className="text-xs text-muted-foreground leading-relaxed">
                         {poengType.beskrivelse}
                       </p>
                     )}

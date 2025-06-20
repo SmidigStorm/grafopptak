@@ -280,11 +280,11 @@ export default function RegelbyggingPage() {
           </TabsTrigger>
           <TabsTrigger value="kravelementer" className="flex items-center gap-2">
             <Target className="h-4 w-4" />
-            Kravelementer
+            Krav
           </TabsTrigger>
           <TabsTrigger value="kvotetyper" className="flex items-center gap-2">
             <Trophy className="h-4 w-4" />
-            Kvotetyper
+            Kvoter
           </TabsTrigger>
           <TabsTrigger value="rangering" className="flex items-center gap-2">
             <Calculator className="h-4 w-4" />
@@ -363,7 +363,7 @@ export default function RegelbyggingPage() {
             <CardHeader>
               <div className="flex justify-between items-center">
                 <div>
-                  <CardTitle>Kravelementer</CardTitle>
+                  <CardTitle>Krav</CardTitle>
                   <CardDescription>
                     Standard krav som kan brukes i regelsett (f.eks. &quot;Matematikk R1-nivå&quot;,
                     &quot;Politiattest&quot;)
@@ -524,9 +524,9 @@ export default function RegelbyggingPage() {
             <CardHeader>
               <div className="flex justify-between items-center">
                 <div>
-                  <CardTitle>Kvotetyper</CardTitle>
+                  <CardTitle>Kvoter</CardTitle>
                   <CardDescription>
-                    Standard kvotetyper (f.eks. &quot;Ordinær kvote&quot;,
+                    Standard kvoter (f.eks. &quot;Ordinær kvote&quot;,
                     &quot;Førstegangsvitnemål&quot;)
                   </CardDescription>
                 </div>
