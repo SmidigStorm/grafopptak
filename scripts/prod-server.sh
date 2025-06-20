@@ -71,10 +71,35 @@ status_prod() {
     docker-compose -f $COMPOSE_FILE -p $PROJECT_NAME ps
     
     echo ""
-    print_status "🔍 Port usage:"
-    echo "  App (3001): $(lsof -i :3001 >/dev/null 2>&1 && echo "✅ In use" || echo "❌ Not in use")"
-    echo "  Neo4j HTTP (7475): $(lsof -i :7475 >/dev/null 2>&1 && echo "✅ In use" || echo "❌ Not in use")"
-    echo "  Neo4j Bolt (7688): $(lsof -i :7688 >/dev/null 2>&1 && echo "✅ In use" || echo "❌ Not in use")"
+    print_status "🔍 Service health:"
+    
+    # Check app health
+    if curl -f -s http://localhost:3001/api/dashboard/stats >/dev/null 2>&1; then
+        echo "  App (3001): ✅ Healthy"
+    else
+        echo "  App (3001): ❌ Unhealthy"
+    fi
+    
+    # Check Neo4j health
+    if curl -f -s http://localhost:7475 >/dev/null 2>&1; then
+        echo "  Neo4j HTTP (7475): ✅ Healthy"
+    else
+        echo "  Neo4j HTTP (7475): ❌ Unhealthy"
+    fi
+    
+    if nc -z localhost 7688 >/dev/null 2>&1; then
+        echo "  Neo4j Bolt (7688): ✅ Healthy"
+    else
+        echo "  Neo4j Bolt (7688): ❌ Unhealthy"
+    fi
+    
+    echo ""
+    print_status "🗄️ Volume usage:"
+    docker volume ls | grep grafopptak-prod
+    
+    echo ""
+    print_status "📋 Container resources:"
+    docker stats --no-stream --format "table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.MemPerc}}" | grep grafopptak
 }
 
 logs_prod() {
@@ -84,6 +109,54 @@ logs_prod() {
     else
         docker-compose -f $COMPOSE_FILE -p $PROJECT_NAME logs -f $SERVICE
     fi
+}
+
+watch_prod() {
+    print_status "🔍 Watching production environment (press Ctrl+C to stop)..."
+    while true; do
+        clear
+        print_status "$(date '+%Y-%m-%d %H:%M:%S') - Production Status"
+        echo ""
+        status_prod
+        sleep 10
+    done
+}
+
+health_check() {
+    print_status "🏥 Running detailed health check..."
+    
+    # Test app endpoints
+    echo ""
+    print_status "Testing critical endpoints:"
+    
+    endpoints=(
+        "http://localhost:3001/api/dashboard/stats"
+        "http://localhost:3001/api/regelsett"
+        "http://localhost:3001/api/institusjoner"
+    )
+    
+    for endpoint in "${endpoints[@]}"; do
+        if curl -f -s --max-time 5 "$endpoint" >/dev/null 2>&1; then
+            echo "  ✅ $endpoint"
+        else
+            echo "  ❌ $endpoint"
+        fi
+    done
+    
+    # Test Neo4j connectivity
+    echo ""
+    print_status "Testing database connectivity:"
+    if docker exec grafopptak-neo4j-prod neo4j status >/dev/null 2>&1; then
+        echo "  ✅ Neo4j service running"
+    else
+        echo "  ❌ Neo4j service not running"
+    fi
+    
+    # Check disk space
+    echo ""
+    print_status "System resources:"
+    echo "  Disk usage: $(df -h . | tail -1 | awk '{print $5}') used"
+    echo "  Memory usage: $(free -h | grep '^Mem:' | awk '{printf "%.1f/%.1f GB (%.0f%%)\n", $3/1024/1024, $2/1024/1024, $3/$2*100}')"
 }
 
 build_prod() {
@@ -138,6 +211,12 @@ case "$ACTION" in
     status)
         status_prod
         ;;
+    watch)
+        watch_prod
+        ;;
+    health)
+        health_check
+        ;;
     logs)
         logs_prod
         ;;
@@ -153,12 +232,14 @@ case "$ACTION" in
         start_prod
         ;;
     *)
-        echo "Usage: $0 {start|stop|status|restart|logs|build|reset-db}"
+        echo "Usage: $0 {start|stop|status|watch|health|restart|logs|build|reset-db}"
         echo ""
         echo "Commands:"
         echo "  start     - Start production environment"
         echo "  stop      - Stop production environment"
         echo "  status    - Show status of services"
+        echo "  watch     - Continuously monitor services (Ctrl+C to stop)"
+        echo "  health    - Run detailed health check"
         echo "  restart   - Restart all services"
         echo "  logs      - Show logs (optionally specify service)"
         echo "  build     - Build production Docker image"
@@ -166,6 +247,8 @@ case "$ACTION" in
         echo ""
         echo "Examples:"
         echo "  $0 start"
+        echo "  $0 watch"
+        echo "  $0 health"
         echo "  $0 logs app-prod"
         echo "  $0 logs neo4j-prod"
         exit 1
