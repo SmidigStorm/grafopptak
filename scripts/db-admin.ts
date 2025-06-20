@@ -1,5 +1,5 @@
 import { getSession } from '../lib/neo4j';
-import { seedAll } from './seed-all';
+import { seedAll } from './seeding/index';
 import { seedKarakterer } from './seed-karakterer';
 
 // Database administrasjonsfunksjoner

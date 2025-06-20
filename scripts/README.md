@@ -4,17 +4,20 @@ Denne mappen inneholder utility scripts for databasehåndtering og seeding.
 
 ## 📁 Tilgjengelige scripts
 
-### `seed-all.ts`
+### `seeding/` (Ny modulær struktur)
 
-Hovedscript som populerer hele databasen med testdata.
+Modulær seeding-struktur som erstatter den monolitiske `seed-all.ts`.
 
-**Inneholder:**
+**Moduler:**
 
-- Fagkoder og faggrupper
-- Kravelementer, grunnlag, kvotetyper, rangeringstyper
-- Regelsett-maler og konkrete regelsett
-- Institusjoner og utdanningstilbud
-- Søkere med dokumentasjon (via seed-karakterer.ts)
+- `core/` - Fagkoder, standard-komponenter, institusjoner
+- `regelsett/` - Maler og konkrete regelsett med opptaksveier
+- `personer/` - Søkere og dokumentasjon
+- `index.ts` - Hovedorchestrator
+
+### `seed-all.ts` (Utfases)
+
+Gammel monolitisk seeding (1400+ linjer). Erstattes av modulær struktur.
 
 ### `seed-karakterer.ts`
 
@@ -34,6 +37,7 @@ Docker-basert produksjonsserver management.
 
 ```bash
 npm run db:reset    # Full reset + seeding
+npm run db:seed     # Kun seeding (modulær struktur)
 npm run db:admin    # Interaktivt admin-verktøy
 npm run db:stats    # Database-statistikk
 ```

@@ -17,6 +17,7 @@
     "db:admin": "tsx scripts/db-admin.ts",
     "db:reset": "tsx scripts/db-admin.ts full-reset",
     "db:stats": "tsx scripts/db-admin.ts stats",
+    "db:seed": "tsx scripts/seeding/index.ts",
     "prod:start": "./scripts/prod-server.sh start",
     "prod:stop": "./scripts/prod-server.sh stop",
     "prod:status": "./scripts/prod-server.sh status",
