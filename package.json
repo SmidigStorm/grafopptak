@@ -3,19 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "dev:debug": "node scripts/start-dev.js",
-    "dev:start": "./scripts/dev-server.sh start",
-    "dev:stop": "./scripts/dev-server.sh stop",
-    "dev:status": "./scripts/dev-server.sh status",
-    "dev:restart": "./scripts/dev-server.sh restart",
-    "dev:logs": "./scripts/dev-server.sh logs",
-    "dev:env": "./scripts/dev-manage.sh",
-    "dev:env:start": "./scripts/dev-manage.sh start",
-    "dev:env:stop": "./scripts/dev-manage.sh stop",
-    "dev:env:restart": "./scripts/dev-manage.sh restart",
-    "dev:env:status": "./scripts/dev-manage.sh status",
-    "dev:env:clean": "./scripts/dev-manage.sh clean",
+    "dev": "next dev -p 3000",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
@@ -26,7 +14,6 @@
     "test:coverage": "vitest run --coverage",
     "test:api": "vitest run __tests__/api",
     "test:db": "vitest run __tests__/lib",
-    "seed": "tsx scripts/seed-fagkoder.ts",
     "db:admin": "tsx scripts/db-admin.ts",
     "db:reset": "tsx scripts/db-admin.ts full-reset",
     "db:stats": "tsx scripts/db-admin.ts stats",
@@ -38,8 +25,7 @@
     "prod:restart": "./scripts/prod-server.sh restart",
     "prod:logs": "./scripts/prod-server.sh logs",
     "prod:build": "./scripts/prod-server.sh build",
-    "prod:reset-db": "./scripts/prod-server.sh reset-db",
-    "env:info": "./scripts/environment-info.sh"
+    "prod:reset-db": "./scripts/prod-server.sh reset-db"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.1.1",

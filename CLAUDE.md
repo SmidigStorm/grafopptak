@@ -65,12 +65,10 @@
 
 ## Development Server
 
-- **Start**: `npm run dev:start` - Starter server i bakgrunnen (unngår blokkering av terminal)
-- **Stopp**: `npm run dev:stop` - Stopper bakgrunnsserveren
-- **Restart**: `npm run dev:restart` - Restart server (anbefalt ved endringer)
-- **Status**: `npm run dev:status` - Sjekk om server kjører
-- **Logs**: `npm run dev:logs` - Se server-logger
-- **URL**: Server kjører på `http://localhost:3000` når startet
+- **Start**: `npm run dev` - Starter server på http://localhost:3000
+- **Build**: `npm run build` - Bygger produksjonsversjon
+- **Start prod**: `npm start` - Starter produksjonsserver
+- **URL**: Server kjører på `http://localhost:3000`
 
 ## API Routes (Next.js 15)
 

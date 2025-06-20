@@ -1,72 +1,65 @@
-# 🌱 Database Seeding Scripts
+# 🛠️ Scripts
 
-Denne mappen inneholder scripts for å populere Neo4j databasen med testdata.
+Denne mappen inneholder utility scripts for databasehåndtering og seeding.
 
 ## 📁 Tilgjengelige scripts
 
-### `seed-fagkoder.ts`
+### `seed-all.ts`
 
-Populerer databasen med realistiske fagkoder og faggrupper basert på norsk videregående utdanning.
+Hovedscript som populerer hele databasen med testdata.
 
-**Innhold:**
+**Inneholder:**
 
-- 4 faggrupper (Matematikk R1/R2, Norsk 393t, Realfag valgfritt)
-- 14 fagkoder med ekte norske fagkoder (REA3022, NOR1211, osv.)
-- Komplette relasjoner mellom fagkoder og faggrupper
-- Kombinasjonskrav (S1+S2 = R1, Fysikk 1+2, osv.)
-- Historiske fagkoder (3MX, 2MX) markert som utfaset
+- Fagkoder og faggrupper
+- Kravelementer, grunnlag, kvotetyper, rangeringstyper
+- Regelsett-maler og konkrete regelsett
+- Institusjoner og utdanningstilbud
+- Søkere med dokumentasjon (via seed-karakterer.ts)
+
+### `seed-karakterer.ts`
+
+Spesialisert script for å lage karakterdata og dokumentasjon for testpersoner.
+
+### `db-admin.ts`
+
+Interaktivt administratorverktøy for databasehåndtering.
+
+### `prod-server.sh`
+
+Docker-basert produksjonsserver management.
 
 ## 🚀 Bruk
 
-### Kjør seeding
+### Database reset og seeding
 
 ```bash
-npm run seed
+npm run db:reset    # Full reset + seeding
+npm run db:admin    # Interaktivt admin-verktøy
+npm run db:stats    # Database-statistikk
 ```
 
-## 📊 Testdata oversikt
+### Produksjonsserver
 
-### Faggrupper opprettet
+```bash
+npm run prod:start    # Start Docker-produksjon
+npm run prod:stop     # Stopp produksjon
+npm run prod:status   # Status og helse
+npm run prod:logs     # Se logger
+```
 
-1. **Matematikk R1-nivå** (4 fagkoder)
+## 📊 Etter seeding
 
-   - REA3022 (Matematikk R1) - direkte
-   - REA3026 (Matematikk S1) + REA3028 (Matematikk S2) - kombinasjon
-   - 2MX (historisk, utfaset)
+Databasen inneholder:
 
-2. **Matematikk R2-nivå** (2 fagkoder)
-
-   - REA3024 (Matematikk R2) - direkte
-   - 3MX (historisk, utfaset)
-
-3. **Norsk 393 timer** (2 fagkoder)
-
-   - NOR1211 (Norsk hovedmål)
-   - NOR1212 (Norsk sidemål)
-
-4. **Realfag valgfritt** (6 fagkoder)
-   - FYS1001 + FYS1002 (Fysikk 1+2)
-   - KJE1001 + KJE1002 (Kjemi 1+2)
-   - BIO1001 + BIO1002 (Biologi 1+2)
-
-## 🔧 Utvikling
-
-### Legge til nye fagkoder
-
-1. Rediger `seed-fagkoder.ts`
-2. Legg til fagkode i relevant seksjon
-3. Koble til faggruppe i bunnen av scriptet
-4. Test med `npm run seed:fagkoder`
-
-### Legge til nye faggrupper
-
-1. Legg til i faggruppe-seksjonen
-2. Opprett fagkoder som skal tilhøre gruppen
-3. Koble sammen i slutten av scriptet
+- 4 faggrupper med 15 fagkoder
+- 16 realistiske grunnlag for opptak
+- 13 kravelementer
+- 3 kvotetyper og 6 rangeringstyper
+- 12 institusjoner med utdanningstilbud
+- 5 søkere med dokumentasjon og karakterer
 
 ## ⚠️ Merk
 
-- Scriptene sletter eksisterende fagkoder/faggrupper før de lager nye
+- seed-all.ts resetter og populerer hele databasen
 - UUIDer genereres automatisk av Neo4j
-- Kombinasjonskrav lagres som arrays i relasjon-properties
-- Historiske fagkoder har `gyldigTil` dato og `aktiv: false`
+- Tester bruker isolert test-database
