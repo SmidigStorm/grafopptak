@@ -52,6 +52,10 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
           id: sokerProfile.id,
           navn: `${sokerProfile.fornavn} ${sokerProfile.etternavn}`,
           alder: sokerProfile.alder,
+          dokumentasjon: (sokerProfile.dokumentasjon || []).map((d) => ({
+            type: d.type,
+            antallFagkoder: d.fagkoder?.length || 0,
+          })),
         },
         kvalifiserteOpptaksVeier: [],
         ikkeKvalifiserteOpptaksVeier: [],
@@ -89,9 +93,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         id: sokerProfile.id,
         navn: `${sokerProfile.fornavn} ${sokerProfile.etternavn}`,
         alder: sokerProfile.alder,
-        dokumentasjon: sokerProfile.dokumentasjon.map((d) => ({
+        dokumentasjon: (sokerProfile.dokumentasjon || []).map((d) => ({
           type: d.type,
-          antallFagkoder: d.fagkoder.length,
+          antallFagkoder: d.fagkoder?.length || 0,
         })),
       },
       kvalifiserteOpptaksVeier: kvalifiserteOpptaksVeier.map((e) => ({

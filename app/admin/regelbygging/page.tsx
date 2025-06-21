@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import RangeringsTypeModal from '@/components/rangeringstype-modal';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -81,6 +82,11 @@ interface PoengType {
 }
 
 export default function RegelbyggingPage() {
+  const searchParams = useSearchParams();
+  const utdanningstilbudId = searchParams.get('utdanningstilbudId');
+  const opprett = searchParams.get('opprett') === 'true';
+
+  const [utdanningstilbud, setUtdanningstilbud] = useState<{ navn: string } | null>(null);
   const [kravelementer, setKravelementer] = useState<Kravelement[]>([]);
   const [grunnlag, setGrunnlag] = useState<Grunnlag[]>([]);
   const [kvotetyper, setKvotetyper] = useState<KvoteType[]>([]);
@@ -105,14 +111,28 @@ export default function RegelbyggingPage() {
 
   const fetchAllData = async () => {
     try {
-      const [kravelementerRes, grunnlagRes, kvotetypeRes, rangeringstypeRes, poengtypeRes] =
-        await Promise.all([
-          fetch('/api/kravelementer'),
-          fetch('/api/grunnlag'),
-          fetch('/api/kvotetyper'),
-          fetch('/api/rangeringstyper'),
-          fetch('/api/poengtyper'),
-        ]);
+      const requests = [
+        fetch('/api/kravelementer'),
+        fetch('/api/grunnlag'),
+        fetch('/api/kvotetyper'),
+        fetch('/api/rangeringstyper'),
+        fetch('/api/poengtyper'),
+      ];
+
+      // Hent utdanningstilbud-info hvis parameter er gitt
+      if (utdanningstilbudId) {
+        requests.push(fetch(`/api/utdanningstilbud/${utdanningstilbudId}`));
+      }
+
+      const responses = await Promise.all(requests);
+      const [
+        kravelementerRes,
+        grunnlagRes,
+        kvotetypeRes,
+        rangeringstypeRes,
+        poengtypeRes,
+        utdanningstilbudRes,
+      ] = responses;
 
       const [kravelementerData, grunnlagData, kvotetypeData, rangeringstypeData, poengtypeData] =
         await Promise.all([
@@ -128,6 +148,12 @@ export default function RegelbyggingPage() {
       setKvotetyper(kvotetypeData);
       setRangeringstyper(rangeringstypeData);
       setPoengtyper(poengtypeData);
+
+      // Sett utdanningstilbud-info hvis hentet
+      if (utdanningstilbudRes && utdanningstilbudRes.ok) {
+        const utdanningstilbudData = await utdanningstilbudRes.json();
+        setUtdanningstilbud({ navn: utdanningstilbudData.navn });
+      }
     } catch (error) {
       console.error('Feil ved henting av data:', error);
     } finally {
@@ -269,6 +295,19 @@ export default function RegelbyggingPage() {
           <p className="text-muted-foreground">
             Bygg og administrer regelsett-elementer for opptakskrav
           </p>
+          {utdanningstilbud && (
+            <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-sm font-medium text-blue-800">
+                📚 Redigerer regelsett for:{' '}
+                <span className="font-semibold">{utdanningstilbud.navn}</span>
+              </p>
+              {opprett && (
+                <p className="text-xs text-blue-600 mt-1">
+                  💡 Opprett regelsett-elementer nedenfor og koble dem sammen på regelsett-siden
+                </p>
+              )}
+            </div>
+          )}
         </div>
       </div>
 

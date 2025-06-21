@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/neo4j';
+import { opprettRegelsettFraMal } from '@/lib/regelsett-mal';
 
 // GET /api/utdanningstilbud - Hent alle utdanningstilbud
 export async function GET() {
@@ -53,6 +54,7 @@ export async function POST(request: NextRequest) {
       maxAntallStudenter,
       beskrivelse,
       institusjonId,
+      regelssettMalId,
     } = body;
 
     // Valider required fields
@@ -103,6 +105,17 @@ export async function POST(request: NextRequest) {
     );
 
     const utdanningstilbud = result.records[0].get('u').properties;
+
+    // Opprett regelsett fra mal hvis spesifisert
+    if (regelssettMalId) {
+      try {
+        await opprettRegelsettFraMal(utdanningstilbud.id, regelssettMalId, utdanningstilbud.navn);
+        console.log(`Opprettet regelsett fra mal for utdanningstilbud: ${utdanningstilbud.navn}`);
+      } catch (error) {
+        console.error('Feil ved opprettelse av regelsett fra mal:', error);
+        // Vi fortsetter selv om regelsett-opprettelse feiler
+      }
+    }
 
     return NextResponse.json(utdanningstilbud, { status: 201 });
   } catch (error: any) {

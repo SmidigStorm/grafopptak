@@ -278,7 +278,7 @@ export default function EvalueringSide() {
                   <h4 className="font-medium">{evalueringsResultat.soker.navn}</h4>
                   <p className="text-sm text-muted-foreground">
                     {evalueringsResultat.soker.alder} år •{' '}
-                    {evalueringsResultat.soker.dokumentasjon.length} dokumenter
+                    {evalueringsResultat.soker.dokumentasjon?.length || 0} dokumenter
                   </p>
                 </div>
 

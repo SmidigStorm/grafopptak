@@ -68,3 +68,363 @@
  ✓ Compiled /api/institusjoner in 132ms (1718 modules)
  GET /api/institusjoner 200 in 279ms
  GET /api/institusjoner 200 in 9ms
+ ✓ Compiled in 414ms (1123 modules)
+ GET /admin 200 in 67ms
+ ✓ Compiled / in 61ms (599 modules)
+ GET / 307 in 144ms
+ GET /admin 200 in 92ms
+ ✓ Compiled /api/dashboard/stats in 100ms (1182 modules)
+ GET /api/dashboard/stats 200 in 322ms
+ ✓ Compiled /api/institusjoner in 92ms (1184 modules)
+ GET /api/institusjoner 200 in 228ms
+ GET /api/institusjoner 200 in 8ms
+ ✓ Compiled /admin/evaluering in 303ms (1201 modules)
+ GET /admin/evaluering 200 in 341ms
+ ✓ Compiled /api/utdanningstilbud in 127ms (1203 modules)
+ ✓ Compiled in 136ms (517 modules)
+ GET /api/sokere 200 in 496ms
+ GET /api/utdanningstilbud 200 in 504ms
+ GET /api/sokere 200 in 9ms
+ GET /api/utdanningstilbud 200 in 8ms
+ ✓ Compiled /api/sokere/[id]/evaluering in 149ms (1208 modules)
+ GET /admin 200 in 128ms
+ GET /admin/evaluering 200 in 129ms
+ POST /api/sokere/3ec9f51d-53d7-4903-8e12-6633227bb282/evaluering 200 in 352ms
+ ✓ Compiled /_not-found in 299ms (1729 modules)
+ GET /_next/static/css/26dc69a4869267b7.css 404 in 364ms
+ GET /_next/static/chunks/webpack-c7c332bad499c612.js 404 in 365ms
+ GET /_next/static/chunks/4bd1b696-7659de2cfb8ddfd7.js 404 in 87ms
+ GET /_next/static/chunks/1684-c70a92833a48c089.js 404 in 87ms
+ GET /_next/static/chunks/app/layout-2a23e4b8147affc8.js 404 in 87ms
+ GET /_next/static/chunks/main-app-e5fad9fc678f08bd.js 404 in 88ms
+ GET /_next/static/chunks/1778-5f7e9f2fe9e64260.js 404 in 88ms
+ GET /_next/static/chunks/4387-5e6d6fa2ae21b636.js 404 in 65ms
+ GET /_next/static/chunks/5452-6cf33dc492d12cf6.js 404 in 68ms
+ GET /_next/static/chunks/6874-b7a140d713265bb8.js 404 in 67ms
+ GET /_next/static/chunks/3863-701e1418b6249085.js 404 in 68ms
+ GET /_next/static/chunks/8034-93819ca72277b151.js 404 in 69ms
+ GET /_next/static/chunks/7002-b45fdf02684dffaa.js 404 in 78ms
+ GET /_next/static/chunks/app/admin/layout-708999ef49bf0008.js 404 in 37ms
+ GET /_next/static/chunks/9368-88b5aceac0485114.js 404 in 26ms
+ GET /_next/static/chunks/app/admin/fagkoder/page-ded4b1ac00bd9577.js 404 in 25ms
+ GET /admin 200 in 96ms
+ GET /api/dashboard/stats 200 in 87ms
+ GET /api/institusjoner 200 in 11ms
+ GET /api/institusjoner 200 in 12ms
+ GET /admin/evaluering 200 in 12ms
+ GET /api/sokere 200 in 13ms
+ GET /api/sokere 200 in 9ms
+ GET /api/utdanningstilbud 200 in 67ms
+ GET /api/utdanningstilbud 200 in 7ms
+ ✓ Compiled in 269ms (1748 modules)
+ GET /admin/evaluering 200 in 46ms
+ GET /admin 200 in 46ms
+ ✓ Compiled in 342ms (1735 modules)
+ GET /admin/evaluering 200 in 69ms
+ GET /admin 200 in 67ms
+ ✓ Compiled in 418ms (1735 modules)
+ GET /admin/evaluering 200 in 48ms
+ GET /admin 200 in 49ms
+ GET /admin/evaluering 200 in 134ms
+ GET /api/utdanningstilbud 200 in 143ms
+ GET /api/sokere 200 in 148ms
+ ✓ Compiled /api/sokere/[id]/evaluering in 202ms (1194 modules)
+ GET /admin 200 in 76ms
+ GET /admin/evaluering 200 in 76ms
+ POST /api/sokere/3ec9f51d-53d7-4903-8e12-6633227bb282/evaluering 200 in 310ms
+ POST /api/sokere/3ec9f51d-53d7-4903-8e12-6633227bb282/evaluering 200 in 20ms
+ POST /api/sokere/3ec9f51d-53d7-4903-8e12-6633227bb282/evaluering 200 in 19ms
+ POST /api/sokere/3ec9f51d-53d7-4903-8e12-6633227bb282/evaluering 200 in 18ms
+ ✓ Compiled /admin/institusjoner in 447ms (1750 modules)
+ GET /admin/institusjoner 200 in 489ms
+ ✓ Compiled /api/institusjoner in 115ms (1217 modules)
+ GET /api/institusjoner 200 in 209ms
+ GET /api/institusjoner 200 in 9ms
+ ✓ Compiled /admin/utdanningstilbud in 286ms (1761 modules)
+ GET /admin/utdanningstilbud 200 in 340ms
+ GET /api/utdanningstilbud 200 in 83ms
+ GET /api/institusjoner 200 in 85ms
+ GET /api/utdanningstilbud 200 in 9ms
+ GET /api/institusjoner 200 in 11ms
+ ✓ Compiled /admin/regelsett in 420ms (1780 modules)
+ GET /admin/regelsett 200 in 509ms
+ ✓ Compiled /api/regelsett in 237ms (1782 modules)
+ GET /api/regelsett 200 in 351ms
+ GET /api/regelsett 200 in 8ms
+ GET /admin/utdanningstilbud 200 in 27ms
+ GET /api/utdanningstilbud 200 in 16ms
+ GET /api/utdanningstilbud 200 in 8ms
+ GET /api/institusjoner 200 in 63ms
+ GET /api/institusjoner 200 in 8ms
+ GET /admin/regelsett 200 in 16ms
+ GET /api/regelsett 200 in 13ms
+ GET /api/regelsett 200 in 9ms
+ GET /admin/utdanningstilbud 200 in 13ms
+ GET /api/utdanningstilbud 200 in 14ms
+ GET /api/institusjoner 200 in 17ms
+ GET /api/utdanningstilbud 200 in 15ms
+ GET /api/institusjoner 200 in 12ms
+ ✓ Compiled in 325ms (565 modules)
+ GET /admin 200 in 120ms
+ GET /admin/utdanningstilbud 200 in 121ms
+ GET /admin/utdanningstilbud 200 in 12ms
+ GET /admin 200 in 10ms
+ ✓ Compiled in 136ms (565 modules)
+ GET /admin/utdanningstilbud 200 in 27ms
+ GET /admin 200 in 27ms
+ GET /admin/utdanningstilbud 200 in 23ms
+ GET /admin 200 in 20ms
+ ✓ Compiled in 409ms (1198 modules)
+ GET /admin/utdanningstilbud 200 in 77ms
+ GET /admin 200 in 78ms
+ ✓ Compiled in 331ms (1198 modules)
+ GET /admin/utdanningstilbud 200 in 49ms
+ GET /admin 200 in 49ms
+ ✓ Compiled in 228ms (1198 modules)
+ GET /admin/utdanningstilbud 200 in 42ms
+ GET /admin 200 in 42ms
+ ✓ Compiled /api/institusjoner in 106ms (1218 modules)
+ ✓ Compiled (1220 modules)
+ GET /api/utdanningstilbud 200 in 492ms
+ GET /api/institusjoner 200 in 497ms
+ ✓ Compiled in 263ms (1785 modules)
+ GET /admin/utdanningstilbud 200 in 50ms
+ GET /admin 200 in 51ms
+ ✓ Compiled in 358ms (1785 modules)
+ GET /admin 200 in 50ms
+ GET /admin/utdanningstilbud 200 in 50ms
+ ✓ Compiled in 505ms (1785 modules)
+ GET /admin/utdanningstilbud 200 in 73ms
+ GET /admin 200 in 73ms
+ ✓ Compiled in 356ms (1202 modules)
+ GET /admin 200 in 93ms
+ GET /admin/utdanningstilbud 200 in 94ms
+ GET /admin 200 in 123ms
+ ✓ Compiled /api/dashboard/stats in 277ms (1220 modules)
+ GET /api/dashboard/stats 200 in 449ms
+ ✓ Compiled /api/institusjoner in 103ms (1222 modules)
+ GET /api/institusjoner 200 in 229ms
+ GET /api/institusjoner 200 in 10ms
+ GET /admin/utdanningstilbud 200 in 27ms
+ ✓ Compiled /api/regelsett in 100ms (1224 modules)
+ ✓ Compiled (1226 modules)
+ GET /api/institusjoner 200 in 362ms
+ GET /api/regelsett 200 in 364ms
+ GET /api/utdanningstilbud 200 in 373ms
+ GET /api/institusjoner 200 in 13ms
+ GET /api/regelsett 200 in 14ms
+ GET /api/utdanningstilbud 200 in 15ms
+ ✓ Compiled /api/utdanningstilbud/[id]/regelsett in 209ms (1776 modules)
+ GET /api/utdanningstilbud/c35eafff-92d9-49b9-8464-eca6ec2a1e84/regelsett 200 in 759ms
+ POST /api/utdanningstilbud/c35eafff-92d9-49b9-8464-eca6ec2a1e84/regelsett 200 in 80ms
+ GET /api/utdanningstilbud 200 in 20ms
+ GET /api/regelsett 200 in 68ms
+ GET /api/institusjoner 200 in 70ms
+ POST /api/utdanningstilbud/c35eafff-92d9-49b9-8464-eca6ec2a1e84/regelsett 200 in 21ms
+ GET /api/utdanningstilbud 200 in 13ms
+ GET /api/regelsett 200 in 14ms
+ GET /api/institusjoner 200 in 16ms
+ ✓ Compiled /api/utdanningstilbud/[id]/regelsett/[regelsettId] in 188ms (1778 modules)
+ DELETE /api/utdanningstilbud/c35eafff-92d9-49b9-8464-eca6ec2a1e84/regelsett/4265ca11-3353-4a48-a45c-b6ed371e05d9 200 in 683ms
+ GET /api/utdanningstilbud 200 in 19ms
+ DELETE /api/utdanningstilbud/c35eafff-92d9-49b9-8464-eca6ec2a1e84/regelsett/887149c6-3377-4ba5-949c-a38844fe690e 200 in 63ms
+ GET /api/utdanningstilbud 200 in 7ms
+ GET /api/regelsett 200 in 67ms
+ GET /api/institusjoner 200 in 70ms
+ GET /api/regelsett 200 in 8ms
+ GET /api/institusjoner 200 in 10ms
+ ✓ Compiled in 411ms (1202 modules)
+ GET /admin/utdanningstilbud 200 in 88ms
+ GET /admin/utdanningstilbud 200 in 89ms
+ ✓ Compiled in 376ms (1202 modules)
+ GET /admin/utdanningstilbud 200 in 39ms
+ GET /admin/utdanningstilbud 200 in 13ms
+ ✓ Compiled in 271ms (1202 modules)
+ GET /admin/utdanningstilbud 200 in 28ms
+ GET /admin/utdanningstilbud 200 in 11ms
+ GET /admin/utdanningstilbud 200 in 133ms
+ ✓ Compiled /api/regelsett in 263ms (1220 modules)
+ ✓ Compiled (1224 modules)
+ GET /api/utdanningstilbud 200 in 656ms
+ GET /api/institusjoner 200 in 658ms
+ GET /api/regelsett 200 in 660ms
+ ✓ Compiled /api/utdanningstilbud/[id]/regelsett in 170ms (1226 modules)
+ GET /admin/utdanningstilbud 200 in 117ms
+ GET /admin/utdanningstilbud 200 in 13ms
+ GET /api/utdanningstilbud/c35eafff-92d9-49b9-8464-eca6ec2a1e84/regelsett 200 in 315ms
+ POST /api/utdanningstilbud/c35eafff-92d9-49b9-8464-eca6ec2a1e84/regelsett 200 in 38ms
+ GET /api/utdanningstilbud 200 in 14ms
+ GET /api/regelsett 200 in 62ms
+ GET /api/institusjoner 200 in 65ms
+ ✓ Compiled /api/utdanningstilbud/[id]/regelsett/[regelsettId] in 113ms (1228 modules)
+ DELETE /api/utdanningstilbud/c35eafff-92d9-49b9-8464-eca6ec2a1e84/regelsett/887149c6-3377-4ba5-949c-a38844fe690e 200 in 222ms
+ GET /api/utdanningstilbud 200 in 21ms
+ GET /api/institusjoner 200 in 68ms
+ GET /api/regelsett 200 in 70ms
+ POST /api/utdanningstilbud/c35eafff-92d9-49b9-8464-eca6ec2a1e84/regelsett 200 in 31ms
+ GET /api/utdanningstilbud 200 in 11ms
+ GET /api/institusjoner 200 in 12ms
+ GET /api/regelsett 200 in 14ms
+ DELETE /api/utdanningstilbud/c35eafff-92d9-49b9-8464-eca6ec2a1e84/regelsett/okonomi-standard 200 in 28ms
+ GET /api/utdanningstilbud 200 in 10ms
+ GET /api/institusjoner 200 in 11ms
+ GET /api/regelsett 200 in 12ms
+ POST /api/utdanningstilbud/c35eafff-92d9-49b9-8464-eca6ec2a1e84/regelsett 200 in 22ms
+ GET /api/utdanningstilbud 200 in 11ms
+ GET /api/institusjoner 200 in 13ms
+ GET /api/regelsett 200 in 14ms
+ ✓ Compiled in 454ms (1795 modules)
+ GET /admin/utdanningstilbud 200 in 61ms
+ GET /admin/utdanningstilbud 200 in 14ms
+ GET /api/utdanningstilbud/8fa66ebd-ca0e-4a1d-bc84-524d2fc64d21/regelsett 200 in 89ms
+ ✓ Compiled in 502ms (1202 modules)
+ GET /admin/utdanningstilbud 200 in 82ms
+ GET /admin/utdanningstilbud 200 in 12ms
+ ✓ Compiled in 245ms (1202 modules)
+ GET /admin/utdanningstilbud 200 in 45ms
+ GET /admin/utdanningstilbud 200 in 17ms
+ ✓ Compiled /api/regelsett in 109ms (1220 modules)
+ ✓ Compiled (1224 modules)
+ GET /api/utdanningstilbud 200 in 351ms
+ GET /api/institusjoner 200 in 355ms
+ GET /api/regelsett 200 in 357ms
+ GET /api/utdanningstilbud 200 in 20ms
+ GET /api/institusjoner 200 in 16ms
+ GET /api/regelsett 200 in 14ms
+ ✓ Compiled in 266ms (1791 modules)
+ GET /admin/utdanningstilbud 200 in 44ms
+ GET /admin/utdanningstilbud 200 in 19ms
+ GET /api/regelsett 200 in 93ms
+ GET /api/utdanningstilbud 200 in 94ms
+ GET /api/institusjoner 200 in 96ms
+ GET /api/regelsett 200 in 15ms
+ GET /api/utdanningstilbud 200 in 17ms
+ GET /api/institusjoner 200 in 19ms
+ ✓ Compiled in 271ms (1791 modules)
+ GET /admin/utdanningstilbud 200 in 29ms
+ GET /admin/utdanningstilbud 200 in 15ms
+ ✓ Compiled in 298ms (1791 modules)
+ GET /admin/utdanningstilbud 200 in 30ms
+ GET /admin/utdanningstilbud 200 in 14ms
+ ✓ Compiled in 436ms (1202 modules)
+ GET /admin/utdanningstilbud 200 in 40ms
+ GET /admin/utdanningstilbud 200 in 13ms
+ ✓ Compiled in 277ms (1202 modules)
+ GET /admin/utdanningstilbud 200 in 27ms
+ GET /admin/utdanningstilbud 200 in 13ms
+ ✓ Compiled in 131ms (567 modules)
+ GET /admin/utdanningstilbud 200 in 16ms
+ GET /admin/utdanningstilbud 200 in 14ms
+ ✓ Compiled in 137ms (567 modules)
+ GET /admin/utdanningstilbud 200 in 20ms
+ GET /admin/utdanningstilbud 200 in 19ms
+ ✓ Compiled in 181ms (567 modules)
+ GET /admin/utdanningstilbud 200 in 61ms
+ GET /admin/utdanningstilbud 200 in 19ms
+ ✓ Compiled in 344ms (1202 modules)
+ GET /admin/utdanningstilbud 200 in 48ms
+ GET /admin/utdanningstilbud 200 in 12ms
+ ✓ Compiled /api/institusjoner in 271ms (1202 modules)
+ ✓ Compiled in 1ms (1225 modules)
+ GET /admin/utdanningstilbud 200 in 937ms
+ GET /admin/utdanningstilbud 200 in 13ms
+ GET /admin/utdanningstilbud 200 in 12ms
+ GET /admin/utdanningstilbud 200 in 10ms
+ GET /api/utdanningstilbud 200 in 1056ms
+ GET /api/institusjoner 200 in 1059ms
+ GET /api/regelsett 200 in 1066ms
+ GET /api/regelsett?maler=true 200 in 1073ms
+ GET /api/utdanningstilbud 200 in 18ms
+ GET /api/institusjoner 200 in 20ms
+ GET /api/regelsett 200 in 21ms
+ GET /api/regelsett?maler=true 200 in 18ms
+ ✓ Compiled in 277ms (1792 modules)
+ GET /admin/utdanningstilbud 200 in 42ms
+ GET /admin/utdanningstilbud 200 in 11ms
+ ✓ Compiled in 386ms (1792 modules)
+ GET /admin/utdanningstilbud 200 in 28ms
+ GET /admin/utdanningstilbud 200 in 14ms
+ ✓ Compiled in 570ms (1788 modules)
+ GET /admin/utdanningstilbud 200 in 27ms
+ GET /admin/utdanningstilbud 200 in 18ms
+ ✓ Compiled in 293ms (1788 modules)
+ GET /admin/utdanningstilbud 200 in 34ms
+ GET /admin/utdanningstilbud 200 in 18ms
+ GET /api/utdanningstilbud 200 in 121ms
+ GET /api/regelsett?maler=true 200 in 130ms
+ GET /api/utdanningstilbud 200 in 9ms
+ GET /api/regelsett 200 in 134ms
+ GET /api/institusjoner 200 in 141ms
+ GET /api/regelsett?maler=true 200 in 12ms
+ GET /api/regelsett 200 in 12ms
+ GET /api/institusjoner 200 in 12ms
+ ✓ Compiled in 507ms (1788 modules)
+ GET /admin/utdanningstilbud 200 in 31ms
+ GET /admin/utdanningstilbud 200 in 12ms
+ ✓ Compiled in 187ms (565 modules)
+ GET /admin/utdanningstilbud 200 in 22ms
+ GET /admin/utdanningstilbud 200 in 18ms
+ ✓ Compiled in 135ms (565 modules)
+ GET /admin/utdanningstilbud 200 in 11ms
+ GET /admin/utdanningstilbud 200 in 11ms
+ ✓ Compiled in 118ms (565 modules)
+ GET /admin/utdanningstilbud 200 in 14ms
+ GET /admin/utdanningstilbud 200 in 18ms
+ ✓ Compiled in 181ms (565 modules)
+ GET /admin/utdanningstilbud 200 in 60ms
+ GET /admin/utdanningstilbud 200 in 32ms
+ GET /admin/utdanningstilbud 200 in 116ms
+ GET /api/utdanningstilbud 200 in 136ms
+ GET /api/regelsett?maler=true 200 in 139ms
+ GET /api/institusjoner 200 in 142ms
+ ○ Compiling /admin/regelbygging ...
+ ✓ Compiled /admin/regelbygging in 627ms (1790 modules)
+ GET /admin/regelbygging?utdanningstilbudId=c35eafff-92d9-49b9-8464-eca6ec2a1e84 200 in 672ms
+ ○ Compiling /api/utdanningstilbud/[id] ...
+ ✓ Compiled /api/utdanningstilbud/[id] in 542ms (1802 modules)
+ GET /api/kravelementer 200 in 702ms
+ GET /api/kvotetyper 200 in 701ms
+ GET /api/grunnlag 200 in 704ms
+ GET /api/poengtyper 200 in 703ms
+ GET /api/rangeringstyper 200 in 708ms
+ GET /api/kravelementer 200 in 21ms
+ GET /api/kvotetyper 200 in 22ms
+ GET /api/grunnlag 200 in 22ms
+ GET /api/poengtyper 200 in 23ms
+ GET /api/rangeringstyper 200 in 19ms
+ GET /api/utdanningstilbud/c35eafff-92d9-49b9-8464-eca6ec2a1e84 200 in 1077ms
+ GET /api/utdanningstilbud/c35eafff-92d9-49b9-8464-eca6ec2a1e84 200 in 15ms
+ GET /api/institusjoner 200 in 21ms
+ GET /api/utdanningstilbud 200 in 21ms
+ GET /api/regelsett?maler=true 200 in 21ms
+ GET /api/institusjoner 200 in 11ms
+ GET /api/utdanningstilbud 200 in 11ms
+ GET /api/regelsett?maler=true 200 in 11ms
+ GET /admin/regelbygging?utdanningstilbudId=8fa66ebd-ca0e-4a1d-bc84-524d2fc64d21&opprett=true 200 in 23ms
+ GET /api/kravelementer 200 in 17ms
+ GET /api/grunnlag 200 in 23ms
+ GET /api/rangeringstyper 200 in 34ms
+ GET /api/kvotetyper 200 in 35ms
+ GET /api/utdanningstilbud/8fa66ebd-ca0e-4a1d-bc84-524d2fc64d21 200 in 36ms
+ GET /api/poengtyper 200 in 38ms
+ GET /api/kravelementer 200 in 34ms
+ GET /api/grunnlag 200 in 25ms
+ GET /api/rangeringstyper 200 in 23ms
+ GET /api/kvotetyper 200 in 23ms
+ GET /api/utdanningstilbud/8fa66ebd-ca0e-4a1d-bc84-524d2fc64d21 200 in 26ms
+ GET /api/poengtyper 200 in 28ms
+ GET /api/utdanningstilbud 200 in 13ms
+ GET /api/institusjoner 200 in 13ms
+ GET /api/regelsett?maler=true 200 in 13ms
+ GET /api/utdanningstilbud 200 in 10ms
+ GET /api/institusjoner 200 in 13ms
+ GET /api/regelsett?maler=true 200 in 14ms
+ GET /admin/regelsett 200 in 16ms
+ GET /api/regelsett 200 in 9ms
+ GET /api/regelsett 200 in 8ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 513ms (1806 modules)
+ GET /admin/regelsett/887149c6-3377-4ba5-949c-a38844fe690e/edit 404 in 557ms
+ GET /admin/regelsett/887149c6-3377-4ba5-949c-a38844fe690e/edit 404 in 51ms
+ GET /admin/regelsett 200 in 119ms
+ GET /api/regelsett 200 in 83ms

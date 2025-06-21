@@ -2028,6 +2028,26 @@ export async function seedAll() {
     `);
     console.log('✅ Opprettet opptaksveier');
 
+    // ========== UTDANNINGSTILBUD-REGELSETT KOBLINGER ==========
+    console.log('🔗 Kobler utdanningstilbud til regelsett...');
+
+    await session.run(`
+      MATCH (uio_utd:Utdanningstilbud {navn: 'Bachelor i Informatikk: programmering og systemarkitektur'})
+      MATCH (uio_rs:Regelsett {navn: 'UiO Informatikk H25'})
+      CREATE (uio_utd)-[:HAR_REGELSETT]->(uio_rs)
+      
+      WITH 1 as dummy
+      MATCH (ntnu_utd:Utdanningstilbud {navn: 'Bachelor i Bygg- og miljøteknikk'})
+      MATCH (ntnu_rs:Regelsett {navn: 'NTNU Bygg- og miljøteknikk H25'})
+      CREATE (ntnu_utd)-[:HAR_REGELSETT]->(ntnu_rs)
+      
+      WITH 1 as dummy
+      MATCH (oslomet_utd:Utdanningstilbud {navn: 'Bachelor i Grunnskolelærerutdanning 1-7'})
+      MATCH (oslomet_rs:Regelsett {navn: 'OsloMet Lærerutdanning 1-7 H25'})
+      CREATE (oslomet_utd)-[:HAR_REGELSETT]->(oslomet_rs)
+    `);
+    console.log('✅ Opprettet utdanningstilbud-regelsett koblinger');
+
     console.log('✅ Fullført seeding av alle data!');
 
     // ========== SAMMENDRAG ==========

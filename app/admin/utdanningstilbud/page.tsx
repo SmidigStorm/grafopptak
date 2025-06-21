@@ -11,7 +11,17 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Plus, Edit, Trash2, GraduationCap } from 'lucide-react';
+import {
+  Plus,
+  Edit,
+  Trash2,
+  GraduationCap,
+  Settings,
+  Link,
+  Unlink,
+  ExternalLink,
+} from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import {
   Dialog,
   DialogContent,
@@ -65,6 +75,20 @@ interface Institusjon {
   navn: string;
 }
 
+interface Regelsett {
+  id: string;
+  navn: string;
+  beskrivelse?: string;
+  type: string;
+}
+
+interface RegelsettMal {
+  id: string;
+  navn: string;
+  beskrivelse?: string;
+  malType: string;
+}
+
 const STUDIENIVAA = ['Videregående', 'Fagskole', 'Bachelor', 'Master', 'PhD', 'Årsstudium', 'Kurs'];
 
 const SEMESTRE = ['Høst', 'Vår', 'Begge'];
@@ -72,6 +96,7 @@ const SEMESTRE = ['Høst', 'Vår', 'Begge'];
 const UNDERVISNINGSSPRAK = ['Norsk', 'Engelsk', 'Tysk', 'Fransk', 'Annet'];
 
 export default function UtdanningstilbudPage() {
+  const router = useRouter();
   const [utdanningstilbud, setUtdanningstilbud] = useState<Utdanningstilbud[]>([]);
   const [institusjoner, setInstitusjoner] = useState<Institusjon[]>([]);
   const [loading, setLoading] = useState(true);
@@ -82,6 +107,9 @@ export default function UtdanningstilbudPage() {
     id: string;
     navn: string;
   } | null>(null);
+
+  // Regelsett-maler for opprettelse
+  const [regelssettMaler, setRegelssettMaler] = useState<RegelsettMal[]>([]);
   const [nyTilbud, setNyTilbud] = useState({
     navn: '',
     studienivaa: '',
@@ -94,20 +122,24 @@ export default function UtdanningstilbudPage() {
     maxAntallStudenter: '',
     beskrivelse: '',
     institusjonId: '',
+    regelssettMalId: '',
   });
 
   const fetchData = async () => {
     try {
-      const [tilbudRes, institusjonerRes] = await Promise.all([
+      const [tilbudRes, institusjonerRes, regelssettMalerRes] = await Promise.all([
         fetch('/api/utdanningstilbud'),
         fetch('/api/institusjoner'),
+        fetch('/api/regelsett?maler=true'),
       ]);
 
       const tilbudData = await tilbudRes.json();
       const institusjonerData = await institusjonerRes.json();
+      const regelssettMalerData = await regelssettMalerRes.json();
 
       setUtdanningstilbud(tilbudData);
       setInstitusjoner(institusjonerData);
+      setRegelssettMaler(regelssettMalerData);
     } catch (error) {
       console.error('Feil ved henting av data:', error);
     } finally {
@@ -153,6 +185,7 @@ export default function UtdanningstilbudPage() {
           maxAntallStudenter: '',
           beskrivelse: '',
           institusjonId: '',
+          regelssettMalId: '',
         });
         fetchData();
       } else {
@@ -203,6 +236,17 @@ export default function UtdanningstilbudPage() {
       }
     } catch (error) {
       console.error('Feil ved sletting av utdanningstilbud:', error);
+    }
+  };
+
+  // Regelsett-administrasjon funksjoner
+  const aapneRegelssettAdministrasjon = (tilbud: Utdanningstilbud) => {
+    if (tilbud.antallRegelsett > 0) {
+      // Har regelsett - gå til redigering
+      router.push(`/admin/regelbygging?utdanningstilbudId=${tilbud.id}`);
+    } else {
+      // Ingen regelsett - gå til opprettelse
+      router.push(`/admin/regelbygging?utdanningstilbudId=${tilbud.id}&opprett=true`);
     }
   };
 
@@ -420,6 +464,39 @@ export default function UtdanningstilbudPage() {
                   placeholder="Valgfri beskrivelse av studiet"
                 />
               </div>
+
+              {/* Regelsett-mal seksjon */}
+              <div className="border-t pt-4">
+                <h4 className="font-medium mb-3">Regelsett (valgfritt)</h4>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="regelsett-mal" className="text-right">
+                    Regelsett-mal
+                  </Label>
+                  <Select
+                    value={nyTilbud.regelssettMalId}
+                    onValueChange={(value) => setNyTilbud({ ...nyTilbud, regelssettMalId: value })}
+                  >
+                    <SelectTrigger className="col-span-3">
+                      <SelectValue placeholder="Ingen mal (opprett manuelt senere)" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">Ingen mal</SelectItem>
+                      {regelssettMaler.map((mal) => (
+                        <SelectItem key={mal.id} value={mal.id}>
+                          {mal.navn} {mal.beskrivelse && `- ${mal.beskrivelse}`}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                {nyTilbud.regelssettMalId && (
+                  <div className="mt-2">
+                    <p className="text-sm text-muted-foreground pl-[calc(25%+1rem)]">
+                      ✓ Et regelsett vil bli opprettet automatisk basert på valgt mal
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
             <DialogFooter>
               <Button
@@ -480,7 +557,17 @@ export default function UtdanningstilbudPage() {
                         <span className="text-muted-foreground">Ikke angitt</span>
                       )}
                     </TableCell>
-                    <TableCell>{tilbud.antallRegelsett}</TableCell>
+                    <TableCell>
+                      {tilbud.antallRegelsett > 0 ? (
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                          Har regelsett
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                          Mangler regelsett
+                        </span>
+                      )}
+                    </TableCell>
                     <TableCell>
                       <span
                         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
@@ -494,6 +581,20 @@ export default function UtdanningstilbudPage() {
                     </TableCell>
                     <TableCell>
                       <div className="flex space-x-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          title={
+                            tilbud.antallRegelsett > 0 ? 'Rediger regelsett' : 'Opprett regelsett'
+                          }
+                          onClick={() => aapneRegelssettAdministrasjon(tilbud)}
+                        >
+                          {tilbud.antallRegelsett > 0 ? (
+                            <Edit className="h-4 w-4" />
+                          ) : (
+                            <Plus className="h-4 w-4" />
+                          )}
+                        </Button>
                         <Button
                           variant="outline"
                           size="sm"
