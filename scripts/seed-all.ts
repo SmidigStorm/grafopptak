@@ -495,6 +495,37 @@ export async function seedAll() {
     `);
     console.log('✅ Opprettet kravelementer');
 
+    // ========== FAGKODE-KRAVELEMENT RELASJONER ==========
+    console.log('🔗 Oppretter fagkode-kravelement relasjoner...');
+
+    // Matematikk R1 kravelement
+    await session.run(`
+      MATCH (matR1:Kravelement {navn: 'Matematikk R1'})
+      MATCH (mat1001:Fagkode {kode: 'MAT1001'})
+      MATCH (rea3022:Fagkode {kode: 'REA3022'})
+      MATCH (rea3024:Fagkode {kode: 'REA3024'})
+      MATCH (rea3026:Fagkode {kode: 'REA3026'})
+      MATCH (vg1330:Fagkode {kode: 'VG1330'})
+      
+      CREATE (mat1001)-[:KVALIFISERER_FOR]->(matR1)
+      CREATE (rea3022)-[:KVALIFISERER_FOR]->(matR1)
+      CREATE (rea3024)-[:KVALIFISERER_FOR]->(matR1)
+      CREATE (rea3026)-[:KVALIFISERER_FOR]->(matR1)
+      CREATE (vg1330)-[:KVALIFISERER_FOR]->(matR1)
+    `);
+
+    // Matematikk R2 kravelement
+    await session.run(`
+      MATCH (matR2:Kravelement {navn: 'Matematikk R2'})
+      MATCH (rea3028:Fagkode {kode: 'REA3028'})
+      MATCH (rea3030:Fagkode {kode: 'REA3030'})
+      
+      CREATE (rea3028)-[:KVALIFISERER_FOR]->(matR2)
+      CREATE (rea3030)-[:KVALIFISERER_FOR]->(matR2)
+    `);
+
+    console.log('✅ Opprettet fagkode-kravelement relasjoner');
+
     // ========== LOGISKE NODER ==========
     console.log('🧠 Oppretter logiske noder...');
 
@@ -1507,68 +1538,61 @@ export async function seedAll() {
       MATCH (fk6:Fagkode {kode: 'KJE1001'})
       MATCH (fk7:Fagkode {kode: 'BIO1001'})
 
-      CREATE (annaVitnemaal)-[:INNEHOLDER_KARAKTER]->(kar1:Karakter {
-        id: randomUUID(),
+      CREATE (annaVitnemaal)-[:INNEHOLDER {
         karakter: '5',
         karaktersystem: '1-6',
         dato: date('2023-05-15'),
-        opprettet: datetime()
-      })
-      CREATE (kar1)-[:GITT_I]->(fk1)
+        standpunkt: '5',
+        eksamen: null
+      }]->(fk1)
 
-      CREATE (annaVitnemaal)-[:INNEHOLDER_KARAKTER]->(kar2:Karakter {
-        id: randomUUID(),
+      CREATE (annaVitnemaal)-[:INNEHOLDER {
         karakter: '4',
         karaktersystem: '1-6',
         dato: date('2023-05-20'),
-        opprettet: datetime()
-      })
-      CREATE (kar2)-[:GITT_I]->(fk2)
+        standpunkt: '4',
+        eksamen: null
+      }]->(fk2)
 
-      CREATE (annaVitnemaal)-[:INNEHOLDER_KARAKTER]->(kar3:Karakter {
-        id: randomUUID(),
+      CREATE (annaVitnemaal)-[:INNEHOLDER {
         karakter: '5',
         karaktersystem: '1-6',
         dato: date('2023-05-20'),
-        opprettet: datetime()
-      })
-      CREATE (kar3)-[:GITT_I]->(fk3)
+        standpunkt: '5',
+        eksamen: null
+      }]->(fk3)
 
-      CREATE (annaVitnemaal)-[:INNEHOLDER_KARAKTER]->(kar4:Karakter {
-        id: randomUUID(),
+      CREATE (annaVitnemaal)-[:INNEHOLDER {
         karakter: '4',
         karaktersystem: '1-6',
         dato: date('2023-05-25'),
-        opprettet: datetime()
-      })
-      CREATE (kar4)-[:GITT_I]->(fk4)
+        standpunkt: '4',
+        eksamen: null
+      }]->(fk4)
 
-      CREATE (annaVitnemaal)-[:INNEHOLDER_KARAKTER]->(kar5:Karakter {
-        id: randomUUID(),
+      CREATE (annaVitnemaal)-[:INNEHOLDER {
         karakter: '5',
         karaktersystem: '1-6',
         dato: date('2023-05-30'),
-        opprettet: datetime()
-      })
-      CREATE (kar5)-[:GITT_I]->(fk5)
+        standpunkt: '5',
+        eksamen: null
+      }]->(fk5)
 
-      CREATE (annaVitnemaal)-[:INNEHOLDER_KARAKTER]->(kar6:Karakter {
-        id: randomUUID(),
+      CREATE (annaVitnemaal)-[:INNEHOLDER {
         karakter: '4',
         karaktersystem: '1-6',
         dato: date('2023-06-05'),
-        opprettet: datetime()
-      })
-      CREATE (kar6)-[:GITT_I]->(fk6)
+        standpunkt: '4',
+        eksamen: null
+      }]->(fk6)
 
-      CREATE (annaVitnemaal)-[:INNEHOLDER_KARAKTER]->(kar7:Karakter {
-        id: randomUUID(),
+      CREATE (annaVitnemaal)-[:INNEHOLDER {
         karakter: '6',
         karaktersystem: '1-6',
         dato: date('2023-06-10'),
-        opprettet: datetime()
-      })
-      CREATE (kar7)-[:GITT_I]->(fk7)
+        standpunkt: '6',
+        eksamen: null
+      }]->(fk7)
     `);
 
     await session.run(`
@@ -1585,70 +1609,61 @@ export async function seedAll() {
       MATCH (fk6:Fagkode {kode: 'FYS1002'})
       MATCH (fk7:Fagkode {kode: 'KJE1001'})
 
-      CREATE (erikVitnemaal)-[:INNEHOLDER_KARAKTER]->(kar8:Karakter {
-        id: randomUUID(),
+      CREATE (erikVitnemaal)-[:INNEHOLDER {
         karakter: '4',
         karaktersystem: '1-6',
         dato: date('2022-05-15'),
-        opprettet: datetime()
-      })
-      CREATE (kar8)-[:GITT_I]->(fk1)
+        standpunkt: '4',
+        eksamen: null
+      }]->(fk1)
 
-      CREATE (erikVitnemaal)-[:INNEHOLDER_KARAKTER]->(kar9:Karakter {
-        id: randomUUID(),
+      CREATE (erikVitnemaal)-[:INNEHOLDER {
         karakter: '5',
         karaktersystem: '1-6',
         dato: date('2022-05-20'),
-        kommentar: 'Forbedret fra 3',
-        opprettet: datetime()
-      })
-      CREATE (kar9)-[:GITT_I]->(fk2)
+        standpunkt: '5',
+        eksamen: null
+      }]->(fk2)
 
-      CREATE (erikVitnemaal)-[:INNEHOLDER_KARAKTER]->(kar10:Karakter {
-        id: randomUUID(),
+      CREATE (erikVitnemaal)-[:INNEHOLDER {
         karakter: '4',
         karaktersystem: '1-6',
         dato: date('2022-05-20'),
-        kommentar: 'Forbedret fra 3',
-        opprettet: datetime()
-      })
-      CREATE (kar10)-[:GITT_I]->(fk3)
+        standpunkt: '4',
+        eksamen: null
+      }]->(fk3)
 
-      CREATE (erikVitnemaal)-[:INNEHOLDER_KARAKTER]->(kar11:Karakter {
-        id: randomUUID(),
+      CREATE (erikVitnemaal)-[:INNEHOLDER {
         karakter: '5',
         karaktersystem: '1-6',
         dato: date('2022-05-25'),
-        opprettet: datetime()
-      })
-      CREATE (kar11)-[:GITT_I]->(fk4)
+        standpunkt: '5',
+        eksamen: null
+      }]->(fk4)
 
-      CREATE (erikVitnemaal)-[:INNEHOLDER_KARAKTER]->(kar12:Karakter {
-        id: randomUUID(),
+      CREATE (erikVitnemaal)-[:INNEHOLDER {
         karakter: '6',
         karaktersystem: '1-6',
         dato: date('2022-05-30'),
-        opprettet: datetime()
-      })
-      CREATE (kar12)-[:GITT_I]->(fk5)
+        standpunkt: '6',
+        eksamen: null
+      }]->(fk5)
 
-      CREATE (erikVitnemaal)-[:INNEHOLDER_KARAKTER]->(kar13:Karakter {
-        id: randomUUID(),
+      CREATE (erikVitnemaal)-[:INNEHOLDER {
         karakter: '5',
         karaktersystem: '1-6',
         dato: date('2022-06-05'),
-        opprettet: datetime()
-      })
-      CREATE (kar13)-[:GITT_I]->(fk6)
+        standpunkt: '5',
+        eksamen: null
+      }]->(fk6)
 
-      CREATE (erikVitnemaal)-[:INNEHOLDER_KARAKTER]->(kar14:Karakter {
-        id: randomUUID(),
+      CREATE (erikVitnemaal)-[:INNEHOLDER {
         karakter: '3',
         karaktersystem: '1-6',
         dato: date('2022-06-10'),
-        opprettet: datetime()
-      })
-      CREATE (kar14)-[:GITT_I]->(fk7)
+        standpunkt: '3',
+        eksamen: null
+      }]->(fk7)
     `);
 
     await session.run(`
@@ -1662,23 +1677,21 @@ export async function seedAll() {
       MATCH (fk1:Fagkode {kode: 'NOR1211'})
       MATCH (fk2:Fagkode {kode: 'REA3022'})
 
-      CREATE (mariaFagbrev)-[:INNEHOLDER_KARAKTER]->(kar15:Karakter {
-        id: randomUUID(),
+      CREATE (mariaFagbrev)-[:INNEHOLDER {
         karakter: '4',
         karaktersystem: '1-6',
         dato: date('2016-06-15'),
-        opprettet: datetime()
-      })
-      CREATE (kar15)-[:GITT_I]->(fk1)
+        standpunkt: '4',
+        eksamen: null
+      }]->(fk1)
 
-      CREATE (mariaKarakter)-[:INNEHOLDER_KARAKTER]->(kar16:Karakter {
-        id: randomUUID(),
+      CREATE (mariaKarakter)-[:INNEHOLDER {
         karakter: '5',
         karaktersystem: '1-6',
         dato: date('2017-05-20'),
-        opprettet: datetime()
-      })
-      CREATE (kar16)-[:GITT_I]->(fk2)
+        standpunkt: '5',
+        eksamen: null
+      }]->(fk2)
     `);
 
     await session.run(`
@@ -1690,23 +1703,21 @@ export async function seedAll() {
       MATCH (fk1:Fagkode {kode: 'NOR1211'})
       MATCH (fk2:Fagkode {kode: 'REA3022'})
 
-      CREATE (larsVitnemaal)-[:INNEHOLDER_KARAKTER]->(kar17:Karakter {
-        id: randomUUID(),
+      CREATE (larsVitnemaal)-[:INNEHOLDER {
         karakter: '3',
         karaktersystem: '1-6',
         dato: date('2021-05-15'),
-        opprettet: datetime()
-      })
-      CREATE (kar17)-[:GITT_I]->(fk1)
+        standpunkt: '3',
+        eksamen: null
+      }]->(fk1)
 
-      CREATE (larsVitnemaal)-[:INNEHOLDER_KARAKTER]->(kar18:Karakter {
-        id: randomUUID(),
+      CREATE (larsVitnemaal)-[:INNEHOLDER {
         karakter: '3',
         karaktersystem: '1-6',
         dato: date('2021-05-20'),
-        opprettet: datetime()
-      })
-      CREATE (kar18)-[:GITT_I]->(fk2)
+        standpunkt: '3',
+        eksamen: null
+      }]->(fk2)
     `);
 
     // Karakterer for Thomas - realfagsvitnemål
