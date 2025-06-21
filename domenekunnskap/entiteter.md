@@ -186,15 +186,30 @@ Spesifikke fag (REA3022, NOR1211, etc.).
 
 #### 🎯 **Faggruppe**
 
-Gruppering av relaterte fagkoder.
+Kategorisering av relaterte fagkoder for opptakskrav. **VIKTIG: Ikke det samme som LogicalNode!**
+
+**Formål:** Faggruppe grupperer fagkoder som oppfyller samme type opptakskrav (f.eks. "Matematikk R1-nivå").
+LogicalNode håndterer boolean logikk mellom krav (AND/OR/NOT).
 
 **Attributter:**
 
 - `id`: Unik identifikator
 - `navn`: Navn på faggruppen
-- `type`: Type faggruppe ("matematikk", "norsk", etc.)
+- `type`: Type faggruppe ("matematikk-r1", "norsk-393", etc.)
+- `beskrivelse`: Beskrivelse av faggruppens formål
 
-**Status:** ✅ Implementert med kvalifiseringsrelasjoner
+**Status:** ✅ Fullt implementert kritisk entitet
+
+- 6 API endpoints (/api/faggrupper/\*)
+- Complete admin UI i dashboard
+- 15 KVALIFISERER_FOR relasjoner i seed data
+- Dashboard statistikk og rapportering
+- Omfattende test coverage
+
+**Relasjon til LogicalNode:** Komplementære konsepter
+
+- Faggruppe: "Hvilke fag oppfyller dette kravet?"
+- LogicalNode: "Hvordan kombineres kravene?" (AND/OR/NOT)
 
 ## 🔗 Hovedrelasjoner
 
@@ -281,6 +296,7 @@ Kravelementer kan oppfylles på tre måter:
 LogicalNode implementerer boolean logikk (AND/OR/NOT) for komplekse opptakskrav, basert på Neo4j beste praksiser for regel-motorer.
 
 **Attributter:**
+
 - `id`: Unik identifikator
 - `navn`: Beskrivende navn for regelen
 - `type`: Logisk operasjon ("AND", "OR", "NOT")
@@ -292,11 +308,13 @@ LogicalNode implementerer boolean logikk (AND/OR/NOT) for komplekse opptakskrav,
 ### 🔗 LogicalNode Relasjoner
 
 **Implementerte relasjoner:**
+
 1. **OpptaksVei** `HAR_REGEL` **LogicalNode** ✅
 2. **LogicalNode** `EVALUERER` **Kravelement** ✅
 3. **LogicalNode** `EVALUERER` **LogicalNode** (hierarkisk) ✅
 
 **Relasjonsmønster:**
+
 ```
 OpptaksVei -[:HAR_REGEL]-> LogicalNode -[:EVALUERER]-> Kravelement
                         └-[:EVALUERER]-> LogicalNode (barn-node)
@@ -305,6 +323,7 @@ OpptaksVei -[:HAR_REGEL]-> LogicalNode -[:EVALUERER]-> Kravelement
 ### 📊 Konkrete Eksempler
 
 **UiO Informatikk:**
+
 ```
 UiO Informatikk Grunnkrav (AND)
 ├── EVALUERER → Generell studiekompetanse
@@ -312,9 +331,11 @@ UiO Informatikk Grunnkrav (AND)
     ├── EVALUERER → Matematikk R1
     └── EVALUERER → Matematikk R2
 ```
+
 **Regeluttrykk:** "Generell studiekompetanse OG (Matematikk R2 ELLER Matematikk R1)"
 
 **NTNU Bygg:**
+
 ```
 NTNU Bygg Grunnkrav (AND)
 ├── EVALUERER → Generell studiekompetanse
@@ -323,11 +344,13 @@ NTNU Bygg Grunnkrav (AND)
     ├── EVALUERER → Matematikk R1
     └── EVALUERER → Matematikk R2
 ```
+
 **Regeluttrykk:** "Generell studiekompetanse OG Fysikk 1 OG (Matematikk R2 OG Matematikk R1)"
 
 ### 🚀 API Støtte
 
 **Krav-visning API:**
+
 - `GET /api/opptaksveier/{id}/krav`
 - Returnerer both hierarkisk struktur og menneskelesbart regeluttrykk
 - Rekursiv traversering av LogicalNode-treet
@@ -345,6 +368,7 @@ NTNU Bygg Grunnkrav (AND)
 ### 🔄 Migrering fra [:KREVER] til [:HAR_REGEL]
 
 Det gamle mønsteret med direkte `OpptaksVei -[:KREVER]-> Kravelement` er erstattet med:
+
 ```
 OpptaksVei -[:HAR_REGEL]-> LogicalNode -[:EVALUERER]-> Kravelement
 ```

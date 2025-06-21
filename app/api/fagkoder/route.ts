@@ -8,19 +8,12 @@ export async function GET() {
   try {
     const result = await session.run(`
       MATCH (fk:Fagkode)
-      OPTIONAL MATCH (fk)-[:KVALIFISERER_FOR]->(fg:Faggruppe)
-      RETURN fk, collect(fg.navn) as faggrupper
+      RETURN fk
       ORDER BY fk.navn
     `);
 
     const fagkoder = result.records.map((record) => {
-      const fagkode = record.get('fk').properties;
-      const faggrupper = record.get('faggrupper');
-
-      return {
-        ...fagkode,
-        faggrupper: faggrupper.filter((fg: string) => fg !== null),
-      };
+      return record.get('fk').properties;
     });
 
     return NextResponse.json(fagkoder);

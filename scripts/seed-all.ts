@@ -10,7 +10,7 @@ import { getSession } from '../lib/neo4j';
  * 4. Avhengigheter mellom entiteter er lettere å håndtere
  *
  * Rekkefølge er viktig:
- * 1. Fagkoder og faggrupper (grunnleggende referansedata)
+ * 1. Fagkoder (grunnleggende referansedata)
  * 2. Kravelementer, grunnlag, kvotetyper (regelkomponenter)
  * 3. PoengTyper (må finnes før RangeringType)
  * 4. RangeringTyper med relasjoner til PoengTyper
@@ -25,44 +25,7 @@ export async function seedAll() {
   try {
     console.log('🌱 Starter full seeding av databasen...');
 
-    // ========== FAGKODER OG FAGGRUPPER ==========
-    console.log('📁 Oppretter faggrupper...');
-
-    await session.run(`
-      CREATE (fg1:Faggruppe {
-        id: randomUUID(),
-        navn: 'Matematikk R1-nivå',
-        type: 'matematikk-r1',
-        beskrivelse: 'Matematikk R1 programfag som kvalifiserer for realfagspoeng',
-        aktiv: true,
-        opprettet: datetime()
-      })
-      CREATE (fg2:Faggruppe {
-        id: randomUUID(),
-        navn: 'Matematikk R2-nivå',
-        type: 'matematikk-r2',
-        beskrivelse: 'Matematikk R2 programfag som kvalifiserer for realfagspoeng',
-        aktiv: true,
-        opprettet: datetime()
-      })
-      CREATE (fg3:Faggruppe {
-        id: randomUUID(),
-        navn: 'Norsk 393 timer',
-        type: 'norsk-393',
-        beskrivelse: 'Norsk hovedmål eller sidemål med 393 timer',
-        aktiv: true,
-        opprettet: datetime()
-      })
-      CREATE (fg4:Faggruppe {
-        id: randomUUID(),
-        navn: 'Realfag valgfritt',
-        type: 'realfag-valgfritt',
-        beskrivelse: 'Realfag som kan gi tilleggspoeng',
-        aktiv: true,
-        opprettet: datetime()
-      })
-    `);
-    console.log('✅ Opprettet faggrupper');
+    // ========== FAGKODER ==========
 
     console.log('📋 Oppretter fagkoder...');
 
@@ -420,55 +383,6 @@ export async function seedAll() {
       })
     `);
     console.log('✅ Opprettet fagkoder');
-
-    console.log('🔗 Kobler fagkoder til faggrupper...');
-
-    await session.run(`
-      MATCH (fg1:Faggruppe {type: 'matematikk-r1'})
-      MATCH (fg2:Faggruppe {type: 'matematikk-r2'})
-      MATCH (fg3:Faggruppe {type: 'norsk-393'})
-      MATCH (fg4:Faggruppe {type: 'realfag-valgfritt'})
-
-      MATCH (fk1:Fagkode {kode: 'MAT1001'})
-      MATCH (fk2:Fagkode {kode: 'REA3022'})
-      MATCH (fk3:Fagkode {kode: 'REA3024'})
-      MATCH (fk4:Fagkode {kode: 'REA3026'})
-      MATCH (fk5:Fagkode {kode: 'MAT1002'})
-      MATCH (fk6:Fagkode {kode: 'REA3028'})
-      MATCH (fk7:Fagkode {kode: 'NOR1211'})
-      MATCH (fk8:Fagkode {kode: 'NOR1212'})
-      MATCH (fk9:Fagkode {kode: 'FYS1001'})
-      MATCH (fk10:Fagkode {kode: 'FYS1002'})
-      MATCH (fk11:Fagkode {kode: 'KJE1001'})
-      MATCH (fk12:Fagkode {kode: 'KJE1002'})
-      MATCH (fk13:Fagkode {kode: 'BIO1001'})
-      MATCH (fk14:Fagkode {kode: 'BIO1002'})
-      MATCH (fk15:Fagkode {kode: 'GEO1001'})
-
-      // Matematikk R1
-      CREATE (fk1)-[:KVALIFISERER_FOR]->(fg1)
-      CREATE (fk2)-[:KVALIFISERER_FOR]->(fg1)
-      CREATE (fk3)-[:KVALIFISERER_FOR]->(fg1)
-      CREATE (fk4)-[:KVALIFISERER_FOR]->(fg1)
-
-      // Matematikk R2
-      CREATE (fk5)-[:KVALIFISERER_FOR]->(fg2)
-      CREATE (fk6)-[:KVALIFISERER_FOR]->(fg2)
-
-      // Norsk 393
-      CREATE (fk7)-[:KVALIFISERER_FOR]->(fg3)
-      CREATE (fk8)-[:KVALIFISERER_FOR]->(fg3)
-
-      // Realfag valgfritt
-      CREATE (fk9)-[:KVALIFISERER_FOR]->(fg4)
-      CREATE (fk10)-[:KVALIFISERER_FOR]->(fg4)
-      CREATE (fk11)-[:KVALIFISERER_FOR]->(fg4)
-      CREATE (fk12)-[:KVALIFISERER_FOR]->(fg4)
-      CREATE (fk13)-[:KVALIFISERER_FOR]->(fg4)
-      CREATE (fk14)-[:KVALIFISERER_FOR]->(fg4)
-      CREATE (fk15)-[:KVALIFISERER_FOR]->(fg4)
-    `);
-    console.log('✅ Koblet fagkoder til faggrupper');
 
     // ========== KRAVELEMENTER ==========
     console.log('🎯 Oppretter kravelementer...');
@@ -2110,10 +2024,8 @@ export async function seedAll() {
 
     // Kjør separate tellinger for bedre ytelse
     const fagStats = await session.run(`
-      MATCH (fg:Faggruppe) 
-      WITH count(fg) as faggrupper
       MATCH (fk:Fagkode)
-      RETURN faggrupper, count(fk) as fagkoder
+      RETURN count(fk) as fagkoder
     `);
 
     const entityStats = await session.run(`
@@ -2146,7 +2058,6 @@ export async function seedAll() {
     const inst = instStats.records[0];
     const reg = regStats.records[0];
 
-    console.log(`   📁 Faggrupper: ${fag.get('faggrupper').toNumber()}`);
     console.log(`   📋 Fagkoder: ${fag.get('fagkoder').toNumber()}`);
     console.log(`   🎯 Kravelementer: ${entity.get('kravelementer').toNumber()}`);
     console.log(`   🏗️ Grunnlag: ${entity.get('grunnlag').toNumber()}`);

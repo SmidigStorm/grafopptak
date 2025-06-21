@@ -10,8 +10,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const result = await session.run(
       `
       MATCH (fk:Fagkode {id: $id})
-      OPTIONAL MATCH (fk)-[:KVALIFISERER_FOR]->(fg:Faggruppe)
-      RETURN fk, collect(fg) as faggrupper
+      RETURN fk
     `,
       { id }
     );
@@ -20,14 +19,9 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ error: 'Fagkode not found' }, { status: 404 });
     }
 
-    const record = result.records[0];
-    const fagkode = record.get('fk').properties;
-    const faggrupper = record
-      .get('faggrupper')
-      .filter((fg: any) => fg !== null)
-      .map((fg: any) => fg.properties);
+    const fagkode = result.records[0].get('fk').properties;
 
-    return NextResponse.json({ ...fagkode, faggrupper });
+    return NextResponse.json(fagkode);
   } catch (error) {
     console.error('Error fetching fagkode:', error);
     return NextResponse.json({ error: 'Failed to fetch fagkode' }, { status: 500 });

@@ -8,8 +8,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   try {
     const query = `
       MATCH (d:Dokumentasjon {id: $id})-[r:INNEHOLDER]->(fk:Fagkode)
-      OPTIONAL MATCH (fk)-[:KVALIFISERER_FOR]->(fg:Faggruppe)
-      RETURN fk, r, collect(DISTINCT fg) as faggrupper
+      RETURN fk, r
       ORDER BY r.dato DESC, fk.kode
     `;
 
@@ -21,7 +20,6 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       karaktersystem: record.get('r').properties.karaktersystem,
       dato: record.get('r').properties.dato,
       kommentar: record.get('r').properties.kommentar,
-      faggrupper: record.get('faggrupper').map((fg: any) => fg.properties),
     }));
 
     return NextResponse.json(karakterer);

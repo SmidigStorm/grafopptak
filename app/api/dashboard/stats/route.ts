@@ -59,19 +59,6 @@ export async function GET() {
       }) as topInstitusjoner
     `);
 
-    // Hent faggrupper med antall fagkoder
-    const faggruppeStatsResult = await session.run(`
-      MATCH (fg:Faggruppe)
-      OPTIONAL MATCH (fk:Fagkode)-[:KVALIFISERER_FOR]->(fg)
-      WITH fg, count(fk) as antallFagkoder
-      ORDER BY antallFagkoder DESC
-      RETURN collect({
-        navn: fg.navn,
-        type: fg.type,
-        antallFagkoder: antallFagkoder
-      }) as faggrupper
-    `);
-
     const stats =
       statsResult.records.length > 0
         ? statsResult.records[0].get('stats')
@@ -92,11 +79,6 @@ export async function GET() {
     const topInstitusjoner =
       institusjonStatsResult.records.length > 0
         ? institusjonStatsResult.records[0].get('topInstitusjoner')
-        : [];
-
-    const faggrupper =
-      faggruppeStatsResult.records.length > 0
-        ? faggruppeStatsResult.records[0].get('faggrupper')
         : [];
 
     // Convert Neo4j integers to regular numbers
@@ -123,7 +105,6 @@ export async function GET() {
         stats: convertNeo4jIntegers(stats),
         karakterfordeling: convertNeo4jIntegers(karakterfordeling),
         topInstitusjoner: convertNeo4jIntegers(topInstitusjoner),
-        faggrupper: convertNeo4jIntegers(faggrupper),
       },
     });
   } catch (error) {
