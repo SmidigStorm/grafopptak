@@ -241,13 +241,7 @@ export default function UtdanningstilbudPage() {
 
   // Regelsett-administrasjon funksjoner
   const aapneRegelssettAdministrasjon = (tilbud: Utdanningstilbud) => {
-    if (tilbud.antallRegelsett > 0) {
-      // Har regelsett - gå til redigering
-      router.push(`/admin/regelbygging?utdanningstilbudId=${tilbud.id}`);
-    } else {
-      // Ingen regelsett - gå til opprettelse
-      router.push(`/admin/regelbygging?utdanningstilbudId=${tilbud.id}&opprett=true`);
-    }
+    router.push('/admin/regelsett');
   };
 
   if (loading) {
