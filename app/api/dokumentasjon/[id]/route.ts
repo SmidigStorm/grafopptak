@@ -8,7 +8,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   try {
     const query = `
       MATCH (d:Dokumentasjon {id: $id})
-      OPTIONAL MATCH (p:Person)-[:EIER]->(d)
+      OPTIONAL MATCH (p:Person)-[:HAR_DOKUMENTASJON]->(d)
       OPTIONAL MATCH (d)-[r:INNEHOLDER]->(fk:Fagkode)
       WITH d, p, collect({
         fagkode: fk,

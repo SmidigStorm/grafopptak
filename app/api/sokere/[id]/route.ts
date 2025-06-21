@@ -10,7 +10,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const result = await session.run(
       `
       MATCH (p:Person {id: $id})
-      OPTIONAL MATCH (p)-[:EIER]->(d:Dokumentasjon)
+      OPTIONAL MATCH (p)-[:HAR_DOKUMENTASJON]->(d:Dokumentasjon)
       OPTIONAL MATCH (p)-[:SØKER_MED]->(s:Søknad)
       RETURN p, collect(d) as dokumenter, collect(s) as soknader
     `,

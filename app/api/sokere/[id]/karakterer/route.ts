@@ -15,7 +15,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     if (gruppering === 'dokument') {
       // Gruppering per dokument
       query = `
-        MATCH (p:Person {id: $personId})-[:EIER]->(d:Dokumentasjon)-[r:INNEHOLDER]->(fk:Fagkode)
+        MATCH (p:Person {id: $personId})-[:HAR_DOKUMENTASJON]->(d:Dokumentasjon)-[r:INNEHOLDER]->(fk:Fagkode)
         ${fagkodeKode ? 'WHERE fk.kode = $fagkodeKode' : ''}
         WITH d, collect({
           fagkode: fk,
@@ -30,7 +30,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     } else {
       // Gruppering per fagkode (viser historikk)
       query = `
-        MATCH (p:Person {id: $personId})-[:EIER]->(d:Dokumentasjon)-[r:INNEHOLDER]->(fk:Fagkode)
+        MATCH (p:Person {id: $personId})-[:HAR_DOKUMENTASJON]->(d:Dokumentasjon)-[r:INNEHOLDER]->(fk:Fagkode)
         ${fagkodeKode ? 'WHERE fk.kode = $fagkodeKode' : ''}
         WITH fk, collect({
           dokumentasjon: d,
@@ -97,7 +97,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const { fagkoder } = body; // Array av fagkode-koder å sjekke
 
     const query = `
-      MATCH (p:Person {id: $personId})-[:EIER]->(d:Dokumentasjon)-[r:INNEHOLDER]->(fk:Fagkode)
+      MATCH (p:Person {id: $personId})-[:HAR_DOKUMENTASJON]->(d:Dokumentasjon)-[r:INNEHOLDER]->(fk:Fagkode)
       ${fagkoder ? 'WHERE fk.kode IN $fagkoder' : ''}
       WITH fk, r
       ORDER BY 

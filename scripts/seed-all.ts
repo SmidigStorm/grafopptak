@@ -2022,52 +2022,58 @@ export async function seedAll() {
     // ========== SAMMENDRAG ==========
     console.log('\\n📊 Sammendrag av seeded data:');
 
-    const summary = await session.run(`
-      MATCH (fg:Faggruppe) OPTIONAL MATCH (fk:Fagkode)-[:KVALIFISERER_FOR]->(fg)
-      WITH count(DISTINCT fg) as faggrupper, count(DISTINCT fk) as fagkoder
-      MATCH (k:Kravelement) 
-      MATCH (g:Grunnlag)
-      MATCH (kv:KvoteType)
-      MATCH (rt:RangeringType)
-      MATCH (pt:PoengType)
-      MATCH (i:Institusjon)
-      MATCH (u:Utdanningstilbud)
-      MATCH (p:Person)
-      MATCH (d:Dokumentasjon)
-      OPTIONAL MATCH (r:Regelsett)
-      OPTIONAL MATCH (o:OpptaksVei)
-      OPTIONAL MATCH (d)-[rel:INNEHOLDER]->(fk)
-      RETURN 
-        faggrupper, fagkoder,
-        count(DISTINCT k) as kravelementer,
-        count(DISTINCT g) as grunnlag,
-        count(DISTINCT kv) as kvotetyper,
-        count(DISTINCT rt) as rangeringstyper,
-        count(DISTINCT pt) as poengtyper,
-        count(DISTINCT i) as institusjoner,
-        count(DISTINCT u) as utdanningstilbud,
-        count(DISTINCT p) as personer,
-        count(DISTINCT d) as dokumenter,
-        count(DISTINCT r) as regelsett,
-        count(DISTINCT o) as opptaksveier,
-        count(DISTINCT rel) as karakterer
+    // Kjør separate tellinger for bedre ytelse
+    const fagStats = await session.run(`
+      MATCH (fg:Faggruppe) 
+      WITH count(fg) as faggrupper
+      MATCH (fk:Fagkode)
+      RETURN faggrupper, count(fk) as fagkoder
     `);
 
-    const stats = summary.records[0];
-    console.log(`   📁 Faggrupper: ${stats.get('faggrupper').toNumber()}`);
-    console.log(`   📋 Fagkoder: ${stats.get('fagkoder').toNumber()}`);
-    console.log(`   🎯 Kravelementer: ${stats.get('kravelementer').toNumber()}`);
-    console.log(`   🏗️ Grunnlag: ${stats.get('grunnlag').toNumber()}`);
-    console.log(`   📊 Kvotetyper: ${stats.get('kvotetyper').toNumber()}`);
-    console.log(`   📈 Rangeringstyper: ${stats.get('rangeringstyper').toNumber()}`);
-    console.log(`   📊 PoengTyper: ${stats.get('poengtyper').toNumber()}`);
-    console.log(`   🏢 Institusjoner: ${stats.get('institusjoner').toNumber()}`);
-    console.log(`   🎓 Utdanningstilbud: ${stats.get('utdanningstilbud').toNumber()}`);
-    console.log(`   👥 Personer: ${stats.get('personer').toNumber()}`);
-    console.log(`   📄 Dokumenter: ${stats.get('dokumenter').toNumber()}`);
-    console.log(`   📜 Regelsett: ${stats.get('regelsett').toNumber()}`);
-    console.log(`   🌳 Opptaksveier: ${stats.get('opptaksveier').toNumber()}`);
-    console.log(`   ⭐ Karakterer: ${stats.get('karakterer').toNumber()}`);
+    const entityStats = await session.run(`
+      MATCH (k:Kravelement) WITH count(k) as kravelementer
+      MATCH (g:Grunnlag) WITH kravelementer, count(g) as grunnlag
+      MATCH (kv:KvoteType) WITH kravelementer, grunnlag, count(kv) as kvotetyper
+      MATCH (rt:RangeringType) WITH kravelementer, grunnlag, kvotetyper, count(rt) as rangeringstyper
+      MATCH (pt:PoengType) WITH kravelementer, grunnlag, kvotetyper, rangeringstyper, count(pt) as poengtyper
+      RETURN kravelementer, grunnlag, kvotetyper, rangeringstyper, poengtyper
+    `);
+
+    const instStats = await session.run(`
+      MATCH (i:Institusjon) WITH count(i) as institusjoner
+      MATCH (u:Utdanningstilbud) WITH institusjoner, count(u) as utdanningstilbud
+      MATCH (p:Person) WITH institusjoner, utdanningstilbud, count(p) as personer
+      MATCH (d:Dokumentasjon) WITH institusjoner, utdanningstilbud, personer, count(d) as dokumenter
+      RETURN institusjoner, utdanningstilbud, personer, dokumenter
+    `);
+
+    const regStats = await session.run(`
+      MATCH (r:Regelsett) WITH count(r) as regelsett
+      MATCH (o:OpptaksVei) WITH regelsett, count(o) as opptaksveier
+      OPTIONAL MATCH (:Dokumentasjon)-[rel:INNEHOLDER]->(:Fagkode)
+      RETURN regelsett, opptaksveier, count(rel) as karakterer
+    `);
+
+    // Hent data fra de separate query-ene
+    const fag = fagStats.records[0];
+    const entity = entityStats.records[0];
+    const inst = instStats.records[0];
+    const reg = regStats.records[0];
+
+    console.log(`   📁 Faggrupper: ${fag.get('faggrupper').toNumber()}`);
+    console.log(`   📋 Fagkoder: ${fag.get('fagkoder').toNumber()}`);
+    console.log(`   🎯 Kravelementer: ${entity.get('kravelementer').toNumber()}`);
+    console.log(`   🏗️ Grunnlag: ${entity.get('grunnlag').toNumber()}`);
+    console.log(`   📊 Kvotetyper: ${entity.get('kvotetyper').toNumber()}`);
+    console.log(`   📈 Rangeringstyper: ${entity.get('rangeringstyper').toNumber()}`);
+    console.log(`   📊 PoengTyper: ${entity.get('poengtyper').toNumber()}`);
+    console.log(`   🏢 Institusjoner: ${inst.get('institusjoner').toNumber()}`);
+    console.log(`   🎓 Utdanningstilbud: ${inst.get('utdanningstilbud').toNumber()}`);
+    console.log(`   👥 Personer: ${inst.get('personer').toNumber()}`);
+    console.log(`   📄 Dokumenter: ${inst.get('dokumenter').toNumber()}`);
+    console.log(`   📜 Regelsett: ${reg.get('regelsett').toNumber()}`);
+    console.log(`   🌳 Opptaksveier: ${reg.get('opptaksveier').toNumber()}`);
+    console.log(`   ⭐ Karakterer: ${reg.get('karakterer').toNumber()}`);
 
     // Verifiser RangeringType-relasjoner
     const rangeringCheck = await session.run(`

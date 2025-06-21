@@ -8,7 +8,7 @@ export async function GET() {
   try {
     const result = await session.run(`
       MATCH (p:Person)
-      OPTIONAL MATCH (p)-[:EIER]->(d:Dokumentasjon)
+      OPTIONAL MATCH (p)-[:HAR_DOKUMENTASJON]->(d:Dokumentasjon)
       OPTIONAL MATCH (p)-[:SØKER_MED]->(s:Søknad)
       RETURN p, count(d) as antallDokumenter, count(s) as antallSøknader
       ORDER BY p.etternavn, p.fornavn

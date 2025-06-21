@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
 
     const query = `
       MATCH (d:Dokumentasjon)
-      ${personId ? 'MATCH (p:Person {id: $personId})-[:EIER]->(d)' : ''}
+      ${personId ? 'MATCH (p:Person {id: $personId})-[:HAR_DOKUMENTASJON]->(d)' : ''}
       OPTIONAL MATCH (d)-[r:INNEHOLDER]->(fk:Fagkode)
       WITH d, collect({
         fagkode: fk,
@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
         opprettet: datetime(),
         aktiv: true
       })
-      CREATE (p)-[:EIER]->(d)
+      CREATE (p)-[:HAR_DOKUMENTASJON]->(d)
       RETURN d
     `;
 
