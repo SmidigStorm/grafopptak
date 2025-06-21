@@ -36,6 +36,7 @@ import {
   GraduationCap as StudentIcon,
   School,
   ClipboardList,
+  ClipboardCheck,
   Cog,
 } from 'lucide-react';
 import Link from 'next/link';
@@ -98,6 +99,11 @@ const adminMenuGroups: MenuGroup[] = [
         title: 'Søkere',
         icon: Users,
         href: '/admin/sokere',
+      },
+      {
+        title: 'Evaluering',
+        icon: ClipboardCheck,
+        href: '/admin/evaluering',
       },
     ],
   },

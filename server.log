@@ -1,0 +1,70 @@
+
+> grafopptak@0.1.0 dev
+> next dev -p 3000
+
+   ▲ Next.js 15.3.3
+   - Local:        http://localhost:3000
+   - Network:      http://10.255.255.254:3000
+   - Environments: .env.development, .env
+
+ ✓ Starting...
+ ✓ Ready in 1105ms
+ ○ Compiling /api/sokere ...
+ ✓ Compiled /api/sokere in 702ms (930 modules)
+ GET /api/sokere 200 in 906ms
+ ✓ Compiled /api/sokere/[id]/evaluering in 259ms (933 modules)
+ POST /api/sokere/87a337f2-e0a7-4504-92a6-1ffea7e36b5a/evaluering 200 in 833ms
+ ✓ Compiled in 77ms (654 modules)
+ POST /api/sokere/87a337f2-e0a7-4504-92a6-1ffea7e36b5a/evaluering 200 in 292ms
+ ✓ Compiled /api/sokere/[id] in 108ms (933 modules)
+ GET /api/sokere/87a337f2-e0a7-4504-92a6-1ffea7e36b5a 200 in 534ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 1076ms (1274 modules)
+ GET /api/sokere/87a337f2-e0a7-4504-92a6-1ffea7e36b5a/dokumentasjon 404 in 1172ms
+ ✓ Compiled in 103ms (331 modules)
+ POST /api/sokere/81882bab-8045-4b4d-b226-3395928aef58/evaluering 200 in 158ms
+ ✓ Compiled in 170ms (943 modules)
+ POST /api/sokere/87a337f2-e0a7-4504-92a6-1ffea7e36b5a/evaluering 200 in 184ms
+ ✓ Compiled in 17ms
+ ✓ Compiled /api/sokere/[id]/evaluering in 149ms (652 modules)
+ POST /api/sokere/87a337f2-e0a7-4504-92a6-1ffea7e36b5a/evaluering 200 in 279ms
+ ✓ Compiled in 14ms
+ ✓ Compiled /api/sokere/[id]/evaluering in 140ms (652 modules)
+ POST /api/sokere/87a337f2-e0a7-4504-92a6-1ffea7e36b5a/evaluering 404 in 255ms
+ ✓ Compiled /api/sokere in 194ms (654 modules)
+ GET /api/sokere 200 in 325ms
+ GET /api/sokere 200 in 9ms
+ POST /api/sokere/f975c801-726b-4bcf-8327-e56a891adc4a/evaluering 200 in 120ms
+ GET /api/sokere 200 in 33ms
+ GET /api/sokere 200 in 9ms
+ GET /api/sokere 200 in 8ms
+ POST /api/sokere/9cfc2b55-cda0-461d-b914-99c5b2438e5f/evaluering 200 in 116ms
+ POST /api/sokere/88f5c196-03ef-4896-a597-08789e875bee/evaluering 200 in 32ms
+ POST /api/sokere/5b31d3ed-2a82-4d54-b8ab-988725d1e6be/evaluering 200 in 29ms
+ ✓ Compiled in 135ms (652 modules)
+ ✓ Compiled in 10ms
+ ✓ Compiled /api/sokere in 120ms (651 modules)
+ GET /api/sokere 200 in 228ms
+ GET /api/sokere 200 in 14ms
+ ✓ Compiled /api/sokere/[id]/evaluering in 127ms (654 modules)
+ POST /api/sokere/53f3befc-d390-4f29-a7ab-cee69ee82c08/evaluering 200 in 318ms
+ POST /api/sokere/20a3a7af-a401-4460-8db9-03f88ad64b77/evaluering 200 in 21ms
+ POST /api/sokere/50f67be7-d253-4811-9b77-af8dfb4997c1/evaluering 200 in 21ms
+ ✓ Compiled in 182ms (328 modules)
+ ✓ Compiled in 147ms (328 modules)
+ ✓ Compiled in 33ms (309 modules)
+ ✓ Compiled in 134ms (328 modules)
+ ✓ Compiled in 135ms (328 modules)
+ ○ Compiling /admin/evaluering ...
+ ✓ Compiled /admin/evaluering in 1076ms (1006 modules)
+ GET /admin/evaluering 200 in 1265ms
+ ✓ Compiled / in 308ms (1018 modules)
+ GET / 307 in 415ms
+ ✓ Compiled /admin in 326ms (1133 modules)
+ GET /admin 200 in 473ms
+ ○ Compiling /api/dashboard/stats ...
+ ✓ Compiled /api/dashboard/stats in 528ms (1716 modules)
+ GET /api/dashboard/stats 200 in 770ms
+ ✓ Compiled /api/institusjoner in 132ms (1718 modules)
+ GET /api/institusjoner 200 in 279ms
+ GET /api/institusjoner 200 in 9ms
