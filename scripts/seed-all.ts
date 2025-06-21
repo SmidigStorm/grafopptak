@@ -209,6 +209,215 @@ export async function seedAll() {
         aktiv: true,
         opprettet: datetime()
       })
+      
+      // Videregående fagkoder for nytt vitnemål
+      CREATE (vg1200:Fagkode {
+        id: randomUUID(),
+        kode: 'VG1200',
+        navn: 'Engelsk elever',
+        type: 'fellesfag',
+        omfang: '5 timer',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (vg1330:Fagkode {
+        id: randomUUID(),
+        kode: 'VG1330',
+        navn: 'Matematikk 1MX (ny plan)',
+        type: 'matematikk',
+        omfang: '5 timer',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (vg1400:Fagkode {
+        id: randomUUID(),
+        kode: 'VG1400',
+        navn: 'Naturfag (elever)',
+        type: 'naturfag',
+        omfang: '5 timer',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (vg2500:Fagkode {
+        id: randomUUID(),
+        kode: 'VG2500',
+        navn: 'Samfunnslære',
+        type: 'fellesfag',
+        omfang: '2 timer',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (vg4000:Fagkode {
+        id: randomUUID(),
+        kode: 'VG4000',
+        navn: 'Norsk hovedmål, skriftlig',
+        type: 'norsk',
+        omfang: '14 timer',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (vg4001:Fagkode {
+        id: randomUUID(),
+        kode: 'VG4001',
+        navn: 'Norsk sidemål, skriftlig',
+        type: 'norsk',
+        omfang: 'fritak',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (vg4005:Fagkode {
+        id: randomUUID(),
+        kode: 'VG4005',
+        navn: 'Norsk, muntlig',
+        type: 'norsk',
+        omfang: 'muntlig',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (vg4600:Fagkode {
+        id: randomUUID(),
+        kode: 'VG4600',
+        navn: 'Nyere historie (ny plan)',
+        type: 'samfunnsfag',
+        omfang: '4 timer',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (vf4700:Fagkode {
+        id: randomUUID(),
+        kode: 'VF4700',
+        navn: 'Religion og etikk (ny læreplan)',
+        type: 'fellesfag',
+        omfang: '3 timer',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (vf4900:Fagkode {
+        id: randomUUID(),
+        kode: 'VF4900',
+        navn: 'Kroppsøving',
+        type: 'fellesfag',
+        omfang: '6 timer',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (vt1110:Fagkode {
+        id: randomUUID(),
+        kode: 'VT1110',
+        navn: 'Fransk B-språk 1 ny plan (4)',
+        type: 'fremmedsprak',
+        omfang: '4 timer',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (vt1121:Fagkode {
+        id: randomUUID(),
+        kode: 'VT1121',
+        navn: 'Fransk B-språk 2 privatister',
+        type: 'fremmedsprak',
+        omfang: '4 timer',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (vt1125:Fagkode {
+        id: randomUUID(),
+        kode: 'VT1125',
+        navn: 'Fransk B-språk 2, muntlig, ny plan (4-4)',
+        type: 'fremmedsprak',
+        omfang: 'muntlig',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (aa1010:Fagkode {
+        id: randomUUID(),
+        kode: 'AA1010',
+        navn: 'Økonomi og info.-behandling E',
+        type: 'programfag',
+        omfang: '5 timer',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (aa6010:Fagkode {
+        id: randomUUID(),
+        kode: 'AA6010',
+        navn: 'Bedriftsøkonomi I',
+        type: 'programfag',
+        omfang: '5 timer',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (aa6210:Fagkode {
+        id: randomUUID(),
+        kode: 'AA6210',
+        navn: 'Fysikk 2FY (ny plan)',
+        type: 'programfag',
+        omfang: '5 timer',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (aa6227:Fagkode {
+        id: randomUUID(),
+        kode: 'AA6227',
+        navn: 'Fysikk 3FY (ny plan)',
+        type: 'programfag',
+        omfang: '5 timer',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (aa6230:Fagkode {
+        id: randomUUID(),
+        kode: 'AA6230',
+        navn: 'Kjemi 2KJ',
+        type: 'programfag',
+        omfang: '3 timer',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (aa6514:Fagkode {
+        id: randomUUID(),
+        kode: 'AA6514',
+        navn: 'Matematikk 2MX, ny plan',
+        type: 'matematikk',
+        omfang: '5 timer',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (aa6524:Fagkode {
+        id: randomUUID(),
+        kode: 'AA6524',
+        navn: 'Matematikk 3MX, ny plan',
+        type: 'matematikk',
+        omfang: '5 timer',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (vl1410:Fagkode {
+        id: randomUUID(),
+        kode: 'VL1410',
+        navn: 'Valgfag (lokalt gitt)',
+        type: 'valgfag',
+        omfang: '1 time',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (vl2270:Fagkode {
+        id: randomUUID(),
+        kode: 'VL2270',
+        navn: 'Valgfag (lokalt gitt)',
+        type: 'valgfag',
+        omfang: '2 timer',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (vl2300:Fagkode {
+        id: randomUUID(),
+        kode: 'VL2300',
+        navn: 'Valgfag (lokalt gitt)',
+        type: 'valgfag',
+        omfang: '2 timer',
+        aktiv: true,
+        opprettet: datetime()
+      })
     `);
     console.log('✅ Opprettet fagkoder');
 
@@ -1172,6 +1381,19 @@ export async function seedAll() {
         aktiv: true,
         opprettet: datetime()
       })
+      CREATE (thomas:Person {
+        id: randomUUID(),
+        fornavn: 'Thomas',
+        etternavn: 'Nilsen',
+        fodselsdato: date('2004-11-15'),
+        kjonn: 'mann',
+        telefon: '67890123',
+        epost: 'thomas.nilsen@example.com',
+        adresse: 'Kirkegata 45, 4611 Kristiansand',
+        statsborgerskap: 'norsk',
+        aktiv: true,
+        opprettet: datetime()
+      })
     `);
     console.log('✅ Opprettet søkere');
 
@@ -1184,6 +1406,7 @@ export async function seedAll() {
       MATCH (maria:Person {fornavn: 'Maria'})
       MATCH (lars:Person {fornavn: 'Lars'})
       MATCH (sophie:Person {fornavn: 'Sophie'})
+      MATCH (thomas:Person {fornavn: 'Thomas'})
 
       // Anna - vitnemål
       CREATE (anna)-[:HAR_DOKUMENTASJON]->(annaVitnemaal:Dokumentasjon {
@@ -1249,6 +1472,18 @@ export async function seedAll() {
         navn: 'IB Diploma Programme',
         utstedt: date('2023-07-05'),
         utsteder: 'International School Hamburg',
+        utdanningsnivaa: 'videregående',
+        aktiv: true,
+        opprettet: datetime()
+      })
+
+      // Thomas - vitnemål med realfag
+      CREATE (thomas)-[:HAR_DOKUMENTASJON]->(thomasVitnemaal:Dokumentasjon {
+        id: randomUUID(),
+        type: 'vitnemaal',
+        navn: 'Vitnemål videregående opplæring',
+        utstedt: date('2023-06-20'),
+        utsteder: 'Kristiansand katedralskole',
         utdanningsnivaa: 'videregående',
         aktiv: true,
         opprettet: datetime()
@@ -1464,6 +1699,242 @@ export async function seedAll() {
         opprettet: datetime()
       })
       CREATE (kar18)-[:GITT_I]->(fk2)
+    `);
+
+    // Karakterer for Thomas - realfagsvitnemål
+    await session.run(`
+      MATCH (thomas:Person {fornavn: 'Thomas'})
+      MATCH (thomas)-[:HAR_DOKUMENTASJON]->(thomasVitnemaal:Dokumentasjon {type: 'vitnemaal'})
+      MATCH (vg1200:Fagkode {kode: 'VG1200'})
+      MATCH (vg1330:Fagkode {kode: 'VG1330'})
+      MATCH (vg1400:Fagkode {kode: 'VG1400'})
+      MATCH (vg2500:Fagkode {kode: 'VG2500'})
+      MATCH (vg4000:Fagkode {kode: 'VG4000'})
+      MATCH (vg4001:Fagkode {kode: 'VG4001'})
+      MATCH (vg4005:Fagkode {kode: 'VG4005'})
+      MATCH (vg4600:Fagkode {kode: 'VG4600'})
+      MATCH (vf4700:Fagkode {kode: 'VF4700'})
+      MATCH (vf4900:Fagkode {kode: 'VF4900'})
+      MATCH (vt1110:Fagkode {kode: 'VT1110'})
+      MATCH (vt1121:Fagkode {kode: 'VT1121'})
+      MATCH (vt1125:Fagkode {kode: 'VT1125'})
+      MATCH (aa1010:Fagkode {kode: 'AA1010'})
+      MATCH (aa6010:Fagkode {kode: 'AA6010'})
+      MATCH (aa6210:Fagkode {kode: 'AA6210'})
+      MATCH (aa6227:Fagkode {kode: 'AA6227'})
+      MATCH (aa6230:Fagkode {kode: 'AA6230'})
+      MATCH (aa6514:Fagkode {kode: 'AA6514'})
+      MATCH (aa6524:Fagkode {kode: 'AA6524'})
+      MATCH (vl1410:Fagkode {kode: 'VL1410'})
+      MATCH (vl2270:Fagkode {kode: 'VL2270'})
+      MATCH (vl2300:Fagkode {kode: 'VL2300'})
+
+      // Engelsk - 4
+      CREATE (thomasVitnemaal)-[:INNEHOLDER {
+        karakter: '4',
+        karaktersystem: '1-6',
+        dato: date('2023-05-15'),
+        standpunkt: '4',
+        eksamen: null
+      }]->(vg1200)
+
+      // Matematikk 1MX - 6 (standpunkt) og 6 (eksamen)
+      CREATE (thomasVitnemaal)-[:INNEHOLDER {
+        karakter: '6',
+        karaktersystem: '1-6',
+        dato: date('2023-05-20'),
+        standpunkt: '6',
+        eksamen: '6'
+      }]->(vg1330)
+
+      // Naturfag - 5
+      CREATE (thomasVitnemaal)-[:INNEHOLDER {
+        karakter: '5',
+        karaktersystem: '1-6',
+        dato: date('2023-05-15'),
+        standpunkt: '5',
+        eksamen: null
+      }]->(vg1400)
+
+      // Samfunnslære - 3
+      CREATE (thomasVitnemaal)-[:INNEHOLDER {
+        karakter: '3',
+        karaktersystem: '1-6',
+        dato: date('2023-05-15'),
+        standpunkt: '3',
+        eksamen: null
+      }]->(vg2500)
+
+      // Norsk hovedmål - 2 (standpunkt) og 3 (eksamen)
+      CREATE (thomasVitnemaal)-[:INNEHOLDER {
+        karakter: '3',
+        karaktersystem: '1-6',
+        dato: date('2023-06-10'),
+        standpunkt: '2',
+        eksamen: '3'
+      }]->(vg4000)
+
+      // Norsk sidemål - 2 (begge)
+      CREATE (thomasVitnemaal)-[:INNEHOLDER {
+        karakter: '2',
+        karaktersystem: '1-6',
+        dato: date('2023-06-10'),
+        standpunkt: '2',
+        eksamen: '2'
+      }]->(vg4001)
+
+      // Norsk muntlig - 3
+      CREATE (thomasVitnemaal)-[:INNEHOLDER {
+        karakter: '3',
+        karaktersystem: '1-6',
+        dato: date('2023-06-15'),
+        standpunkt: '3',
+        eksamen: null
+      }]->(vg4005)
+
+      // Historie - 2
+      CREATE (thomasVitnemaal)-[:INNEHOLDER {
+        karakter: '2',
+        karaktersystem: '1-6',
+        dato: date('2023-05-15'),
+        standpunkt: '2',
+        eksamen: null
+      }]->(vg4600)
+
+      // Religion og etikk - 3
+      CREATE (thomasVitnemaal)-[:INNEHOLDER {
+        karakter: '3',
+        karaktersystem: '1-6',
+        dato: date('2023-05-15'),
+        standpunkt: '3',
+        eksamen: null
+      }]->(vf4700)
+
+      // Kroppsøving - 4
+      CREATE (thomasVitnemaal)-[:INNEHOLDER {
+        karakter: '4',
+        karaktersystem: '1-6',
+        dato: date('2023-05-15'),
+        standpunkt: '4',
+        eksamen: null
+      }]->(vf4900)
+
+      // Fransk 1 - ikke bestått
+      CREATE (thomasVitnemaal)-[:INNEHOLDER {
+        karakter: null,
+        karaktersystem: '1-6',
+        dato: date('2023-05-15'),
+        standpunkt: null,
+        eksamen: null
+      }]->(vt1110)
+
+      // Fransk 2 - 2 (eksamen)
+      CREATE (thomasVitnemaal)-[:INNEHOLDER {
+        karakter: '2',
+        karaktersystem: '1-6',
+        dato: date('2023-06-10'),
+        standpunkt: null,
+        eksamen: '2'
+      }]->(vt1121)
+
+      // Fransk muntlig - 4
+      CREATE (thomasVitnemaal)-[:INNEHOLDER {
+        karakter: '4',
+        karaktersystem: '1-6',
+        dato: date('2023-06-15'),
+        standpunkt: null,
+        eksamen: '4'
+      }]->(vt1125)
+
+      // Økonomi - 4
+      CREATE (thomasVitnemaal)-[:INNEHOLDER {
+        karakter: '4',
+        karaktersystem: '1-6',
+        dato: date('2023-05-15'),
+        standpunkt: '4',
+        eksamen: null
+      }]->(aa1010)
+
+      // Bedriftsøkonomi - 4
+      CREATE (thomasVitnemaal)-[:INNEHOLDER {
+        karakter: '4',
+        karaktersystem: '1-6',
+        dato: date('2023-05-15'),
+        standpunkt: '4',
+        eksamen: null
+      }]->(aa6010)
+
+      // Fysikk 2FY - 4
+      CREATE (thomasVitnemaal)-[:INNEHOLDER {
+        karakter: '4',
+        karaktersystem: '1-6',
+        dato: date('2023-05-15'),
+        standpunkt: '4',
+        eksamen: null
+      }]->(aa6210)
+
+      // Fysikk 3FY - 2 (standpunkt) og 3 (eksamen)
+      CREATE (thomasVitnemaal)-[:INNEHOLDER {
+        karakter: '3',
+        karaktersystem: '1-6',
+        dato: date('2023-06-10'),
+        standpunkt: '2',
+        eksamen: '3'
+      }]->(aa6227)
+
+      // Kjemi 2KJ - 4
+      CREATE (thomasVitnemaal)-[:INNEHOLDER {
+        karakter: '4',
+        karaktersystem: '1-6',
+        dato: date('2023-05-15'),
+        standpunkt: '4',
+        eksamen: null
+      }]->(aa6230)
+
+      // Matematikk 2MX - 5
+      CREATE (thomasVitnemaal)-[:INNEHOLDER {
+        karakter: '5',
+        karaktersystem: '1-6',
+        dato: date('2023-05-15'),
+        standpunkt: '5',
+        eksamen: null
+      }]->(aa6514)
+
+      // Matematikk 3MX - 4 (begge)
+      CREATE (thomasVitnemaal)-[:INNEHOLDER {
+        karakter: '4',
+        karaktersystem: '1-6',
+        dato: date('2023-06-10'),
+        standpunkt: '4',
+        eksamen: '4'
+      }]->(aa6524)
+
+      // Valgfag 1 - Deltatt
+      CREATE (thomasVitnemaal)-[:INNEHOLDER {
+        karakter: 'Deltatt',
+        karaktersystem: 'Bestått/Deltatt',
+        dato: date('2023-05-15'),
+        standpunkt: 'Deltatt',
+        eksamen: null
+      }]->(vl1410)
+
+      // Valgfag 2 - Deltatt
+      CREATE (thomasVitnemaal)-[:INNEHOLDER {
+        karakter: 'Deltatt',
+        karaktersystem: 'Bestått/Deltatt',
+        dato: date('2023-05-15'),
+        standpunkt: 'Deltatt',
+        eksamen: null
+      }]->(vl2270)
+
+      // Valgfag 3 - 4
+      CREATE (thomasVitnemaal)-[:INNEHOLDER {
+        karakter: '4',
+        karaktersystem: '1-6',
+        dato: date('2023-05-15'),
+        standpunkt: '4',
+        eksamen: null
+      }]->(vl2300)
     `);
 
     console.log('✅ Opprettet dokumentasjon og karakterdata');
