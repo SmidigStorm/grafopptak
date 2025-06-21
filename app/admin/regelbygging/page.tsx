@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import RangeringsTypeModal from '@/components/rangeringstype-modal';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -81,7 +81,7 @@ interface PoengType {
   aktiv: boolean;
 }
 
-export default function RegelbyggingPage() {
+function RegelbyggingPageContent() {
   const searchParams = useSearchParams();
   const utdanningstilbudId = searchParams.get('utdanningstilbudId');
   const opprett = searchParams.get('opprett') === 'true';
@@ -958,5 +958,13 @@ export default function RegelbyggingPage() {
         onSave={handleRangeringsTypeSave}
       />
     </div>
+  );
+}
+
+export default function RegelbyggingPage() {
+  return (
+    <Suspense fallback={<div>Laster...</div>}>
+      <RegelbyggingPageContent />
+    </Suspense>
   );
 }
