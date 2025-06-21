@@ -63,7 +63,7 @@ interface KvoteType {
 }
 
 interface RangeringType {
-  id: string;
+  id?: string;
   navn: string;
   type: string;
   beskrivelse?: string;
@@ -667,6 +667,7 @@ export default function RegelbyggingPage() {
                               size="sm"
                               className="h-7 w-7 p-0"
                               onClick={() =>
+                                item.id &&
                                 setDeleteConfirm({
                                   type: 'rangeringstype',
                                   id: item.id,
