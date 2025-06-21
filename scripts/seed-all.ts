@@ -581,6 +581,100 @@ export async function seedAll() {
     `);
     console.log('✅ Opprettet kravelementer');
 
+    // ========== LOGISKE NODER ==========
+    console.log('🧠 Oppretter logiske noder...');
+
+    await session.run(`
+      // Basis logiske noder for enkle krav
+      CREATE (logikk1:LogicalNode {
+        id: randomUUID(),
+        type: 'AND',
+        navn: 'UiO Informatikk Grunnkrav',
+        beskrivelse: 'Grunnleggende krav for UiO Informatikk',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (logikk2:LogicalNode {
+        id: randomUUID(),
+        type: 'OR',
+        navn: 'Matematikk R1 eller R2',
+        beskrivelse: 'Matematikk R1 eller R2 nivå',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (logikk3:LogicalNode {
+        id: randomUUID(),
+        type: 'OR',
+        navn: 'Realfag valgfritt',
+        beskrivelse: 'Fysikk 1 eller Biologi 1 eller Kjemi 1',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (logikk4:LogicalNode {
+        id: randomUUID(),
+        type: 'AND',
+        navn: 'NTNU Bygg Grunnkrav',
+        beskrivelse: 'Matematikk R1+R2 og Fysikk 1',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (logikk5:LogicalNode {
+        id: randomUUID(),
+        type: 'AND',
+        navn: 'Matematikk R1+R2',
+        beskrivelse: 'Både Matematikk R1 og R2',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (logikk6:LogicalNode {
+        id: randomUUID(),
+        type: 'AND',
+        navn: 'OsloMet Lærer Grunnkrav',
+        beskrivelse: 'Generell studiekompetanse og norsk',
+        aktiv: true,
+        opprettet: datetime()
+      })
+    `);
+
+    // Koble LogicalNodes til Kravelementer
+    await session.run(`
+      MATCH (logikk1:LogicalNode {navn: 'UiO Informatikk Grunnkrav'})
+      MATCH (logikk2:LogicalNode {navn: 'Matematikk R1 eller R2'})
+      MATCH (logikk3:LogicalNode {navn: 'Realfag valgfritt'})
+      MATCH (logikk4:LogicalNode {navn: 'NTNU Bygg Grunnkrav'})
+      MATCH (logikk5:LogicalNode {navn: 'Matematikk R1+R2'})
+      MATCH (logikk6:LogicalNode {navn: 'OsloMet Lærer Grunnkrav'})
+      
+      MATCH (gsk:Kravelement {type: 'generell-studiekompetanse'})
+      MATCH (matteR1:Kravelement {navn: 'Matematikk R1'})
+      MATCH (matteR2:Kravelement {navn: 'Matematikk R2'})
+      MATCH (fysikk:Kravelement {navn: 'Fysikk 1'})
+      MATCH (kjemi:Kravelement {navn: 'Kjemi 1'})
+      MATCH (norsk:Kravelement {type: 'sprakkunnskaper'})
+      
+      // UiO Informatikk: GSK AND (Matematikk R1 OR R2)
+      CREATE (logikk1)-[:EVALUERER]->(gsk)
+      CREATE (logikk1)-[:EVALUERER]->(logikk2)
+      CREATE (logikk2)-[:EVALUERER]->(matteR1)
+      CREATE (logikk2)-[:EVALUERER]->(matteR2)
+      
+      // NTNU Bygg: GSK AND (Matematikk R1+R2) AND Fysikk 1
+      CREATE (logikk4)-[:EVALUERER]->(gsk)
+      CREATE (logikk4)-[:EVALUERER]->(logikk5)
+      CREATE (logikk4)-[:EVALUERER]->(fysikk)
+      CREATE (logikk5)-[:EVALUERER]->(matteR1)
+      CREATE (logikk5)-[:EVALUERER]->(matteR2)
+      
+      // OsloMet Lærer: GSK AND Norsk
+      CREATE (logikk6)-[:EVALUERER]->(gsk)
+      CREATE (logikk6)-[:EVALUERER]->(norsk)
+      
+      // Realfag valgfritt eksempel (for fremtidig bruk)
+      CREATE (logikk3)-[:EVALUERER]->(fysikk)
+      CREATE (logikk3)-[:EVALUERER]->(kjemi)
+    `);
+    console.log('✅ Opprettet logiske noder');
+
     // ========== GRUNNLAG ==========
     console.log('🏗️ Oppretter grunnlag...');
 
@@ -1946,8 +2040,7 @@ export async function seedAll() {
     await session.run(`
       MATCH (uioInformatikk:Regelsett {navn: 'UiO Informatikk H25'})
       MATCH (vitnemaalVgs:Grunnlag {type: 'vitnemaal-vgs'})
-      MATCH (gsk:Kravelement {type: 'generell-studiekompetanse'})
-      MATCH (matteR1:Kravelement {type: 'spesifikk-fagkrav'})
+      MATCH (logikk1:LogicalNode {navn: 'UiO Informatikk Grunnkrav'})
       MATCH (ordinaer:KvoteType {type: 'ordinaer'})
       MATCH (konkurransepoeng:RangeringType {type: 'konkurransepoeng'})
 
@@ -1960,8 +2053,7 @@ export async function seedAll() {
       })
       CREATE (uioInformatikk)-[:HAR_OPPTAKSVEI]->(vei1)
       CREATE (vei1)-[:BASERT_PÅ]->(vitnemaalVgs)
-      CREATE (vei1)-[:KREVER]->(gsk)
-      CREATE (vei1)-[:KREVER]->(matteR1)
+      CREATE (vei1)-[:HAR_REGEL]->(logikk1)
       CREATE (vei1)-[:GIR_TILGANG_TIL]->(ordinaer)
       CREATE (vei1)-[:BRUKER_RANGERING]->(konkurransepoeng)
     `);
@@ -1970,9 +2062,7 @@ export async function seedAll() {
     await session.run(`
       MATCH (ntnuBygg:Regelsett {navn: 'NTNU Bygg- og miljøteknikk H25'})
       MATCH (vitnemaalVgs:Grunnlag {type: 'vitnemaal-vgs'})
-      MATCH (gsk:Kravelement {type: 'generell-studiekompetanse'})
-      MATCH (matteR1:Kravelement {type: 'spesifikk-fagkrav'})
-      MATCH (fysikk:Kravelement {type: 'spesifikk-fagkrav'})
+      MATCH (logikk4:LogicalNode {navn: 'NTNU Bygg Grunnkrav'})
       MATCH (ordinaer:KvoteType {type: 'ordinaer'})
       MATCH (konkurransepoeng:RangeringType {type: 'konkurransepoeng'})
 
@@ -1985,9 +2075,7 @@ export async function seedAll() {
       })
       CREATE (ntnuBygg)-[:HAR_OPPTAKSVEI]->(vei2)
       CREATE (vei2)-[:BASERT_PÅ]->(vitnemaalVgs)
-      CREATE (vei2)-[:KREVER]->(gsk)
-      CREATE (vei2)-[:KREVER]->(matteR1)
-      CREATE (vei2)-[:KREVER]->(fysikk)
+      CREATE (vei2)-[:HAR_REGEL]->(logikk4)
       CREATE (vei2)-[:GIR_TILGANG_TIL]->(ordinaer)
       CREATE (vei2)-[:BRUKER_RANGERING]->(konkurransepoeng)
     `);
@@ -1996,8 +2084,7 @@ export async function seedAll() {
     await session.run(`
       MATCH (oslometLaerer:Regelsett {navn: 'OsloMet Lærerutdanning 1-7 H25'})
       MATCH (vitnemaalVgs:Grunnlag {type: 'vitnemaal-vgs'})
-      MATCH (gsk:Kravelement {type: 'generell-studiekompetanse'})
-      MATCH (norsk:Kravelement {type: 'sprakkunnskaper'})
+      MATCH (logikk6:LogicalNode {navn: 'OsloMet Lærer Grunnkrav'})
       MATCH (ordinaer:KvoteType {type: 'ordinaer'})
       MATCH (konkurransepoeng:RangeringType {type: 'konkurransepoeng'})
 
@@ -2010,8 +2097,7 @@ export async function seedAll() {
       })
       CREATE (oslometLaerer)-[:HAR_OPPTAKSVEI]->(vei3)
       CREATE (vei3)-[:BASERT_PÅ]->(vitnemaalVgs)
-      CREATE (vei3)-[:KREVER]->(gsk)
-      CREATE (vei3)-[:KREVER]->(norsk)
+      CREATE (vei3)-[:HAR_REGEL]->(logikk6)
       CREATE (vei3)-[:GIR_TILGANG_TIL]->(ordinaer)
       CREATE (vei3)-[:BRUKER_RANGERING]->(konkurransepoeng)
     `);

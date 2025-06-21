@@ -19,7 +19,9 @@ graph TD
     %% Beslutningstre struktur (ny tilnærming)
     Regelsett -->|HAR_OPPTAKSVEI| OpptaksVei
     OpptaksVei -->|BASERT_PÅ| Grunnlag
-    OpptaksVei -->|KREVER| Kravelement
+    OpptaksVei -->|HAR_REGEL| LogicalNode
+    LogicalNode -->|EVALUERER| Kravelement
+    LogicalNode -->|EVALUERER| LogicalNode
     OpptaksVei -->|GIR_TILGANG_TIL| KvoteType
     OpptaksVei -->|BRUKER_RANGERING| RangeringType
 
@@ -261,6 +263,27 @@ CREATE CONSTRAINT grunnlag_id FOR (g:Grunnlag) REQUIRE g.id IS UNIQUE;
 
 ```cypher
 CREATE CONSTRAINT kravelement_id FOR (ke:Kravelement) REQUIRE ke.id IS UNIQUE;
+```
+
+### 🧠 LogicalNode (Boolean Logikk)
+
+**Node label:** `LogicalNode`
+
+**Properties:**
+
+- `id` (string, required, unique): Unik identifikator
+- `navn` (string, required): Beskrivende navn for regelen (f.eks. "UiO Informatikk Grunnkrav")
+- `type` (string, required): Logisk operasjon ("AND", "OR", "NOT")
+- `beskrivelse` (string): Forklaring av regelens formål
+- `aktiv` (boolean): Om regelen er aktiv
+- `opprettet` (datetime): Når regelen ble opprettet
+
+**Beskrivelse:** LogicalNode implementerer boolean logikk for komplekse opptakskrav. Følger Neo4j beste praksiser for regel-motorer ved å separere logikk fra data.
+
+**Constraints:**
+
+```cypher
+CREATE CONSTRAINT logicalnode_id FOR (ln:LogicalNode) REQUIRE ln.id IS UNIQUE;
 ```
 
 ### 📊 KvoteType (Standard)
@@ -556,35 +579,38 @@ Et regelsett bygges opp som en tre-struktur hvor hver OpptaksVei definerer en ko
 3. **KvoteType** - Hvilken kvote søker konkurrerer i
 4. **RangeringType** - Hvordan søkere rangeres innenfor kvoten
 
-**Eksempel på beslutningstre med OpptaksVeier:**
+**Eksempel på beslutningstre med LogicalNode:**
 
 ```
 📜 Regelsett: "NTNU Bygg- og miljøteknikk H25"
 
-├── 🛣️ OpptaksVei: "Førstegangsvitnemål - NTNU Bygg H25"
-│   ├── 📋 Grunnlag: Førstegangsvitnemål videregående
-│   ├── ✅ Krav: GSK + Matematikk R1+R2 + Fysikk 1 + Alder ≤21
-│   ├── 🎯 Kvote: Førstegangsvitnemål-kvote
-│   └── 📊 Rangering: Karaktersnitt + realfagspoeng
+└── 🛣️ OpptaksVei: "Ordinær vei - NTNU Bygg"
+    ├── 📋 Grunnlag: Vitnemål videregående
+    ├── 🧠 LogicalNode: "NTNU Bygg Grunnkrav" (AND)
+    │   ├── 🧠 EVALUERER → "Generell studiekompetanse"
+    │   ├── 🧠 EVALUERER → "Fysikk 1"
+    │   └── 🧠 EVALUERER → LogicalNode: "Matematikk R1+R2" (AND)
+    │       ├── 🧠 EVALUERER → "Matematikk R1"
+    │       └── 🧠 EVALUERER → "Matematikk R2"
+    ├── 🎯 Kvote: Ordinær kvote
+    └── 📊 Rangering: Konkurransepoeng
 
-├── 🛣️ OpptaksVei: "Ordinært vitnemål - NTNU Bygg H25"
-│   ├── 📋 Grunnlag: Ordinært vitnemål videregående
-│   ├── ✅ Krav: GSK + Matematikk R1+R2 + Fysikk 1
-│   ├── 🎯 Kvote: Ordinær kvote
-│   └── 📊 Rangering: Karaktersnitt + realfagspoeng + alderspoeng
+📜 Regelsett: "UiO Informatikk H25"
 
-├── 🛣️ OpptaksVei: "Fagbrev - NTNU Bygg H25"
-│   ├── 📋 Grunnlag: Fagbrev
-│   ├── ✅ Krav: Relevant fagbrev + Matematikk R1
-│   ├── 🎯 Kvote: Ordinær kvote
-│   └── 📊 Rangering: Fagbrev + realfagspoeng
-
-└── 🛣️ OpptaksVei: "Forkurs - NTNU Bygg H25"
-    ├── 📋 Grunnlag: Forkurs ingeniør
-    ├── ✅ Krav: Fullført forkurs
-    ├── 🎯 Kvote: Forkurskvote
-    └── 📊 Rangering: Kun forkurskarakterer
+└── 🛣️ OpptaksVei: "Ordinær vei - UiO Informatikk"
+    ├── 📋 Grunnlag: Vitnemål videregående
+    ├── 🧠 LogicalNode: "UiO Informatikk Grunnkrav" (AND)
+    │   ├── 🧠 EVALUERER → "Generell studiekompetanse"
+    │   └── 🧠 EVALUERER → LogicalNode: "Matematikk R1 eller R2" (OR)
+    │       ├── 🧠 EVALUERER → "Matematikk R1"
+    │       └── 🧠 EVALUERER → "Matematikk R2"
+    ├── 🎯 Kvote: Ordinær kvote
+    └── 📊 Rangering: Konkurransepoeng
 ```
+
+**Regeluttrykk:**
+- **NTNU Bygg:** "Generell studiekompetanse OG Fysikk 1 OG (Matematikk R2 OG Matematikk R1)"
+- **UiO Informatikk:** "Generell studiekompetanse OG (Matematikk R2 ELLER Matematikk R1)"
 
 ## ⚡ Gjenbruk og tilpasning
 
@@ -646,10 +672,11 @@ RETURN count(DISTINCT fk) > 0 as oppfyllerKrav;
 **Finn alle utdanningstilbud med mattekrav:**
 
 ```cypher
-// Via OpptaksVei-struktur
+// Via OpptaksVei med LogicalNode-struktur
 MATCH (u:Utdanningstilbud)-[:HAR_REGELSETT]->(r:Regelsett)
       -[:HAR_OPPTAKSVEI]->(ov:OpptaksVei)
-      -[:KREVER]->(ke:Kravelement)
+      -[:HAR_REGEL]->(ln:LogicalNode)
+      -[:EVALUERER*]->(ke:Kravelement)
 WHERE ke.type CONTAINS "matematikk"
 RETURN u;
 
@@ -665,12 +692,26 @@ RETURN u;
 **Finn kvalifiserende OpptaksVeier:**
 
 ```cypher
-// Alle OpptaksVeier som krever Matematikk R2
+// Alle OpptaksVeier som krever Matematikk R2 (via LogicalNode)
 MATCH (u:Utdanningstilbud)-[:HAR_REGELSETT]->(r:Regelsett)
       -[:HAR_OPPTAKSVEI]->(ov:OpptaksVei)
-      -[:KREVER]->(ke:Kravelement)
+      -[:HAR_REGEL]->(ln:LogicalNode)
+      -[:EVALUERER*]->(ke:Kravelement)
 WHERE ke.type = "matematikk-r2"
-RETURN u.navn, ov.navn, ke.navn;
+RETURN u.navn, ov.navn, ln.navn, ke.navn;
+```
+
+**Bygg regeluttrykk for en OpptaksVei:**
+
+```cypher
+// Hent hierarkisk LogicalNode struktur for menneskelesbar visning
+MATCH (ov:OpptaksVei {id: $opptaksVeiId})-[:HAR_REGEL]->(rootNode:LogicalNode)
+CALL apoc.path.subgraphAll(rootNode, {
+  relationshipFilter: "EVALUERER>",
+  labelFilter: "+LogicalNode|+Kravelement"
+}) 
+YIELD nodes, relationships
+RETURN nodes, relationships;
 ```
 
 **Fordeler med OpptaksVei-struktur:**
@@ -739,11 +780,23 @@ RETURN u.navn, ov.navn, ke.navn;
 
 **Beskrivelse:** En opptaksvei er basert på et spesifikt grunnlag
 
-### OpptaksVei KREVER Kravelement
+### OpptaksVei HAR_REGEL LogicalNode
 
 **Properties:** (ingen)
 
-**Beskrivelse:** En opptaksvei krever at spesifikke kravelementer er oppfylt
+**Beskrivelse:** En opptaksvei har en LogicalNode som definerer de komplekse boolean kravene. Erstatter det gamle [:KREVER] mønsteret.
+
+### LogicalNode EVALUERER Kravelement
+
+**Properties:** (ingen)
+
+**Beskrivelse:** En LogicalNode evaluerer spesifikke kravelementer som del av boolean logikken
+
+### LogicalNode EVALUERER LogicalNode
+
+**Properties:** (ingen)
+
+**Beskrivelse:** LogicalNodes kan være hierarkiske, hvor en parent-node evaluerer child-nodes for å bygge komplekse boolean uttrykk
 
 ### OpptaksVei GIR_TILGANG_TIL KvoteType
 

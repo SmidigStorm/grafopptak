@@ -273,3 +273,80 @@ Kravelementer kan oppfylles på tre måter:
 1. Via faggruppe (f.eks. "Matematikk R1-nivå")
 2. Via spesifikk fagkode
 3. Via dokumentasjonstype (f.eks. politiattest)
+
+## 🧠 LogicalNode Pattern - Boolean Logikk for Opptak
+
+### 📋 **LogicalNode**
+
+LogicalNode implementerer boolean logikk (AND/OR/NOT) for komplekse opptakskrav, basert på Neo4j beste praksiser for regel-motorer.
+
+**Attributter:**
+- `id`: Unik identifikator
+- `navn`: Beskrivende navn for regelen
+- `type`: Logisk operasjon ("AND", "OR", "NOT")
+- `beskrivelse`: Forklaring av regelens formål
+- `aktiv`: Om regelen er aktiv
+
+**Status:** ✅ Fullt implementert med API og seeding
+
+### 🔗 LogicalNode Relasjoner
+
+**Implementerte relasjoner:**
+1. **OpptaksVei** `HAR_REGEL` **LogicalNode** ✅
+2. **LogicalNode** `EVALUERER` **Kravelement** ✅
+3. **LogicalNode** `EVALUERER` **LogicalNode** (hierarkisk) ✅
+
+**Relasjonsmønster:**
+```
+OpptaksVei -[:HAR_REGEL]-> LogicalNode -[:EVALUERER]-> Kravelement
+                        └-[:EVALUERER]-> LogicalNode (barn-node)
+```
+
+### 📊 Konkrete Eksempler
+
+**UiO Informatikk:**
+```
+UiO Informatikk Grunnkrav (AND)
+├── EVALUERER → Generell studiekompetanse
+└── EVALUERER → Matematikk R1 eller R2 (OR)
+    ├── EVALUERER → Matematikk R1
+    └── EVALUERER → Matematikk R2
+```
+**Regeluttrykk:** "Generell studiekompetanse OG (Matematikk R2 ELLER Matematikk R1)"
+
+**NTNU Bygg:**
+```
+NTNU Bygg Grunnkrav (AND)
+├── EVALUERER → Generell studiekompetanse
+├── EVALUERER → Fysikk 1
+└── EVALUERER → Matematikk R1+R2 (AND)
+    ├── EVALUERER → Matematikk R1
+    └── EVALUERER → Matematikk R2
+```
+**Regeluttrykk:** "Generell studiekompetanse OG Fysikk 1 OG (Matematikk R2 OG Matematikk R1)"
+
+### 🚀 API Støtte
+
+**Krav-visning API:**
+- `GET /api/opptaksveier/{id}/krav`
+- Returnerer both hierarkisk struktur og menneskelesbart regeluttrykk
+- Rekursiv traversering av LogicalNode-treet
+- Automatisk språkkonvertering: AND→OG, OR→ELLER, NOT→IKKE
+
+### 💡 Fordeler med LogicalNode Pattern
+
+1. **Fleksibilitet**: Støtter vilkårlig komplekse boolean uttrykk
+2. **Maintainability**: Enkel å endre og utvide regler
+3. **Performance**: Effektiv traversering i grafdatabase
+4. **Readability**: Klar separasjon mellom logikk og data
+5. **Reusability**: LogicalNodes kan gjenbrukes på tvers av opptaksveier
+6. **Neo4j Best Practice**: Følger anbefalte mønstre for regel-motorer
+
+### 🔄 Migrering fra [:KREVER] til [:HAR_REGEL]
+
+Det gamle mønsteret med direkte `OpptaksVei -[:KREVER]-> Kravelement` er erstattet med:
+```
+OpptaksVei -[:HAR_REGEL]-> LogicalNode -[:EVALUERER]-> Kravelement
+```
+
+Dette gir betydelig mer fleksibilitet for komplekse opptakskrav med boolean logikk.

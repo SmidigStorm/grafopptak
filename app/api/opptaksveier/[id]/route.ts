@@ -1,6 +1,51 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/neo4j';
 
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const session = getSession();
+
+  try {
+    const query = `
+      MATCH (ov:OpptaksVei {id: $id})
+      OPTIONAL MATCH (r:Regelsett)-[:HAR_OPPTAKSVEI]->(ov)
+      OPTIONAL MATCH (ov)-[:BASERT_PÅ]->(g:Grunnlag)
+      OPTIONAL MATCH (ov)-[:GIR_TILGANG_TIL]->(kv:KvoteType)
+      OPTIONAL MATCH (ov)-[:BRUKER_RANGERING]->(rt:RangeringType)
+      OPTIONAL MATCH (ov)-[:HAR_REGEL]->(ln:LogicalNode)
+      RETURN ov, r, g, kv, rt, ln
+    `;
+
+    const result = await session.run(query, { id });
+
+    if (result.records.length === 0) {
+      return NextResponse.json({ error: 'Opptaksvei ikke funnet' }, { status: 404 });
+    }
+
+    const record = result.records[0];
+    const opptaksvei = record.get('ov').properties;
+    const regelsett = record.get('r')?.properties;
+    const grunnlag = record.get('g')?.properties;
+    const kvotetype = record.get('kv')?.properties;
+    const rangeringstype = record.get('rt')?.properties;
+    const logicalNode = record.get('ln')?.properties;
+
+    return NextResponse.json({
+      ...opptaksvei,
+      regelsett,
+      grunnlag,
+      kvotetype,
+      rangeringstype,
+      logicalNode
+    });
+  } catch (error) {
+    console.error('Error fetching opptaksvei:', error);
+    return NextResponse.json({ error: 'Failed to fetch opptaksvei' }, { status: 500 });
+  } finally {
+    await session.close();
+  }
+}
+
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const session = getSession();
