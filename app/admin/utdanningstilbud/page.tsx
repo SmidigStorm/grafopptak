@@ -575,20 +575,25 @@ export default function UtdanningstilbudPage() {
                     </TableCell>
                     <TableCell>
                       <div className="flex space-x-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          title={
-                            tilbud.antallRegelsett > 0 ? 'Rediger regelsett' : 'Opprett regelsett'
-                          }
-                          onClick={() => aapneRegelssettAdministrasjon(tilbud)}
-                        >
-                          {tilbud.antallRegelsett > 0 ? (
-                            <Edit className="h-4 w-4" />
-                          ) : (
-                            <Plus className="h-4 w-4" />
-                          )}
-                        </Button>
+                        {tilbud.antallRegelsett > 0 ? (
+                          <Button
+                            size="sm"
+                            className="bg-blue-600 text-white hover:bg-blue-700"
+                            onClick={() => aapneRegelssettAdministrasjon(tilbud)}
+                          >
+                            <Settings className="h-4 w-4 mr-1" />
+                            Administrer regelsett
+                          </Button>
+                        ) : (
+                          <Button
+                            size="sm"
+                            className="bg-green-600 text-white hover:bg-green-700"
+                            onClick={() => aapneRegelssettAdministrasjon(tilbud)}
+                          >
+                            <Plus className="h-4 w-4 mr-1" />
+                            Opprett regelsett
+                          </Button>
+                        )}
                         <Button
                           variant="outline"
                           size="sm"

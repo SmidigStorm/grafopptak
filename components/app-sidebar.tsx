@@ -85,9 +85,9 @@ const adminMenuGroups: MenuGroup[] = [
         href: '/admin/regelbygging',
       },
       {
-        title: 'Fagkoder',
+        title: 'Krav og Fagkoder',
         icon: Database,
-        href: '/admin/fagkoder',
+        href: '/admin/krav-og-fagkoder',
       },
     ],
   },
