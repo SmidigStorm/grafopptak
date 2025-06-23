@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/neo4j';
+import { buildLogicalExpression, LogicalExpression } from '@/lib/logicalExpression';
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -10,6 +11,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const regelSettResult = await session.run(`MATCH (r:Regelsett {id: $id}) RETURN r`, { id });
 
     if (regelSettResult.records.length === 0) {
+      await session.close();
       return NextResponse.json({ error: 'Regelsett ikke funnet' }, { status: 404 });
     }
 
@@ -23,7 +25,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       OPTIONAL MATCH (ov)-[:HAR_REGEL]->(ln:LogicalNode)
       OPTIONAL MATCH (ln)-[:EVALUERER]->(k:Kravelement)
       RETURN ov, g.navn as grunnlag, kvote.navn as kvote, r_type.navn as rangering,
-             ln.navn as logicalNode, ln.beskrivelse as logicalNodeBeskrivelse, ln.type as logicalNodeType,
+             ln.id as logicalNodeId, ln.navn as logicalNode, ln.beskrivelse as logicalNodeBeskrivelse, ln.type as logicalNodeType,
              collect(DISTINCT k.navn) as krav
       ORDER BY ov.navn
       `,
@@ -33,19 +35,57 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const regelSettData = regelSettResult.records[0].get('r').properties;
 
     // Bygg OpptaksVeier fra separat query
-    const opptaksVeier = opptaksVeierResult.records.map((record) => ({
-      id: record.get('ov').properties.id,
-      navn: record.get('ov').properties.navn,
-      beskrivelse: record.get('ov').properties.beskrivelse,
-      aktiv: record.get('ov').properties.aktiv,
-      grunnlag: record.get('grunnlag'),
-      kvote: record.get('kvote'),
-      rangering: record.get('rangering'),
-      logicalNode: record.get('logicalNode'),
-      logicalNodeBeskrivelse: record.get('logicalNodeBeskrivelse'),
-      logicalNodeType: record.get('logicalNodeType') || 'AND',
-      krav: record.get('krav').filter((k: string) => k !== null),
-    }));
+    const opptaksVeier = await Promise.all(
+      opptaksVeierResult.records.map(async (record) => {
+        const logicalNodeId = record.get('logicalNodeId');
+        const logicalNodeName = record.get('logicalNode');
+        let logicalExpression: LogicalExpression | null = null;
+
+        // Build the logical expression if a LogicalNode exists
+        if (logicalNodeId) {
+          logicalExpression = await buildLogicalExpression(session, logicalNodeId);
+        }
+
+        // If no logical expression was built but we have krav, create a simple expression
+        const krav = record.get('krav').filter((k: string) => k !== null);
+        if (!logicalExpression && krav.length > 0) {
+          if (krav.length === 1) {
+            logicalExpression = {
+              type: 'REQUIREMENT',
+              requirementId: krav[0],
+              requirementName: krav[0],
+            };
+          } else {
+            logicalExpression = {
+              type: 'GROUP',
+              operator: 'AND',
+              children: krav.map((k: string) => ({
+                type: 'REQUIREMENT' as const,
+                requirementId: k,
+                requirementName: k,
+              })),
+            };
+          }
+        }
+
+        return {
+          id: record.get('ov').properties.id,
+          navn: record.get('ov').properties.navn,
+          beskrivelse: record.get('ov').properties.beskrivelse,
+          aktiv: record.get('ov').properties.aktiv,
+          grunnlag: record.get('grunnlag'),
+          kvote: record.get('kvote'),
+          rangering: record.get('rangering'),
+          logicalNode: record.get('logicalNode'),
+          logicalNodeBeskrivelse: record.get('logicalNodeBeskrivelse'),
+          logicalNodeType: record.get('logicalNodeType') || 'AND',
+          krav: krav,
+          logicalExpression: logicalExpression || { type: 'GROUP', operator: 'AND', children: [] },
+        };
+      })
+    );
+
+    await session.close();
 
     const regelsett = {
       ...regelSettData,
@@ -55,9 +95,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     return NextResponse.json(regelsett);
   } catch (error) {
     console.error('Feil ved henting av regelsett:', error);
-    return NextResponse.json({ error: 'Feil ved henting av regelsett' }, { status: 500 });
-  } finally {
     await session.close();
+    return NextResponse.json({ error: 'Feil ved henting av regelsett' }, { status: 500 });
   }
 }
 

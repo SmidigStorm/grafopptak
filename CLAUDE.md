@@ -56,11 +56,19 @@
 
 ## Git og Commit-praksis
 
-- **Test når relevant**: Kjør `npm run db:reset` kun ved database/seeding-endringer
-- **Commit ofte**: Etter hver større endring, ikke i store batches
+**VIKTIG: Trunk-based Development**
+
+- **Commit ofte**: Etter hver fullførte delkomponent (API endpoint, frontend komponent, seeding, etc.)
+- **Små commits**: En commit per feature-del (f.eks. "Add POST endpoint for opptaksveier" eller "Implement LogicalExpressionBuilder component")
+- **Ferdig kode**: Commit kun kode som kompilerer og fungerer - aldri halvferdige implementasjoner
 - **Beskrivende meldinger**: Forklar hva og hvorfor, ikke bare hva
 - **Push etter commit**: Hold remote oppdatert
-- **Ikke lag nye strukturer**: Følg eksisterende patterns i CLAUDE.md
+- **Test når relevant**: Kjør `npm run db:reset` kun ved database/seeding-endringer
+- **Eksempler på gode commits**:
+  - "Add nested LogicalExpression utility library"
+  - "Implement POST endpoint for nested opptaksveier"
+  - "Add LogicalExpressionBuilder React component"
+  - "Update database seeding with LogicalNode constraints"
 
 ## Database
 
