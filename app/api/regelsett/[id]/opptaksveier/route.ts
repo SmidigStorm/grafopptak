@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/neo4j';
+import {
+  LogicalExpression,
+  saveLogicalExpression,
+  extractRequirementIds,
+} from '@/lib/logicalExpression';
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id: regelsetId } = await params;
@@ -16,6 +21,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       rangeringId,
       aktiv = true,
       logicalNodeType = 'AND',
+      logicalExpression,
     } = body;
 
     // Validate required fields
@@ -58,19 +64,40 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       );
     }
 
+    // Determine final kravIds and LogicalExpression to use
+    let finalKravIds = kravIds;
+    let finalLogicalExpression = logicalExpression;
+
+    // If logicalExpression is provided, use that and extract kravIds from it
+    if (logicalExpression) {
+      finalKravIds = extractRequirementIds(logicalExpression);
+      finalLogicalExpression = logicalExpression;
+    } else if (kravIds.length > 0) {
+      // If only kravIds provided, create simple LogicalExpression
+      finalLogicalExpression = {
+        type: 'GROUP' as const,
+        operator: logicalNodeType as 'AND' | 'OR',
+        children: finalKravIds.map((kravId) => ({
+          type: 'REQUIREMENT' as const,
+          requirementId: kravId,
+          requirementName: `Krav ${kravId}`, // Will be updated when we validate
+        })),
+      };
+    }
+
     // Validate krav if provided
-    if (kravIds.length > 0) {
+    if (finalKravIds.length > 0) {
       const kravCheck = await session.run(
         `
         UNWIND $kravIds as kravId
         MATCH (k:Kravelement {id: kravId})
         RETURN count(k) as count
       `,
-        { kravIds }
+        { kravIds: finalKravIds }
       );
 
       const foundKrav = kravCheck.records[0].get('count').toNumber();
-      if (foundKrav !== kravIds.length) {
+      if (foundKrav !== finalKravIds.length) {
         return NextResponse.json({ error: 'En eller flere krav finnes ikke' }, { status: 400 });
       }
     }
@@ -108,24 +135,24 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const opptaksVei = result.records[0].get('ov').properties;
 
     // Add LogicalNode with requirements if any exist
-    if (kravIds.length > 0) {
+    if (finalLogicalExpression && finalKravIds.length > 0) {
+      const logicalNodeId = await saveLogicalExpression(
+        session,
+        finalLogicalExpression,
+        `${navn} - Krav`
+      );
+
+      // Connect the OpptaksVei to the root LogicalNode
       await session.run(
         `
-        MATCH (ov:OpptaksVei {id: $id})
-        CREATE (ln:LogicalNode {
-          id: randomUUID(),
-          navn: "Automatisk opprettet LogicalNode",
-          beskrivelse: "Automatisk opprettet logical node",
-          type: $logicalNodeType,
-          opprettet: datetime()
-        })
+        MATCH (ov:OpptaksVei {id: $opptaksVeiId})
+        MATCH (ln:LogicalNode {id: $logicalNodeId})
         CREATE (ov)-[:HAR_REGEL]->(ln)
-        WITH ln
-        UNWIND $kravIds as kravId
-        MATCH (k:Kravelement {id: kravId})
-        CREATE (ln)-[:EVALUERER]->(k)
-      `,
-        { id: opptaksVei.id, kravIds, logicalNodeType }
+        `,
+        {
+          opptaksVeiId: opptaksVei.id,
+          logicalNodeId,
+        }
       );
     }
 
@@ -136,10 +163,11 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         navn: opptaksVei.navn,
         beskrivelse: opptaksVei.beskrivelse,
         grunnlag: grunnlagId,
-        krav: kravIds,
+        krav: finalKravIds,
         kvote: kvoteId,
         rangering: rangeringId,
         logicalNodeType: logicalNodeType,
+        logicalExpression: finalLogicalExpression,
         aktiv: opptaksVei.aktiv,
         opprettet: opptaksVei.opprettet,
       },
