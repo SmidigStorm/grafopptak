@@ -120,6 +120,9 @@ export class DatabaseAdmin {
       await session.run(
         'CREATE CONSTRAINT rangeringimplementering_id IF NOT EXISTS FOR (ri:RangeringImplementering) REQUIRE ri.id IS UNIQUE'
       );
+      await session.run(
+        'CREATE CONSTRAINT logicalnode_id IF NOT EXISTS FOR (ln:LogicalNode) REQUIRE ln.id IS UNIQUE'
+      );
 
       console.log('✅ Alle constraints opprettet');
     } catch (error) {
@@ -150,6 +153,7 @@ export class DatabaseAdmin {
         'OpptaksVei',
         'Grunnlag',
         'Kravelement',
+        'LogicalNode',
         'KvoteType',
         'RangeringType',
         'GrunnlagImplementering',
