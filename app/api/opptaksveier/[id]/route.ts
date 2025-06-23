@@ -13,7 +13,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       OPTIONAL MATCH (ov)-[:GIR_TILGANG_TIL]->(kv:KvoteType)
       OPTIONAL MATCH (ov)-[:BRUKER_RANGERING]->(rt:RangeringType)
       OPTIONAL MATCH (ov)-[:HAR_REGEL]->(ln:LogicalNode)
-      RETURN ov, r, g, kv, rt, ln
+      OPTIONAL MATCH (ln)-[:EVALUERER]->(k:Kravelement)
+      RETURN ov, r, g, kv, rt, ln, collect(DISTINCT k.id) as krav
     `;
 
     const result = await session.run(query, { id });
@@ -29,6 +30,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const kvotetype = record.get('kv')?.properties;
     const rangeringstype = record.get('rt')?.properties;
     const logicalNode = record.get('ln')?.properties;
+    const krav = record.get('krav').filter((k: string) => k);
 
     return NextResponse.json({
       ...opptaksvei,
@@ -36,7 +38,9 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       grunnlag,
       kvotetype,
       rangeringstype,
-      logicalNode
+      logicalNode,
+      krav,
+      logicalNodeType: logicalNode?.type || 'AND',
     });
   } catch (error) {
     console.error('Error fetching opptaksvei:', error);
@@ -52,7 +56,16 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
   try {
     const body = await request.json();
-    const { navn, beskrivelse, grunnlagId, kravIds, kvoteId, rangeringId, aktiv } = body;
+    const {
+      navn,
+      beskrivelse,
+      grunnlagId,
+      kravIds,
+      kvoteId,
+      rangeringId,
+      aktiv,
+      logicalNodeType = 'AND',
+    } = body;
 
     // Check if opptaksvei exists
     const opptaksVeiCheck = await session.run('MATCH (ov:OpptaksVei {id: $id}) RETURN ov', { id });
@@ -132,25 +145,34 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     }
 
     if (kravIds !== undefined) {
-      // Remove existing krav relationships
+      // Remove existing LogicalNode and relationships
       await session.run(
         `
-        MATCH (ov:OpptaksVei {id: $id})-[r:KREVER]->()
-        DELETE r
+        MATCH (ov:OpptaksVei {id: $id})-[r:HAR_REGEL]->(ln:LogicalNode)
+        DETACH DELETE ln
       `,
         { id }
       );
 
-      // Add new krav relationships
+      // Create new LogicalNode with requirements if any exist
       if (kravIds.length > 0) {
         await session.run(
           `
           MATCH (ov:OpptaksVei {id: $id})
+          CREATE (ln:LogicalNode {
+            id: randomUUID(),
+            navn: ov.navn + " - LogicalNode",
+            beskrivelse: "Automatisk opprettet logical node for " + ov.navn,
+            type: $logicalNodeType,
+            opprettet: datetime()
+          })
+          CREATE (ov)-[:HAR_REGEL]->(ln)
+          WITH ln
           UNWIND $kravIds as kravId
           MATCH (k:Kravelement {id: kravId})
-          CREATE (ov)-[:KREVER]->(k)
+          CREATE (ln)-[:EVALUERER]->(k)
         `,
-          { id, kravIds }
+          { id, kravIds, logicalNodeType }
         );
       }
     }
@@ -160,10 +182,11 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       `
       MATCH (ov:OpptaksVei {id: $id})
       OPTIONAL MATCH (ov)-[:BASERT_PÅ]->(g:Grunnlag)
-      OPTIONAL MATCH (ov)-[:KREVER]->(k:Kravelement)
+      OPTIONAL MATCH (ov)-[:HAR_REGEL]->(ln:LogicalNode)
+      OPTIONAL MATCH (ln)-[:EVALUERER]->(k:Kravelement)
       OPTIONAL MATCH (ov)-[:GIR_TILGANG_TIL]->(kv:KvoteType)
       OPTIONAL MATCH (ov)-[:BRUKER_RANGERING]->(rt:RangeringType)
-      RETURN ov, g.id as grunnlag, collect(k.id) as krav, kv.id as kvote, rt.id as rangering
+      RETURN ov, g.id as grunnlag, collect(DISTINCT k.id) as krav, kv.id as kvote, rt.id as rangering, ln.type as logicalNodeType
     `,
       { id }
     );
@@ -179,6 +202,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       krav: record.get('krav').filter((k: string) => k),
       kvote: record.get('kvote'),
       rangering: record.get('rangering'),
+      logicalNodeType: record.get('logicalNodeType') || 'AND',
       aktiv: opptaksVei.aktiv,
       opprettet: opptaksVei.opprettet,
     });

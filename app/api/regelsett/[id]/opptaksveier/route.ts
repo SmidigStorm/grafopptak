@@ -15,6 +15,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       kvoteId,
       rangeringId,
       aktiv = true,
+      logicalNodeType = 'AND',
     } = body;
 
     // Validate required fields
@@ -74,8 +75,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       }
     }
 
-    // Create the OpptaksVei
-    const createQuery = `
+    // Create the OpptaksVei first
+    const createOpptaksVeiQuery = `
       MATCH (r:Regelsett {id: $regelsetId}),
             (g:Grunnlag {id: $grunnlagId}),
             (kv:KvoteType {id: $kvoteId}),
@@ -91,31 +92,42 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       CREATE (ov)-[:BASERT_PÅ]->(g)
       CREATE (ov)-[:GIR_TILGANG_TIL]->(kv)
       CREATE (ov)-[:BRUKER_RANGERING]->(rt)
-      ${
-        kravIds.length > 0
-          ? `
-      WITH ov
-      UNWIND $kravIds as kravId
-      MATCH (k:Kravelement {id: kravId})
-      CREATE (ov)-[:KREVER]->(k)
-      `
-          : ''
-      }
       RETURN ov
     `;
 
-    const result = await session.run(createQuery, {
+    const result = await session.run(createOpptaksVeiQuery, {
       regelsetId,
       navn,
       beskrivelse,
       grunnlagId,
       kvoteId,
       rangeringId,
-      kravIds,
       aktiv,
     });
 
     const opptaksVei = result.records[0].get('ov').properties;
+
+    // Add LogicalNode with requirements if any exist
+    if (kravIds.length > 0) {
+      await session.run(
+        `
+        MATCH (ov:OpptaksVei {id: $id})
+        CREATE (ln:LogicalNode {
+          id: randomUUID(),
+          navn: "Automatisk opprettet LogicalNode",
+          beskrivelse: "Automatisk opprettet logical node",
+          type: $logicalNodeType,
+          opprettet: datetime()
+        })
+        CREATE (ov)-[:HAR_REGEL]->(ln)
+        WITH ln
+        UNWIND $kravIds as kravId
+        MATCH (k:Kravelement {id: kravId})
+        CREATE (ln)-[:EVALUERER]->(k)
+      `,
+        { id: opptaksVei.id, kravIds, logicalNodeType }
+      );
+    }
 
     // Return the created OpptaksVei with relationships
     return NextResponse.json(
@@ -127,6 +139,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         krav: kravIds,
         kvote: kvoteId,
         rangering: rangeringId,
+        logicalNodeType: logicalNodeType,
         aktiv: opptaksVei.aktiv,
         opprettet: opptaksVei.opprettet,
       },

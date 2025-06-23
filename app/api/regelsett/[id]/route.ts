@@ -23,7 +23,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       OPTIONAL MATCH (ov)-[:HAR_REGEL]->(ln:LogicalNode)
       OPTIONAL MATCH (ln)-[:EVALUERER]->(k:Kravelement)
       RETURN ov, g.navn as grunnlag, kvote.navn as kvote, r_type.navn as rangering,
-             ln.navn as logicalNode, ln.beskrivelse as logicalNodeBeskrivelse,
+             ln.navn as logicalNode, ln.beskrivelse as logicalNodeBeskrivelse, ln.type as logicalNodeType,
              collect(DISTINCT k.navn) as krav
       ORDER BY ov.navn
       `,
@@ -43,6 +43,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       rangering: record.get('rangering'),
       logicalNode: record.get('logicalNode'),
       logicalNodeBeskrivelse: record.get('logicalNodeBeskrivelse'),
+      logicalNodeType: record.get('logicalNodeType') || 'AND',
       krav: record.get('krav').filter((k: string) => k !== null),
     }));
 

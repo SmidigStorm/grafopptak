@@ -57,6 +57,7 @@ interface OpptaksVei {
   krav: string[];
   kvote?: string;
   rangering?: string;
+  logicalNodeType?: 'AND' | 'OR';
 }
 
 interface Regelsett {
@@ -92,6 +93,7 @@ export default function RegelsettDetailPage({ params }: RegelsettDetailPageProps
     kravIds: [] as string[],
     kvoteId: '',
     rangeringId: '',
+    logicalNodeType: 'AND' as 'AND' | 'OR',
     aktiv: true,
   });
   const [oppretterOpptaksVei, setOppretterOpptaksVei] = useState(false);
@@ -168,6 +170,7 @@ export default function RegelsettDetailPage({ params }: RegelsettDetailPageProps
               originalVei.grunnlag !== editedVei.grunnlag ||
               originalVei.kvote !== editedVei.kvote ||
               originalVei.rangering !== editedVei.rangering ||
+              originalVei.logicalNodeType !== editedVei.logicalNodeType ||
               JSON.stringify(originalVei.krav.sort()) !== JSON.stringify(editedVei.krav.sort()))
           ) {
             // Konverter krav til ID-er (kan være blanding av navn og ID-er)
@@ -193,6 +196,7 @@ export default function RegelsettDetailPage({ params }: RegelsettDetailPageProps
                 kravIds: kravIds,
                 kvoteId: editedVei.kvote,
                 rangeringId: editedVei.rangering,
+                logicalNodeType: editedVei.logicalNodeType || 'AND',
                 aktiv: editedVei.aktiv,
               }),
             });
@@ -250,6 +254,7 @@ export default function RegelsettDetailPage({ params }: RegelsettDetailPageProps
           kravIds: [],
           kvoteId: '',
           rangeringId: '',
+          logicalNodeType: 'AND',
           aktiv: true,
         });
 
@@ -543,6 +548,44 @@ export default function RegelsettDetailPage({ params }: RegelsettDetailPageProps
                                 <p className="text-sm font-semibold">Ingen krav</p>
                               </div>
                             )}
+
+                            {/* AND/OR Logic Display and Editor */}
+                            {vei.krav.length > 1 && (
+                              <div className="bg-yellow-100 text-yellow-800 rounded-lg p-3 text-center border-2 border-yellow-200">
+                                <div className="flex items-center justify-center gap-2">
+                                  <span className="text-xs font-medium">LOGIKK:</span>
+                                  {isEditMode ? (
+                                    <Select
+                                      value={vei.logicalNodeType || 'AND'}
+                                      onValueChange={(value: 'AND' | 'OR') =>
+                                        updateOpptaksVei(index, 'logicalNodeType', value)
+                                      }
+                                    >
+                                      <SelectTrigger className="w-20 h-6 text-xs font-semibold bg-white border">
+                                        <SelectValue />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="AND">AND</SelectItem>
+                                        <SelectItem value="OR">OR</SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                  ) : (
+                                    <Badge
+                                      variant={vei.logicalNodeType === 'OR' ? 'warning' : 'info'}
+                                      className="text-xs"
+                                    >
+                                      {vei.logicalNodeType || 'AND'}
+                                    </Badge>
+                                  )}
+                                </div>
+                                <p className="text-xs mt-1">
+                                  {vei.logicalNodeType === 'OR'
+                                    ? 'Søker må oppfylle minst ett av kravene'
+                                    : 'Søker må oppfylle alle kravene'}
+                                </p>
+                              </div>
+                            )}
+
                             {isEditMode && (
                               <div className="bg-orange-50 border-2 border-dashed border-orange-300 rounded-lg p-3 text-center">
                                 <Select
@@ -780,6 +823,38 @@ export default function RegelsettDetailPage({ params }: RegelsettDetailPageProps
                                 <p className="text-sm font-semibold">Ingen krav</p>
                               </div>
                             )}
+
+                            {/* AND/OR Logic for new opptaksvei */}
+                            {nyOpptaksVei.kravIds.length > 1 && (
+                              <div className="bg-yellow-100 text-yellow-800 rounded-lg p-3 text-center border-2 border-yellow-200">
+                                <div className="flex items-center justify-center gap-2">
+                                  <span className="text-xs font-medium">LOGIKK:</span>
+                                  <Select
+                                    value={nyOpptaksVei.logicalNodeType}
+                                    onValueChange={(value: 'AND' | 'OR') =>
+                                      setNyOpptaksVei((prev) => ({
+                                        ...prev,
+                                        logicalNodeType: value,
+                                      }))
+                                    }
+                                  >
+                                    <SelectTrigger className="w-20 h-6 text-xs font-semibold bg-white border">
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="AND">AND</SelectItem>
+                                      <SelectItem value="OR">OR</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                                <p className="text-xs mt-1">
+                                  {nyOpptaksVei.logicalNodeType === 'OR'
+                                    ? 'Søker må oppfylle minst ett av kravene'
+                                    : 'Søker må oppfylle alle kravene'}
+                                </p>
+                              </div>
+                            )}
+
                             <div className="bg-orange-50 border-2 border-dashed border-orange-300 rounded-lg p-3 text-center">
                               <Select onValueChange={leggTilKrav} disabled={dropdownData.loading}>
                                 <SelectTrigger className="text-xs bg-white border">
