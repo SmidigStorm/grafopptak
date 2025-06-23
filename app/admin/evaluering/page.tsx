@@ -254,10 +254,7 @@ export default function EvalueringSide() {
                 {/* Sammendrag */}
                 <div className="flex items-center gap-4">
                   {evalueringsResultat.sammendrag.kvalifisert > 0 ? (
-                    <Badge
-                      variant="default"
-                      className="bg-green-100 text-green-800 border-green-200"
-                    >
+                    <Badge variant="success">
                       <CheckCircle className="h-3 w-3 mr-1" />
                       Kvalifisert
                     </Badge>
@@ -292,7 +289,7 @@ export default function EvalueringSide() {
                       {evalueringsResultat.kvalifiserteOpptaksVeier.map((vei, index) => (
                         <div
                           key={index}
-                          className="border border-green-200 rounded-lg p-3 bg-green-50"
+                          className="border border-emerald-200 rounded-lg p-3 bg-emerald-50"
                         >
                           <h5 className="font-medium">{vei.opptaksVei.navn}</h5>
                           <p className="text-sm text-muted-foreground mb-2">
@@ -301,7 +298,7 @@ export default function EvalueringSide() {
                           <p className="text-sm">
                             <strong>Krav:</strong> {vei.regeluttrykk}
                           </p>
-                          <p className="text-sm text-green-700">{vei.evaluering}</p>
+                          <p className="text-sm text-emerald-700">{vei.evaluering}</p>
                           {vei.oppfylteKrav.length > 0 && (
                             <div className="mt-2">
                               <p className="text-xs text-muted-foreground">Oppfylte krav:</p>
@@ -323,12 +320,15 @@ export default function EvalueringSide() {
                 {/* Ikke-kvalifiserte opptaksveier */}
                 {evalueringsResultat.ikkeKvalifiserteOpptaksVeier.length > 0 && (
                   <div>
-                    <h4 className="font-medium text-red-800 mb-2">
+                    <h4 className="font-medium text-destructive mb-2">
                       ❌ Ikke kvalifiserte opptaksveier
                     </h4>
                     <div className="space-y-2">
                       {evalueringsResultat.ikkeKvalifiserteOpptaksVeier.map((vei, index) => (
-                        <div key={index} className="border border-red-200 rounded-lg p-3 bg-red-50">
+                        <div
+                          key={index}
+                          className="border border-destructive/20 rounded-lg p-3 bg-destructive/5"
+                        >
                           <h5 className="font-medium">{vei.opptaksVei.navn}</h5>
                           <p className="text-sm text-muted-foreground mb-2">
                             {vei.opptaksVei.beskrivelse}
@@ -336,13 +336,13 @@ export default function EvalueringSide() {
                           <p className="text-sm">
                             <strong>Krav:</strong> {vei.regeluttrykk}
                           </p>
-                          <p className="text-sm text-red-700">{vei.evaluering}</p>
+                          <p className="text-sm text-destructive">{vei.evaluering}</p>
                           {vei.manglendeFagkoder.length > 0 && (
                             <div className="mt-2">
                               <p className="text-xs text-muted-foreground">Manglende fagkoder:</p>
                               <div className="flex flex-wrap gap-1 mt-1">
                                 {vei.manglendeFagkoder.map((fagkode, i) => (
-                                  <Badge key={i} variant="outline" className="text-xs text-red-600">
+                                  <Badge key={i} variant="destructive" className="text-xs">
                                     {fagkode}
                                   </Badge>
                                 ))}

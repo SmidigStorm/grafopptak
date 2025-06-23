@@ -67,11 +67,11 @@ export default function InstitutionsMap({ className = '' }: InstitutionsMapProps
     const getIconColor = (type: string) => {
       switch (type.toLowerCase()) {
         case 'universitet':
-          return '#3b82f6'; // blue
+          return '#6d28d9'; // violet-700
         case 'høgskole':
-          return '#10b981'; // green
+          return '#8b5cf6'; // violet-500
         case 'privat høgskole':
-          return '#8b5cf6'; // purple
+          return '#a78bfa'; // violet-400
         default:
           return '#6b7280'; // gray
       }
@@ -118,13 +118,13 @@ export default function InstitutionsMap({ className = '' }: InstitutionsMapProps
   const getTypeColor = (type: string) => {
     switch (type.toLowerCase()) {
       case 'universitet':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-primary/10 text-primary';
       case 'høgskole':
-        return 'bg-green-100 text-green-800';
+        return 'bg-primary/10 text-primary';
       case 'privat høgskole':
-        return 'bg-purple-100 text-purple-800';
+        return 'bg-primary/10 text-primary';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-muted text-muted-foreground';
     }
   };
 
@@ -141,7 +141,7 @@ export default function InstitutionsMap({ className = '' }: InstitutionsMapProps
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="h-[600px] flex items-center justify-center bg-gray-50 rounded-lg">
+          <div className="h-[600px] flex items-center justify-center bg-muted/50 rounded-lg">
             <p className="text-muted-foreground">Laster kart...</p>
           </div>
         </CardContent>
@@ -162,7 +162,7 @@ export default function InstitutionsMap({ className = '' }: InstitutionsMapProps
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="h-[600px] flex items-center justify-center bg-gray-50 rounded-lg">
+          <div className="h-[600px] flex items-center justify-center bg-muted/50 rounded-lg">
             <p className="text-muted-foreground">Forbereder kart...</p>
           </div>
         </CardContent>
@@ -219,7 +219,7 @@ export default function InstitutionsMap({ className = '' }: InstitutionsMapProps
                       <div className="flex items-start justify-between gap-2 mb-2">
                         <div>
                           <h3 className="font-semibold text-sm">{institution.kortNavn}</h3>
-                          <p className="text-xs text-gray-600">{institution.navn}</p>
+                          <p className="text-xs text-muted-foreground">{institution.navn}</p>
                         </div>
                         <Badge
                           variant="secondary"
@@ -256,7 +256,7 @@ export default function InstitutionsMap({ className = '' }: InstitutionsMapProps
                           href={institution.nettside}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800"
+                          className="inline-flex items-center gap-1 text-xs text-primary hover:text-primary/80"
                         >
                           <ExternalLink className="h-3 w-3" />
                           Besøk nettside
@@ -273,15 +273,15 @@ export default function InstitutionsMap({ className = '' }: InstitutionsMapProps
         {/* Legend */}
         <div className="mt-4 flex flex-wrap gap-2">
           <div className="flex items-center gap-1">
-            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#3b82f6' }}></div>
+            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#6d28d9' }}></div>
             <span className="text-xs text-muted-foreground">Universiteter</span>
           </div>
           <div className="flex items-center gap-1">
-            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#10b981' }}></div>
+            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#8b5cf6' }}></div>
             <span className="text-xs text-muted-foreground">Høgskoler</span>
           </div>
           <div className="flex items-center gap-1">
-            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#8b5cf6' }}></div>
+            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#a78bfa' }}></div>
             <span className="text-xs text-muted-foreground">Private høgskoler</span>
           </div>
         </div>

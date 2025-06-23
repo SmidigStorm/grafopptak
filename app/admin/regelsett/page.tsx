@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import {
   Table,
   TableBody,
@@ -296,32 +297,20 @@ export default function RegelsettPage() {
                     <TableCell className="font-mono text-sm">{item.versjon}</TableCell>
                     <TableCell className="text-sm">
                       {item.erMal ? (
-                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                          📋 Mal: {item.malType || 'Ukjent'}
-                        </span>
+                        <Badge variant="info">📋 Mal: {item.malType || 'Ukjent'}</Badge>
                       ) : (
-                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                          📄 Konkret
-                        </span>
+                        <Badge variant="secondary">📄 Konkret</Badge>
                       )}
                     </TableCell>
                     <TableCell className="text-sm">
-                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                        🛣️ {item.antallOpptaksVeier || 0}
-                      </span>
+                      <Badge variant="default">🛣️ {item.antallOpptaksVeier || 0}</Badge>
                     </TableCell>
                     <TableCell className="text-sm">{formatNeo4jDate(item.gyldigFra)}</TableCell>
                     <TableCell className="max-w-xs truncate">{item.beskrivelse || '-'}</TableCell>
                     <TableCell>
-                      <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          item.aktiv
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-yellow-100 text-yellow-800'
-                        }`}
-                      >
+                      <Badge variant={item.aktiv ? 'success' : 'warning'}>
                         {item.aktiv ? 'Aktiv' : 'Inaktiv'}
-                      </span>
+                      </Badge>
                     </TableCell>
                     <TableCell>
                       <div className="flex space-x-2">
@@ -330,7 +319,7 @@ export default function RegelsettPage() {
                             <Eye className="h-4 w-4" />
                           </Button>
                         </Link>
-                        <Link href={`/admin/regelsett/${item.id}/edit`}>
+                        <Link href={`/admin/regelsett/${item.id}?edit=true`}>
                           <Button variant="outline" size="sm" title="Rediger regelsett">
                             <Edit className="h-4 w-4" />
                           </Button>

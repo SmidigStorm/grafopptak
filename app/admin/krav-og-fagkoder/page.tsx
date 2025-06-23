@@ -43,12 +43,19 @@ interface KravelementMedFagkoder extends Kravelement {
   fagkoder: Fagkode[];
 }
 
-const TYPE_COLORS = {
-  'spesifikk-fagkrav': 'bg-blue-100 text-blue-800',
-  'generell-studiekompetanse': 'bg-green-100 text-green-800',
-  arbeidserfaring: 'bg-yellow-100 text-yellow-800',
-  sprakkunnskaper: 'bg-purple-100 text-purple-800',
-  default: 'bg-gray-100 text-gray-800',
+const getTypeVariant = (type: string) => {
+  switch (type) {
+    case 'spesifikk-fagkrav':
+      return 'info';
+    case 'generell-studiekompetanse':
+      return 'success';
+    case 'arbeidserfaring':
+      return 'warning';
+    case 'sprakkunnskaper':
+      return 'default';
+    default:
+      return 'secondary';
+  }
 };
 
 export default function KravOgFagkoderPage() {
@@ -169,9 +176,7 @@ export default function KravOgFagkoderPage() {
       fk.kode.toLowerCase().includes(fagkodeSearch.toLowerCase())
   );
 
-  const getTypeColor = (type: string) => {
-    return TYPE_COLORS[type as keyof typeof TYPE_COLORS] || TYPE_COLORS.default;
-  };
+  // Removed getTypeColor - using getTypeVariant instead
 
   if (loading) {
     return (
@@ -224,9 +229,7 @@ export default function KravOgFagkoderPage() {
               <div className="flex items-start justify-between">
                 <div className="space-y-1">
                   <CardTitle className="text-lg leading-6">{krav.navn}</CardTitle>
-                  <Badge className={getTypeColor(krav.type)} variant="secondary">
-                    {krav.type}
-                  </Badge>
+                  <Badge variant={getTypeVariant(krav.type)}>{krav.type}</Badge>
                 </div>
                 <Button variant="outline" size="sm" onClick={() => openAddFagkodeDialog(krav)}>
                   <Plus className="h-4 w-4" />
@@ -244,8 +247,8 @@ export default function KravOgFagkoderPage() {
                 </div>
 
                 {krav.fagkoder.length === 0 ? (
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground p-3 bg-yellow-50 rounded-lg border border-yellow-200">
-                    <AlertCircle className="h-4 w-4 text-yellow-600" />
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground p-3 bg-amber-50 rounded-lg border border-amber-200">
+                    <AlertCircle className="h-4 w-4 text-amber-600" />
                     Ingen fagkoder kvalifiserer ennå
                   </div>
                 ) : (
@@ -253,11 +256,11 @@ export default function KravOgFagkoderPage() {
                     {krav.fagkoder.map((fagkode) => (
                       <div
                         key={fagkode.id}
-                        className="flex items-center justify-between p-2 bg-gray-50 rounded-md text-sm"
+                        className="flex items-center justify-between p-2 bg-muted/50 rounded-md text-sm"
                       >
                         <div className="flex items-center gap-2 min-w-0 flex-1">
-                          <BookOpen className="h-3 w-3 text-gray-500 flex-shrink-0" />
-                          <span className="font-mono text-xs text-gray-600 flex-shrink-0">
+                          <BookOpen className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                          <span className="font-mono text-xs text-muted-foreground flex-shrink-0">
                             {fagkode.kode}
                           </span>
                           <span className="truncate">{fagkode.navn}</span>
@@ -266,7 +269,7 @@ export default function KravOgFagkoderPage() {
                           variant="ghost"
                           size="sm"
                           onClick={() => removeFagkodeFromKrav(krav.id, fagkode.id)}
-                          className="h-6 w-6 p-0 hover:bg-red-100 flex-shrink-0"
+                          className="h-6 w-6 p-0 hover:bg-destructive/10 text-destructive flex-shrink-0"
                         >
                           <X className="h-3 w-3" />
                         </Button>
@@ -314,14 +317,14 @@ export default function KravOgFagkoderPage() {
                 filteredFagkoder.map((fagkode) => (
                   <div
                     key={fagkode.id}
-                    className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"
+                    className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 cursor-pointer"
                     onClick={() => addFagkodeToKrav(fagkode.id)}
                   >
                     <div className="flex items-center gap-3 min-w-0 flex-1">
-                      <GraduationCap className="h-4 w-4 text-gray-500 flex-shrink-0" />
+                      <GraduationCap className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
-                          <span className="font-mono text-sm font-medium text-blue-600">
+                          <span className="font-mono text-sm font-medium text-primary">
                             {fagkode.kode}
                           </span>
                           <Badge variant="outline" className="text-xs">

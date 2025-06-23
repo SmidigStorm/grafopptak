@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import {
   Table,
   TableBody,
@@ -42,7 +43,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
 import { X, Search } from 'lucide-react';
 
 interface Institusjon {
@@ -472,15 +472,9 @@ export default function InstitusjonsPage() {
                     <TableCell>{institusjon.type}</TableCell>
                     <TableCell>{institusjon.antallUtdanningstilbud}</TableCell>
                     <TableCell>
-                      <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          institusjon.aktiv
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-yellow-100 text-yellow-800'
-                        }`}
-                      >
+                      <Badge variant={institusjon.aktiv ? 'success' : 'warning'}>
                         {institusjon.aktiv ? 'Aktiv' : 'Inaktiv'}
-                      </span>
+                      </Badge>
                     </TableCell>
                     <TableCell>
                       <div className="flex space-x-2">

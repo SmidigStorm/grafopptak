@@ -14,8 +14,10 @@ export async function GET(request: NextRequest) {
       OPTIONAL MATCH (ov)-[:BASERT_PÅ]->(g:Grunnlag)
       OPTIONAL MATCH (ov)-[:GIR_TILGANG_TIL]->(kv:KvoteType)
       OPTIONAL MATCH (ov)-[:BRUKER_RANGERING]->(rt:RangeringType)
+      OPTIONAL MATCH (ov)-[:HAR_REGEL]->(ln:LogicalNode)
+      OPTIONAL MATCH (ln)-[:EVALUERER]->(k:Kravelement)
       ${regelssettId ? 'WHERE r.id = $regelssettId' : ''}
-      RETURN ov, r, g, kv, rt
+      RETURN ov, r, g, kv, rt, ln, collect(DISTINCT k) as krav
       ORDER BY r.navn, ov.navn
     `;
 
@@ -27,13 +29,20 @@ export async function GET(request: NextRequest) {
       const grunnlag = record.get('g')?.properties;
       const kvotetype = record.get('kv')?.properties;
       const rangeringstype = record.get('rt')?.properties;
+      const logicalNode = record.get('ln')?.properties;
+      const krav = record
+        .get('krav')
+        .map((k: any) => k?.properties)
+        .filter(Boolean);
 
       return {
         ...opptaksvei,
         regelsett,
         grunnlag,
         kvotetype,
-        rangeringstype
+        rangeringstype,
+        logicalNode,
+        krav,
       };
     });
 
@@ -85,7 +94,7 @@ export async function POST(request: NextRequest) {
       beskrivelse: beskrivelse || null,
       grunnlagId: grunnlagId || null,
       kvotetypeId: kvotetypeId || null,
-      rangeringstypeId: rangeringstypeId || null
+      rangeringstypeId: rangeringstypeId || null,
     });
 
     if (result.records.length === 0) {

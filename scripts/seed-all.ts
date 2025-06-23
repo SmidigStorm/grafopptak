@@ -492,6 +492,118 @@ export async function seedAll() {
         aktiv: true,
         opprettet: datetime()
       })
+      CREATE (krav14:Kravelement {
+        id: randomUUID(),
+        navn: 'Minimum karakterkrav norsk 3.0',
+        type: 'karakterkrav',
+        beskrivelse: 'Minimum karakter 3,0 i norsk hovedmål eller sidemål',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (krav15:Kravelement {
+        id: randomUUID(),
+        navn: 'Minimum karakterkrav matematikk 4.0',
+        type: 'karakterkrav',
+        beskrivelse: 'Minimum karakter 4,0 i matematikk fra videregående',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (krav16:Kravelement {
+        id: randomUUID(),
+        navn: 'Minimum karakterkrav matematikk 3.0',
+        type: 'karakterkrav',
+        beskrivelse: 'Minimum karakter 3,0 i matematikk (ved 40 skulepoeng)',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (krav17:Kravelement {
+        id: randomUUID(),
+        navn: 'Teknisk fagskole 2-årig',
+        type: 'spesiell-kompetanse',
+        beskrivelse: '2-årig teknisk fagskole fullført før 1999',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (krav18:Kravelement {
+        id: randomUUID(),
+        navn: 'Fagbrev teknisk fag',
+        type: 'fagkompetanse',
+        beskrivelse: 'Fagbrev i relevant teknisk fag for ingeniørutdanning',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (krav19:Kravelement {
+        id: randomUUID(),
+        navn: 'Karakterkrav fag-/sveineprøve',
+        type: 'karakterkrav',
+        beskrivelse: 'Minimum karakter "godt" på fag-/sveineprøven',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (krav20:Kravelement {
+        id: randomUUID(),
+        navn: 'Minimum 35 skulepoeng',
+        type: 'poengkrav',
+        beskrivelse: 'Minimum 35 skulepoeng samlet karakterpoeng',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (krav21:Kravelement {
+        id: randomUUID(),
+        navn: 'Minimum 40 skulepoeng',
+        type: 'poengkrav',
+        beskrivelse: 'Minimum 40 skulepoeng samlet karakterpoeng',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (krav22:Kravelement {
+        id: randomUUID(),
+        navn: 'Alder under 21 år',
+        type: 'alderskrav',
+        beskrivelse: 'Søker må være under 21 år (førstegangsvitnemålskvote)',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (krav23:Kravelement {
+        id: randomUUID(),
+        navn: 'Y-vei kompetanse',
+        type: 'spesiell-kompetanse',
+        beskrivelse: 'Kompetanse fra Y-vei (25+ år med 5 års arbeidserfaring)',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (krav24:Kravelement {
+        id: randomUUID(),
+        navn: 'Realkompetansevurdering',
+        type: 'spesiell-kompetanse',
+        beskrivelse: 'Godkjent realkompetansevurdering',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (krav25:Kravelement {
+        id: randomUUID(),
+        navn: 'Arbeidserfaring 2 år',
+        type: 'arbeidserfaring',
+        beskrivelse: '2 års relevant arbeidserfaring i teknisk fag',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (krav26:Kravelement {
+        id: randomUUID(),
+        navn: 'Alder 25 år eller eldre',
+        type: 'alderskrav',
+        beskrivelse: 'Søker må være 25 år eller eldre',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (krav27:Kravelement {
+        id: randomUUID(),
+        navn: 'Karaktersnitt forkurs 3.0',
+        type: 'karakterkrav',
+        beskrivelse: 'Minimum karaktersnitt 3,0 på forkurs ingeniør',
+        aktiv: true,
+        opprettet: datetime()
+      })
     `);
     console.log('✅ Opprettet kravelementer');
 
@@ -618,6 +730,146 @@ export async function seedAll() {
       CREATE (logikk3)-[:EVALUERER]->(fysikk)
       CREATE (logikk3)-[:EVALUERER]->(kjemi)
     `);
+
+    // ========== AVANSERTE LOGISKE NODER ==========
+    console.log('🧠 Oppretter avanserte logiske noder...');
+
+    await session.run(`
+      MATCH (gsk:Kravelement {navn: 'Generell studiekompetanse'})
+      MATCH (matR1:Kravelement {navn: 'Matematikk R1'})
+      MATCH (matR2:Kravelement {navn: 'Matematikk R2'})
+      MATCH (fysikk:Kravelement {navn: 'Fysikk 1'})
+      MATCH (fagbrev:Kravelement {navn: 'Fagbrev teknisk fag'})
+      MATCH (forkurs:Kravelement {navn: 'Forkurs ingeniør'})
+      MATCH (norsk:Kravelement {navn: 'Norsk 393 timer'})
+      MATCH (norskKarak:Kravelement {navn: 'Minimum karakterkrav norsk 3.0'})
+      MATCH (matKarak40:Kravelement {navn: 'Minimum karakterkrav matematikk 4.0'})
+      MATCH (matKarak30:Kravelement {navn: 'Minimum karakterkrav matematikk 3.0'})
+      MATCH (minPoeng35:Kravelement {navn: 'Minimum 35 skulepoeng'})
+      MATCH (minPoeng40:Kravelement {navn: 'Minimum 40 skulepoeng'})
+      MATCH (arbeidserfaring:Kravelement {navn: 'Arbeidserfaring 5 år'})
+      MATCH (arbeidserfaring2:Kravelement {navn: 'Arbeidserfaring 2 år'})
+      MATCH (fagbrevKarak:Kravelement {navn: 'Karakterkrav fag-/sveineprøve'})
+      MATCH (yVei:Kravelement {navn: 'Y-vei kompetanse'})
+      MATCH (aldersKrav:Kravelement {navn: 'Alder under 21 år'})
+      MATCH (alder25:Kravelement {navn: 'Alder 25 år eller eldre'})
+      MATCH (forkursKarak:Kravelement {navn: 'Karaktersnitt forkurs 3.0'})
+      MATCH (realkompetanse:Kravelement {navn: 'Realkompetansevurdering'})
+
+      // NTNU Avansert - Ordinær vei
+      CREATE (ntnu_ord:LogicalNode {
+        navn: 'NTNU Avansert Ordinær',
+        type: 'AND',
+        beskrivelse: 'GSK + Mat R1+R2 + Fysikk 1 + 35 poeng'
+      })
+      
+      // NTNU Avansert - Fagbrev vei
+      CREATE (ntnu_fagbrev:LogicalNode {
+        navn: 'NTNU Avansert Fagbrev',
+        type: 'AND',
+        beskrivelse: 'Fagbrev teknisk + karakterkrav + 2 års arbeidserfaring + GSK'
+      })
+      
+      // NTNU Avansert - Forkurs vei
+      CREATE (ntnu_forkurs:LogicalNode {
+        navn: 'NTNU Avansert Forkurs',
+        type: 'AND',
+        beskrivelse: 'Forkurs ingeniør + karaktersnitt 3.0 + GSK'
+      })
+      
+      // NTNU Avansert - Y-vei
+      CREATE (ntnu_yvei:LogicalNode {
+        navn: 'NTNU Avansert Y-vei',
+        type: 'AND',
+        beskrivelse: '25+ år + 5 års arbeidserfaring + realkompetansevurdering'
+      })
+
+      // HiOA Fagbrev - kun fagbrev-veien
+      CREATE (hioa_fagbrev:LogicalNode {
+        navn: 'HiOA Fagbrev Spesiell',
+        type: 'AND',
+        beskrivelse: 'Fagbrev teknisk + karakterkrav + arbeidserfaring'
+      })
+
+      // UiO Lærer Avansert - Ordinær vei (strenge krav)
+      CREATE (uio_laerer_ord:LogicalNode {
+        navn: 'UiO Lærer Ordinær Streng',
+        type: 'AND',
+        beskrivelse: 'GSK + norsk 3.0 + mat 4.0 + 35 poeng'
+      })
+      
+      // UiO Lærer Avansert - Førstegangsvitnemål
+      CREATE (uio_laerer_forste:LogicalNode {
+        navn: 'UiO Lærer Førstegangsvitnemål',
+        type: 'AND',
+        beskrivelse: 'GSK + norsk 3.0 + mat 4.0 + under 21 år'
+      })
+
+      // Nord Universitet Samisk - Ordinær
+      CREATE (nord_samisk_ord:LogicalNode {
+        navn: 'Nord Samisk Ordinær',
+        type: 'AND',
+        beskrivelse: 'GSK + norsk 3.0 + mat 3.0 + 35 poeng'
+      })
+      
+      // Nord Universitet Samisk - Samisk kvote
+      CREATE (nord_samisk_kvote:LogicalNode {
+        navn: 'Nord Samisk Kvote',
+        type: 'AND',
+        beskrivelse: 'GSK + norsk 3.0 + mat 3.0 (senket krav)'
+      })
+
+      // Koblinger for NTNU Avansert
+      // Ordinær vei: GSK + Mat R1+R2 + Fysikk 1 + 35 poeng
+      CREATE (ntnu_ord)-[:EVALUERER]->(gsk)
+      CREATE (ntnu_ord)-[:EVALUERER]->(matR1)
+      CREATE (ntnu_ord)-[:EVALUERER]->(matR2)
+      CREATE (ntnu_ord)-[:EVALUERER]->(fysikk)
+      CREATE (ntnu_ord)-[:EVALUERER]->(minPoeng35)
+      
+      // Fagbrev vei: Fagbrev teknisk + karakterkrav + 2 års arbeidserfaring + GSK
+      CREATE (ntnu_fagbrev)-[:EVALUERER]->(fagbrev)
+      CREATE (ntnu_fagbrev)-[:EVALUERER]->(fagbrevKarak)
+      CREATE (ntnu_fagbrev)-[:EVALUERER]->(arbeidserfaring2)
+      CREATE (ntnu_fagbrev)-[:EVALUERER]->(gsk)
+      
+      // Forkurs vei: Forkurs ingeniør + karaktersnitt 3.0 + GSK
+      CREATE (ntnu_forkurs)-[:EVALUERER]->(forkurs)
+      CREATE (ntnu_forkurs)-[:EVALUERER]->(forkursKarak)
+      CREATE (ntnu_forkurs)-[:EVALUERER]->(gsk)
+      
+      // Y-vei: 25+ år + 5 års erfaring + realkompetansevurdering
+      CREATE (ntnu_yvei)-[:EVALUERER]->(alder25)
+      CREATE (ntnu_yvei)-[:EVALUERER]->(arbeidserfaring)
+      CREATE (ntnu_yvei)-[:EVALUERER]->(realkompetanse)
+
+      // Koblinger for HiOA Fagbrev
+      CREATE (hioa_fagbrev)-[:EVALUERER]->(fagbrev)
+      CREATE (hioa_fagbrev)-[:EVALUERER]->(fagbrevKarak)
+      CREATE (hioa_fagbrev)-[:EVALUERER]->(arbeidserfaring)
+
+      // Koblinger for UiO Lærer Avansert
+      CREATE (uio_laerer_ord)-[:EVALUERER]->(gsk)
+      CREATE (uio_laerer_ord)-[:EVALUERER]->(norskKarak)
+      CREATE (uio_laerer_ord)-[:EVALUERER]->(matKarak40)
+      CREATE (uio_laerer_ord)-[:EVALUERER]->(minPoeng35)
+      
+      CREATE (uio_laerer_forste)-[:EVALUERER]->(gsk)
+      CREATE (uio_laerer_forste)-[:EVALUERER]->(norskKarak)
+      CREATE (uio_laerer_forste)-[:EVALUERER]->(matKarak40)
+      CREATE (uio_laerer_forste)-[:EVALUERER]->(aldersKrav)
+
+      // Koblinger for Nord Samisk
+      CREATE (nord_samisk_ord)-[:EVALUERER]->(gsk)
+      CREATE (nord_samisk_ord)-[:EVALUERER]->(norskKarak)
+      CREATE (nord_samisk_ord)-[:EVALUERER]->(matKarak30)
+      CREATE (nord_samisk_ord)-[:EVALUERER]->(minPoeng35)
+      
+      CREATE (nord_samisk_kvote)-[:EVALUERER]->(gsk)
+      CREATE (nord_samisk_kvote)-[:EVALUERER]->(norskKarak)
+      CREATE (nord_samisk_kvote)-[:EVALUERER]->(matKarak30)
+    `);
+
     console.log('✅ Opprettet logiske noder');
 
     // ========== GRUNNLAG ==========
@@ -760,6 +1012,14 @@ export async function seedAll() {
         aktiv: true,
         opprettet: datetime()
       })
+      CREATE (grunnlag18:Grunnlag {
+        id: randomUUID(),
+        navn: 'Førstegangsvitnemål',
+        type: 'forstegangsvitnemaal',
+        beskrivelse: 'Nytt vitnemål for søkere 21 år eller yngre',
+        aktiv: true,
+        opprettet: datetime()
+      })
     `);
     console.log('✅ Opprettet grunnlag');
 
@@ -788,6 +1048,54 @@ export async function seedAll() {
         navn: 'Forkurskvote',
         type: 'forkurs',
         beskrivelse: 'For søkere med fullført forkurs ingeniør',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (kvote4:KvoteType {
+        id: randomUUID(),
+        navn: 'Ordinært vitnemål kvote',
+        type: 'ordinaert-vitnemaal',
+        beskrivelse: 'For søkere over 21 år med ordinært vitnemål',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (kvote5:KvoteType {
+        id: randomUUID(),
+        navn: 'Y-vei kvote',
+        type: 'y-vei',
+        beskrivelse: 'For søkere med 25+ år og arbeidserfaring',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (kvote6:KvoteType {
+        id: randomUUID(),
+        navn: 'Fagbrevkvote',
+        type: 'fagbrev',
+        beskrivelse: 'For søkere med fagbrev og arbeidserfaring',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (kvote7:KvoteType {
+        id: randomUUID(),
+        navn: 'Samisk kvote',
+        type: 'samisk',
+        beskrivelse: 'For søkere med samisk bakgrunn',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (kvote8:KvoteType {
+        id: randomUUID(),
+        navn: 'Nordisk kvote',
+        type: 'nordisk',
+        beskrivelse: 'For søkere fra andre nordiske land',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (kvote9:KvoteType {
+        id: randomUUID(),
+        navn: 'Realkompetanse kvote',
+        type: 'realkompetanse',
+        beskrivelse: 'For søkere med godkjent realkompetansevurdering',
         aktiv: true,
         opprettet: datetime()
       })
@@ -1091,7 +1399,74 @@ export async function seedAll() {
         aktiv: true
       })
     `);
-    console.log('✅ Opprettet konkrete regelsett');
+
+    // ========== AVANSERTE INGENIØR REGELSETT ==========
+    console.log('🔧 Oppretter avanserte ingeniør regelsett...');
+
+    // NTNU Ingeniør Avansert (med flere opptaksveier)
+    await session.run(`
+      CREATE (ntnuIngAvansert:Regelsett {
+        id: randomUUID(),
+        navn: 'NTNU Ingeniør Avansert H25',
+        beskrivelse: 'Avansert regelsett for ingeniørutdanning ved NTNU med alle opptaksveier',
+        versjon: '2.0',
+        erMal: false,
+        basertPå: 'ingenior-standard',
+        gyldigFra: date('2025-01-01'),
+        opprettet: datetime(),
+        aktiv: true
+      })
+    `);
+
+    // HiOA Ingeniør med fagbrevkrav
+    await session.run(`
+      CREATE (hioaIngFagbrev:Regelsett {
+        id: randomUUID(),
+        navn: 'HiOA Ingeniør Fagbrev H25',
+        beskrivelse: 'Spesiell ingeniørutdanning for fagarbeidere ved HiOA',
+        versjon: '1.0',
+        erMal: false,
+        basertPå: 'ingenior-standard',
+        gyldigFra: date('2025-01-01'),
+        opprettet: datetime(),
+        aktiv: true
+      })
+    `);
+
+    // ========== AVANSERTE LÆRER REGELSETT ==========
+    console.log('🍎 Oppretter avanserte lærer regelsett...');
+
+    // UiO Lærerutdanning (strenge krav)
+    await session.run(`
+      CREATE (uioLaererAvansert:Regelsett {
+        id: randomUUID(),
+        navn: 'UiO Lærerutdanning Avansert H25',
+        beskrivelse: 'Avansert lærerutdanning ved UiO med strenge karakterkrav',
+        versjon: '2.0',
+        erMal: false,
+        basertPå: 'laerer-standard',
+        gyldigFra: date('2025-01-01'),
+        opprettet: datetime(),
+        aktiv: true
+      })
+    `);
+
+    // Nord Universitet Lærer (samisk kvote)
+    await session.run(`
+      CREATE (nordLaererSamisk:Regelsett {
+        id: randomUUID(),
+        navn: 'Nord Universitet Lærer Samisk H25',
+        beskrivelse: 'Lærerutdanning med samisk kvote ved Nord Universitet',
+        versjon: '1.0',
+        erMal: false,
+        basertPå: 'laerer-standard',
+        gyldigFra: date('2025-01-01'),
+        opprettet: datetime(),
+        aktiv: true
+      })
+    `);
+
+    console.log('✅ Opprettet avanserte regelsett');
 
     // ========== INSTITUSJONER ==========
     console.log('🏢 Oppretter institusjoner...');
@@ -1289,6 +1664,38 @@ export async function seedAll() {
         aktiv: true,
         opprettet: datetime()
       })
+      CREATE (hioa:Institusjon {
+        id: randomUUID(),
+        navn: 'Høgskolen i Oslo og Akershus',
+        kortnavn: 'HiOA',
+        type: 'høgskole',
+        eier: 'offentlig',
+        sted: 'Oslo',
+        latitude: 59.9522,
+        longitude: 10.7595,
+        by: 'Oslo',
+        fylke: 'Oslo',
+        adresse: 'Pilestredet 35, 0166 Oslo',
+        nettside: 'https://www.hioa.no',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (nord:Institusjon {
+        id: randomUUID(),
+        navn: 'Nord universitet',
+        kortnavn: 'Nord',
+        type: 'universitet',
+        eier: 'offentlig',
+        sted: 'Bodø',
+        latitude: 67.2804,
+        longitude: 14.4040,
+        by: 'Bodø',
+        fylke: 'Nordland',
+        adresse: 'Universitetsalleen 11, 8026 Bodø',
+        nettside: 'https://www.nord.no',
+        aktiv: true,
+        opprettet: datetime()
+      })
     `);
     console.log('✅ Opprettet institusjoner');
 
@@ -1349,6 +1756,73 @@ export async function seedAll() {
         opprettet: datetime()
       })
     `);
+
+    // ========== AVANSERTE UTDANNINGSTILBUD ==========
+    console.log('🎯 Oppretter avanserte utdanningstilbud...');
+
+    await session.run(`
+      MATCH (ntnu:Institusjon {kortnavn: 'NTNU'})
+      MATCH (hioa:Institusjon {kortnavn: 'HiOA'})
+      MATCH (uio:Institusjon {kortnavn: 'UiO'})
+      MATCH (nord:Institusjon {kortnavn: 'Nord'})
+
+      // NTNU avanserte ingeniørtilbud
+      CREATE (ntnuAdvancedEng:Utdanningstilbud {
+        id: randomUUID(),
+        navn: 'Bachelor i Ingeniørvitenskap - Avansert',
+        beskrivelse: 'Avansert ingeniørutdanning med flere opptaksveier inkludert fagbrev og Y-vei',
+        grad: 'bachelor',
+        studiepoeng: 180,
+        normertid: 3,
+        studiested: 'Trondheim',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (ntnu)-[:TILBYR]->(ntnuAdvancedEng)
+
+      // HiOA fagbrev-basert ingeniørutdanning
+      CREATE (hioaFagbrevEng:Utdanningstilbud {
+        id: randomUUID(),
+        navn: 'Ingeniørutdanning for Fagarbeidere',
+        beskrivelse: 'Spesielt tilrettelagt 3-årig ingeniørutdanning for fagarbeidere',
+        grad: 'bachelor',
+        studiepoeng: 180,
+        normertid: 3,
+        studiested: 'Oslo',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (hioa)-[:TILBYR]->(hioaFagbrevEng)
+
+      // UiO avansert lærerutdanning
+      CREATE (uioAdvancedTeacher:Utdanningstilbud {
+        id: randomUUID(),
+        navn: 'Master i lærerutdanning for trinn 8-13',
+        beskrivelse: 'Avansert lærerutdanning med strenge opptakskrav og flere kvotetyper',
+        grad: 'master',
+        studiepoeng: 300,
+        normertid: 5,
+        studiested: 'Oslo',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (uio)-[:TILBYR]->(uioAdvancedTeacher)
+
+      // Nord Universitet samisk lærerutdanning
+      CREATE (nordSamiTeacher:Utdanningstilbud {
+        id: randomUUID(),
+        navn: 'Grunnskolelærerutdanning 1-7 med samisk',
+        beskrivelse: 'Lærerutdanning med særlig fokus på samisk språk og kultur',
+        grad: 'master',
+        studiepoeng: 300,
+        normertid: 5,
+        studiested: 'Bodø',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (nord)-[:TILBYR]->(nordSamiTeacher)
+    `);
+
     console.log('✅ Opprettet utdanningstilbud');
 
     // ========== PERSONER (TESTDATA) ==========
@@ -2026,6 +2500,190 @@ export async function seedAll() {
       CREATE (vei3)-[:GIR_TILGANG_TIL]->(ordinaer)
       CREATE (vei3)-[:BRUKER_RANGERING]->(konkurransepoeng)
     `);
+
+    // ========== AVANSERTE OPPTAKSVEIER ==========
+    console.log('🌲 Oppretter avanserte opptaksveier...');
+
+    // NTNU Ingeniør Avansert - 4 opptaksveier
+    await session.run(`
+      MATCH (ntnuIngAvansert:Regelsett {navn: 'NTNU Ingeniør Avansert H25'})
+      MATCH (vitnemaalVgs:Grunnlag {type: 'vitnemaal-vgs'})
+      MATCH (fagbrevGrunnlag:Grunnlag {type: 'fagbrev'})
+      MATCH (forkursGrunnlag:Grunnlag {type: 'forkurs-ingenior'})
+      MATCH (yVeiGrunnlag:Grunnlag {type: 'y-veien'})
+      MATCH (realkompGrunnlag:Grunnlag {type: 'realkompetanse-uh'})
+      MATCH (ordinaer:KvoteType {type: 'ordinaer'})
+      MATCH (fagbrevKvote:KvoteType {type: 'fagbrev'})
+      MATCH (forkursKvote:KvoteType {type: 'forkurs'})
+      MATCH (yVeiKvote:KvoteType {type: 'y-vei'})
+      MATCH (konkurransepoeng:RangeringType {type: 'konkurransepoeng'})
+      MATCH (realkompetanse:RangeringType {type: 'realkompetanse'})
+      
+      MATCH (ntnu_ord:LogicalNode {navn: 'NTNU Avansert Ordinær'})
+      MATCH (ntnu_fagbrev:LogicalNode {navn: 'NTNU Avansert Fagbrev'})
+      MATCH (ntnu_forkurs:LogicalNode {navn: 'NTNU Avansert Forkurs'})
+      MATCH (ntnu_yvei:LogicalNode {navn: 'NTNU Avansert Y-vei'})
+
+      // Ordinær vei - vitnemål videregående
+      CREATE (ntnu_av_1:OpptaksVei {
+        id: randomUUID(),
+        navn: 'Ordinær vei - NTNU Avansert',
+        beskrivelse: 'Standard opptaksvei med GSK + Matematikk R1+R2 + Fysikk 1',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (ntnuIngAvansert)-[:HAR_OPPTAKSVEI]->(ntnu_av_1)
+      CREATE (ntnu_av_1)-[:BASERT_PÅ]->(vitnemaalVgs)
+      CREATE (ntnu_av_1)-[:HAR_REGEL]->(ntnu_ord)
+      CREATE (ntnu_av_1)-[:GIR_TILGANG_TIL]->(ordinaer)
+      CREATE (ntnu_av_1)-[:BRUKER_RANGERING]->(konkurransepoeng)
+
+      // Fagbrev vei - fagbrev/svennebrev
+      CREATE (ntnu_av_2:OpptaksVei {
+        id: randomUUID(),
+        navn: 'Fagbrev vei - NTNU Avansert',
+        beskrivelse: 'For fagarbeidere med teknisk fagbrev og arbeidserfaring',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (ntnuIngAvansert)-[:HAR_OPPTAKSVEI]->(ntnu_av_2)
+      CREATE (ntnu_av_2)-[:BASERT_PÅ]->(fagbrevGrunnlag)
+      CREATE (ntnu_av_2)-[:HAR_REGEL]->(ntnu_fagbrev)
+      CREATE (ntnu_av_2)-[:GIR_TILGANG_TIL]->(fagbrevKvote)
+      CREATE (ntnu_av_2)-[:BRUKER_RANGERING]->(realkompetanse)
+
+      // Forkurs vei - forkurs ingeniør
+      CREATE (ntnu_av_3:OpptaksVei {
+        id: randomUUID(),
+        navn: 'Forkurs vei - NTNU Avansert',
+        beskrivelse: 'For søkere med fullført forkurs for ingeniørutdanning',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (ntnuIngAvansert)-[:HAR_OPPTAKSVEI]->(ntnu_av_3)
+      CREATE (ntnu_av_3)-[:BASERT_PÅ]->(forkursGrunnlag)
+      CREATE (ntnu_av_3)-[:HAR_REGEL]->(ntnu_forkurs)
+      CREATE (ntnu_av_3)-[:GIR_TILGANG_TIL]->(forkursKvote)
+      CREATE (ntnu_av_3)-[:BRUKER_RANGERING]->(konkurransepoeng)
+
+      // Y-vei - realkompetanse 25+ år
+      CREATE (ntnu_av_4:OpptaksVei {
+        id: randomUUID(),
+        navn: 'Y-vei - NTNU Avansert',
+        beskrivelse: 'For søkere over 25 år med realkompetanse',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (ntnuIngAvansert)-[:HAR_OPPTAKSVEI]->(ntnu_av_4)
+      CREATE (ntnu_av_4)-[:BASERT_PÅ]->(realkompGrunnlag)
+      CREATE (ntnu_av_4)-[:HAR_REGEL]->(ntnu_yvei)
+      CREATE (ntnu_av_4)-[:GIR_TILGANG_TIL]->(yVeiKvote)
+      CREATE (ntnu_av_4)-[:BRUKER_RANGERING]->(realkompetanse)
+    `);
+
+    // HiOA Ingeniør Fagbrev - spesiell fagbrev-vei
+    await session.run(`
+      MATCH (hioaIngFagbrev:Regelsett {navn: 'HiOA Ingeniør Fagbrev H25'})
+      MATCH (fagbrevGrunnlag:Grunnlag {type: 'fagbrev'})
+      MATCH (fagbrevKvote:KvoteType {type: 'fagbrev'})
+      MATCH (realkompetanse:RangeringType {type: 'realkompetanse'})
+      MATCH (hioa_fagbrev:LogicalNode {navn: 'HiOA Fagbrev Spesiell'})
+
+      CREATE (hioa_fb_1:OpptaksVei {
+        id: randomUUID(),
+        navn: 'Fagbrev spesiell - HiOA',
+        beskrivelse: 'Spesielt tilrettelagt ingeniørutdanning for fagarbeidere',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (hioaIngFagbrev)-[:HAR_OPPTAKSVEI]->(hioa_fb_1)
+      CREATE (hioa_fb_1)-[:BASERT_PÅ]->(fagbrevGrunnlag)
+      CREATE (hioa_fb_1)-[:HAR_REGEL]->(hioa_fagbrev)
+      CREATE (hioa_fb_1)-[:GIR_TILGANG_TIL]->(fagbrevKvote)
+      CREATE (hioa_fb_1)-[:BRUKER_RANGERING]->(realkompetanse)
+    `);
+
+    // UiO Lærerutdanning Avansert - 2 opptaksveier (riktig struktur)
+    await session.run(`
+      MATCH (uioLaererAvansert:Regelsett {navn: 'UiO Lærerutdanning Avansert H25'})
+      MATCH (vitnemaalVgs:Grunnlag {type: 'vitnemaal-vgs'})
+      MATCH (forstegangsvitnemaal:Grunnlag {type: 'forstegangsvitnemaal'})
+      MATCH (ordinaer:KvoteType {type: 'ordinaer'})
+      MATCH (forsteKvote:KvoteType {type: 'forstegangsvitnemaal'})
+      MATCH (konkurransepoeng:RangeringType {type: 'konkurransepoeng'})
+      
+      MATCH (uio_laerer_ord:LogicalNode {navn: 'UiO Lærer Ordinær Streng'})
+      MATCH (uio_laerer_forste:LogicalNode {navn: 'UiO Lærer Førstegangsvitnemål'})
+
+      // Ordinær kvote (for alle over 21 år)
+      CREATE (uio_la_1:OpptaksVei {
+        id: randomUUID(),
+        navn: 'Ordinær kvote - UiO Lærer Avansert',
+        beskrivelse: 'Hovedkvote for søkere over 21 år: norsk 3.0, mat 4.0, 35 poeng',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (uioLaererAvansert)-[:HAR_OPPTAKSVEI]->(uio_la_1)
+      CREATE (uio_la_1)-[:BASERT_PÅ]->(vitnemaalVgs)
+      CREATE (uio_la_1)-[:HAR_REGEL]->(uio_laerer_ord)
+      CREATE (uio_la_1)-[:GIR_TILGANG_TIL]->(ordinaer)
+      CREATE (uio_la_1)-[:BRUKER_RANGERING]->(konkurransepoeng)
+
+      // Førstegangsvitnemålskvote (21 år eller yngre)
+      CREATE (uio_la_2:OpptaksVei {
+        id: randomUUID(),
+        navn: 'Førstegangsvitnemål - UiO Lærer Avansert',
+        beskrivelse: 'For søkere 21 år eller yngre med nytt vitnemål: norsk 3.0, mat 4.0',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (uioLaererAvansert)-[:HAR_OPPTAKSVEI]->(uio_la_2)
+      CREATE (uio_la_2)-[:BASERT_PÅ]->(forstegangsvitnemaal)
+      CREATE (uio_la_2)-[:HAR_REGEL]->(uio_laerer_forste)
+      CREATE (uio_la_2)-[:GIR_TILGANG_TIL]->(forsteKvote)
+      CREATE (uio_la_2)-[:BRUKER_RANGERING]->(konkurransepoeng)
+    `);
+
+    // Nord Universitet Samisk - 2 opptaksveier
+    await session.run(`
+      MATCH (nordLaererSamisk:Regelsett {navn: 'Nord Universitet Lærer Samisk H25'})
+      MATCH (vitnemaalVgs:Grunnlag {type: 'vitnemaal-vgs'})
+      MATCH (ordinaer:KvoteType {type: 'ordinaer'})
+      MATCH (samiskKvote:KvoteType {type: 'samisk'})
+      MATCH (konkurransepoeng:RangeringType {type: 'konkurransepoeng'})
+      
+      MATCH (nord_samisk_ord:LogicalNode {navn: 'Nord Samisk Ordinær'})
+      MATCH (nord_samisk_kvote:LogicalNode {navn: 'Nord Samisk Kvote'})
+
+      // Ordinær vei
+      CREATE (nord_sa_1:OpptaksVei {
+        id: randomUUID(),
+        navn: 'Ordinær vei - Nord Samisk',
+        beskrivelse: 'Standard lærerutdanning med ordinære krav',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (nordLaererSamisk)-[:HAR_OPPTAKSVEI]->(nord_sa_1)
+      CREATE (nord_sa_1)-[:BASERT_PÅ]->(vitnemaalVgs)
+      CREATE (nord_sa_1)-[:HAR_REGEL]->(nord_samisk_ord)
+      CREATE (nord_sa_1)-[:GIR_TILGANG_TIL]->(ordinaer)
+      CREATE (nord_sa_1)-[:BRUKER_RANGERING]->(konkurransepoeng)
+
+      // Samisk kvote (lempede krav)
+      CREATE (nord_sa_2:OpptaksVei {
+        id: randomUUID(),
+        navn: 'Samisk kvote - Nord Samisk',
+        beskrivelse: 'Særlig kvote for søkere med samisk bakgrunn',
+        aktiv: true,
+        opprettet: datetime()
+      })
+      CREATE (nordLaererSamisk)-[:HAR_OPPTAKSVEI]->(nord_sa_2)
+      CREATE (nord_sa_2)-[:BASERT_PÅ]->(vitnemaalVgs)
+      CREATE (nord_sa_2)-[:HAR_REGEL]->(nord_samisk_kvote)
+      CREATE (nord_sa_2)-[:GIR_TILGANG_TIL]->(samiskKvote)
+      CREATE (nord_sa_2)-[:BRUKER_RANGERING]->(konkurransepoeng)
+    `);
+
     console.log('✅ Opprettet opptaksveier');
 
     // ========== UTDANNINGSTILBUD-REGELSETT KOBLINGER ==========
@@ -2046,6 +2704,35 @@ export async function seedAll() {
       MATCH (oslomet_rs:Regelsett {navn: 'OsloMet Lærerutdanning 1-7 H25'})
       CREATE (oslomet_utd)-[:HAR_REGELSETT]->(oslomet_rs)
     `);
+
+    // ========== AVANSERTE UTDANNINGSTILBUD-REGELSETT KOBLINGER ==========
+    console.log('🔗 Kobler avanserte utdanningstilbud til regelsett...');
+
+    await session.run(`
+      // NTNU Avansert Ingeniør
+      MATCH (ntnu_adv_utd:Utdanningstilbud {navn: 'Bachelor i Ingeniørvitenskap - Avansert'})
+      MATCH (ntnu_adv_rs:Regelsett {navn: 'NTNU Ingeniør Avansert H25'})
+      CREATE (ntnu_adv_utd)-[:HAR_REGELSETT]->(ntnu_adv_rs)
+      
+      WITH 1 as dummy
+      // HiOA Fagbrev Ingeniør
+      MATCH (hioa_fb_utd:Utdanningstilbud {navn: 'Ingeniørutdanning for Fagarbeidere'})
+      MATCH (hioa_fb_rs:Regelsett {navn: 'HiOA Ingeniør Fagbrev H25'})
+      CREATE (hioa_fb_utd)-[:HAR_REGELSETT]->(hioa_fb_rs)
+      
+      WITH 1 as dummy
+      // UiO Avansert Lærer
+      MATCH (uio_adv_utd:Utdanningstilbud {navn: 'Master i lærerutdanning for trinn 8-13'})
+      MATCH (uio_adv_rs:Regelsett {navn: 'UiO Lærerutdanning Avansert H25'})
+      CREATE (uio_adv_utd)-[:HAR_REGELSETT]->(uio_adv_rs)
+      
+      WITH 1 as dummy
+      // Nord Samisk Lærer
+      MATCH (nord_sami_utd:Utdanningstilbud {navn: 'Grunnskolelærerutdanning 1-7 med samisk'})
+      MATCH (nord_sami_rs:Regelsett {navn: 'Nord Universitet Lærer Samisk H25'})
+      CREATE (nord_sami_utd)-[:HAR_REGELSETT]->(nord_sami_rs)
+    `);
+
     console.log('✅ Opprettet utdanningstilbud-regelsett koblinger');
 
     console.log('✅ Fullført seeding av alle data!');

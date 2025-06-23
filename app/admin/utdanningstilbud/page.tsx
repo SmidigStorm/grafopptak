@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import {
   Table,
   TableBody,
@@ -552,33 +553,21 @@ export default function UtdanningstilbudPage() {
                       )}
                     </TableCell>
                     <TableCell>
-                      {tilbud.antallRegelsett > 0 ? (
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                          Har regelsett
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                          Mangler regelsett
-                        </span>
-                      )}
+                      <Badge variant={tilbud.antallRegelsett > 0 ? 'success' : 'warning'}>
+                        {tilbud.antallRegelsett > 0 ? 'Har regelsett' : 'Mangler regelsett'}
+                      </Badge>
                     </TableCell>
                     <TableCell>
-                      <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          tilbud.aktiv
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-yellow-100 text-yellow-800'
-                        }`}
-                      >
+                      <Badge variant={tilbud.aktiv ? 'success' : 'warning'}>
                         {tilbud.aktiv ? 'Aktiv' : 'Inaktiv'}
-                      </span>
+                      </Badge>
                     </TableCell>
                     <TableCell>
                       <div className="flex space-x-2">
                         {tilbud.antallRegelsett > 0 ? (
                           <Button
                             size="sm"
-                            className="bg-blue-600 text-white hover:bg-blue-700"
+                            variant="default"
                             onClick={() => aapneRegelssettAdministrasjon(tilbud)}
                           >
                             <Settings className="h-4 w-4 mr-1" />
@@ -587,7 +576,7 @@ export default function UtdanningstilbudPage() {
                         ) : (
                           <Button
                             size="sm"
-                            className="bg-green-600 text-white hover:bg-green-700"
+                            variant="default"
                             onClick={() => aapneRegelssettAdministrasjon(tilbud)}
                           >
                             <Plus className="h-4 w-4 mr-1" />

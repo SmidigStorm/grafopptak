@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import {
   Table,
   TableBody,
@@ -512,12 +513,9 @@ export default function FagkoderPage() {
                         {fagkode.faggrupper && fagkode.faggrupper.length > 0 ? (
                           <div className="flex flex-wrap gap-1">
                             {fagkode.faggrupper.map((fg, index) => (
-                              <span
-                                key={index}
-                                className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800"
-                              >
+                              <Badge key={index} variant="info">
                                 {fg}
-                              </span>
+                              </Badge>
                             ))}
                           </div>
                         ) : (
@@ -525,15 +523,9 @@ export default function FagkoderPage() {
                         )}
                       </TableCell>
                       <TableCell>
-                        <span
-                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            fagkode.aktiv
-                              ? 'bg-green-100 text-green-800'
-                              : 'bg-yellow-100 text-yellow-800'
-                          }`}
-                        >
+                        <Badge variant={fagkode.aktiv ? 'success' : 'warning'}>
                           {fagkode.aktiv ? 'Aktiv' : 'Inaktiv'}
-                        </span>
+                        </Badge>
                       </TableCell>
                       <TableCell>
                         <div className="flex space-x-2">

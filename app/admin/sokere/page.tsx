@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import {
   Table,
   TableBody,
@@ -401,15 +402,9 @@ export default function SokerePage() {
                     <TableCell>{soker.antallDokumenter}</TableCell>
                     <TableCell>{soker.antallSøknader}</TableCell>
                     <TableCell>
-                      <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          soker.aktiv
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-yellow-100 text-yellow-800'
-                        }`}
-                      >
+                      <Badge variant={soker.aktiv ? 'success' : 'warning'}>
                         {soker.aktiv ? 'Aktiv' : 'Inaktiv'}
-                      </span>
+                      </Badge>
                     </TableCell>
                     <TableCell>
                       <div className="flex space-x-2">

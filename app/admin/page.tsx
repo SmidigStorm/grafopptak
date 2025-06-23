@@ -93,7 +93,7 @@ export default function AdminDashboard() {
                   <p className="text-2xl font-bold">{stats?.institusjoner || 0}</p>
                   <p className="text-xs text-muted-foreground">Institusjoner</p>
                 </div>
-                <Building className="h-8 w-8 text-blue-500" />
+                <Building className="h-8 w-8 text-primary" />
               </div>
             </CardContent>
           </Card>
@@ -107,7 +107,7 @@ export default function AdminDashboard() {
                   <p className="text-2xl font-bold">{stats?.utdanningstilbud || 0}</p>
                   <p className="text-xs text-muted-foreground">Utdanningstilbud</p>
                 </div>
-                <GraduationCap className="h-8 w-8 text-green-500" />
+                <GraduationCap className="h-8 w-8 text-primary" />
               </div>
             </CardContent>
           </Card>
@@ -121,7 +121,7 @@ export default function AdminDashboard() {
                   <p className="text-2xl font-bold">{stats?.sokere || 0}</p>
                   <p className="text-xs text-muted-foreground">Søkere</p>
                 </div>
-                <Users className="h-8 w-8 text-purple-500" />
+                <Users className="h-8 w-8 text-primary" />
               </div>
             </CardContent>
           </Card>
@@ -135,7 +135,7 @@ export default function AdminDashboard() {
                   <p className="text-2xl font-bold">{stats?.regelsett || 0}</p>
                   <p className="text-xs text-muted-foreground">Regelsett</p>
                 </div>
-                <FileText className="h-8 w-8 text-orange-500" />
+                <FileText className="h-8 w-8 text-primary" />
               </div>
             </CardContent>
           </Card>
@@ -148,7 +148,7 @@ export default function AdminDashboard() {
                 <p className="text-2xl font-bold">{stats?.dokumenter || 0}</p>
                 <p className="text-xs text-muted-foreground">Dokumenter</p>
               </div>
-              <FileText className="h-8 w-8 text-red-500" />
+              <FileText className="h-8 w-8 text-primary" />
             </div>
           </CardContent>
         </Card>
@@ -161,7 +161,7 @@ export default function AdminDashboard() {
                   <p className="text-2xl font-bold">{stats?.fagkoder || 0}</p>
                   <p className="text-xs text-muted-foreground">Fagkoder</p>
                 </div>
-                <BookOpen className="h-8 w-8 text-teal-500" />
+                <BookOpen className="h-8 w-8 text-primary" />
               </div>
             </CardContent>
           </Card>
@@ -184,10 +184,10 @@ export default function AdminDashboard() {
                 {topInstitusjoner.slice(0, 5).map((institusjon, index) => (
                   <div
                     key={institusjon.navn}
-                    className="flex items-center justify-between p-2 rounded-lg bg-gray-50"
+                    className="flex items-center justify-between p-2 rounded-lg bg-muted/50"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="bg-blue-100 text-blue-700 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">
+                      <div className="bg-primary/10 text-primary rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">
                         {index + 1}
                       </div>
                       <div>
@@ -220,14 +220,14 @@ export default function AdminDashboard() {
                 {faggrupper.map((faggruppe) => (
                   <div
                     key={faggruppe.navn}
-                    className="flex items-center justify-between p-3 rounded-lg border bg-white"
+                    className="flex items-center justify-between p-3 rounded-lg border bg-card"
                   >
                     <div>
                       <p className="text-sm font-medium">{faggruppe.navn}</p>
                       <p className="text-xs text-muted-foreground capitalize">{faggruppe.type}</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-lg font-bold text-blue-600">{faggruppe.antallFagkoder}</p>
+                      <p className="text-lg font-bold text-primary">{faggruppe.antallFagkoder}</p>
                       <p className="text-xs text-muted-foreground">fagkoder</p>
                     </div>
                   </div>
@@ -255,14 +255,14 @@ export default function AdminDashboard() {
                   const prosent = maxAntall > 0 ? (antall / maxAntall) * 100 : 0;
 
                   return (
-                    <div key={karakter} className="text-center p-2 rounded-lg bg-gray-50">
+                    <div key={karakter} className="text-center p-2 rounded-lg bg-muted/50">
                       <div className="mb-2">
                         <div className="text-lg font-bold">{karakter}</div>
                         <div className="text-xs text-muted-foreground">{antall}</div>
                       </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div className="w-full bg-muted rounded-full h-2">
                         <div
-                          className="bg-blue-600 h-2 rounded-full transition-all"
+                          className="bg-primary h-2 rounded-full transition-all"
                           style={{ width: `${prosent}%` }}
                         />
                       </div>
