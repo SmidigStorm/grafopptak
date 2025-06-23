@@ -19,6 +19,10 @@ export async function saveLogicalExpression(
 ): Promise<string> {
   if (expression.type === 'REQUIREMENT') {
     // For single requirements, create a simple LogicalNode that EVALUERER the requirement
+    if (!expression.requirementId) {
+      throw new Error(`Missing requirementId for REQUIREMENT: ${expression.requirementName}`);
+    }
+
     const result = await session.run(
       `
       CREATE (ln:LogicalNode {
