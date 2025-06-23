@@ -758,30 +758,38 @@ export async function seedAll() {
 
       // NTNU Avansert - Ordinær vei
       CREATE (ntnu_ord:LogicalNode {
+        id: randomUUID(),
         navn: 'NTNU Avansert Ordinær',
         type: 'AND',
-        beskrivelse: 'GSK + Mat R1+R2 + Fysikk 1 + 35 poeng'
+        beskrivelse: 'GSK + Mat R1+R2 + Fysikk 1 + 35 poeng',
+        opprettet: datetime()
       })
       
       // NTNU Avansert - Fagbrev vei
       CREATE (ntnu_fagbrev:LogicalNode {
+        id: randomUUID(),
         navn: 'NTNU Avansert Fagbrev',
         type: 'AND',
-        beskrivelse: 'Fagbrev teknisk + karakterkrav + 2 års arbeidserfaring + GSK'
+        beskrivelse: 'Fagbrev teknisk + karakterkrav + 2 års arbeidserfaring + GSK',
+        opprettet: datetime()
       })
       
       // NTNU Avansert - Forkurs vei
       CREATE (ntnu_forkurs:LogicalNode {
+        id: randomUUID(),
         navn: 'NTNU Avansert Forkurs',
         type: 'AND',
-        beskrivelse: 'Forkurs ingeniør + karaktersnitt 3.0 + GSK'
+        beskrivelse: 'Forkurs ingeniør + karaktersnitt 3.0 + GSK',
+        opprettet: datetime()
       })
       
       // NTNU Avansert - Y-vei
       CREATE (ntnu_yvei:LogicalNode {
+        id: randomUUID(),
         navn: 'NTNU Avansert Y-vei',
         type: 'AND',
-        beskrivelse: '25+ år + 5 års arbeidserfaring + realkompetansevurdering'
+        beskrivelse: '25+ år + 5 års arbeidserfaring + realkompetansevurdering',
+        opprettet: datetime()
       })
 
       // HiOA Fagbrev - kun fagbrev-veien
