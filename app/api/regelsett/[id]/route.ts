@@ -43,7 +43,20 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
         // Build the logical expression if a LogicalNode exists
         if (logicalNodeId) {
-          logicalExpression = await buildLogicalExpression(session, logicalNodeId);
+          try {
+            // Add timeout for buildLogicalExpression
+            const timeoutPromise = new Promise<null>((_, reject) =>
+              setTimeout(() => reject(new Error('LogicalExpression build timeout')), 5000)
+            );
+            
+            logicalExpression = await Promise.race([
+              buildLogicalExpression(session, logicalNodeId),
+              timeoutPromise
+            ]);
+          } catch (error) {
+            console.warn(`Failed to build logical expression for ${logicalNodeId}:`, error);
+            logicalExpression = null;
+          }
         }
 
         // If no logical expression was built but we have krav, create a simple expression

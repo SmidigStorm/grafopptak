@@ -103,11 +103,28 @@ export async function saveLogicalExpression(
 
 /**
  * Recursively builds a LogicalExpression from a LogicalNode ID in the database
+ * With timeout protection to prevent hanging
  */
 export async function buildLogicalExpression(
   session: Session,
-  logicalNodeId: string
+  logicalNodeId: string,
+  visitedNodes: Set<string> = new Set(),
+  depth: number = 0
 ): Promise<LogicalExpression | null> {
+  // Prevent infinite recursion
+  if (visitedNodes.has(logicalNodeId)) {
+    console.warn(`Circular reference detected for LogicalNode ${logicalNodeId}`);
+    return null;
+  }
+  
+  // Prevent excessive depth
+  if (depth > 10) {
+    console.warn(`Maximum depth reached for LogicalNode ${logicalNodeId}`);
+    return null;
+  }
+  
+  visitedNodes.add(logicalNodeId);
+
   const query = `
     MATCH (node:LogicalNode {id: $logicalNodeId})
     OPTIONAL MATCH (node)-[:EVALUERER]->(krav:Kravelement)
@@ -118,56 +135,67 @@ export async function buildLogicalExpression(
       collect(DISTINCT childNode) as childNodes
   `;
 
-  const result = await session.run(query, { logicalNodeId });
+  try {
+    const result = await session.run(query, { logicalNodeId });
 
-  if (result.records.length === 0) {
+    if (result.records.length === 0) {
+      return null;
+    }
+
+    const record = result.records[0];
+    const node = record.get('node').properties;
+    const kravelementer = record
+      .get('kravelementer')
+      .filter((k: any) => k)
+      .map((k: any) => k.properties);
+    const childNodes = record.get('childNodes').filter((n: any) => n);
+
+    // If this node directly references requirements and has no child LogicalNodes,
+    // and there's only one requirement, return it as a REQUIREMENT type
+    if (kravelementer.length === 1 && childNodes.length === 0) {
+      const krav = kravelementer[0];
+      return {
+        type: 'REQUIREMENT',
+        requirementId: krav.id,
+        requirementName: krav.navn,
+      };
+    }
+
+    // If this node has multiple requirements or child nodes, it's a GROUP
+    const children: LogicalExpression[] = [];
+
+    // Add direct requirements as REQUIREMENT children
+    for (const krav of kravelementer) {
+      children.push({
+        type: 'REQUIREMENT',
+        requirementId: krav.id,
+        requirementName: krav.navn,
+      });
+    }
+
+    // Recursively add child LogicalNodes with new visited set for each path
+    for (const childNode of childNodes) {
+      const childVisited = new Set(visitedNodes); // Create new set for each branch
+      const childExpression = await buildLogicalExpression(
+        session, 
+        childNode.properties.id, 
+        childVisited, 
+        depth + 1
+      );
+      if (childExpression) {
+        children.push(childExpression);
+      }
+    }
+
+    return {
+      type: 'GROUP',
+      operator: node.type === 'AND' || node.type === 'OR' ? node.type : 'AND',
+      children,
+    };
+  } catch (error) {
+    console.error(`Error building logical expression for node ${logicalNodeId}:`, error);
     return null;
   }
-
-  const record = result.records[0];
-  const node = record.get('node').properties;
-  const kravelementer = record
-    .get('kravelementer')
-    .filter((k: any) => k)
-    .map((k: any) => k.properties);
-  const childNodes = record.get('childNodes').filter((n: any) => n);
-
-  // If this node directly references requirements and has no child LogicalNodes,
-  // and there's only one requirement, return it as a REQUIREMENT type
-  if (kravelementer.length === 1 && childNodes.length === 0) {
-    const krav = kravelementer[0];
-    return {
-      type: 'REQUIREMENT',
-      requirementId: krav.id,
-      requirementName: krav.navn,
-    };
-  }
-
-  // If this node has multiple requirements or child nodes, it's a GROUP
-  const children: LogicalExpression[] = [];
-
-  // Add direct requirements as REQUIREMENT children
-  for (const krav of kravelementer) {
-    children.push({
-      type: 'REQUIREMENT',
-      requirementId: krav.id,
-      requirementName: krav.navn,
-    });
-  }
-
-  // Recursively add child LogicalNodes
-  for (const childNode of childNodes) {
-    const childExpression = await buildLogicalExpression(session, childNode.properties.id);
-    if (childExpression) {
-      children.push(childExpression);
-    }
-  }
-
-  return {
-    type: 'GROUP',
-    operator: node.type === 'AND' || node.type === 'OR' ? node.type : 'AND',
-    children,
-  };
 }
 
 /**
