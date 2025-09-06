@@ -309,6 +309,7 @@ export default function RegelsettDetailPage({ params }: RegelsettDetailPageProps
     aktiv: true,
   });
   const [oppretterOpptaksVei, setOppretterOpptaksVei] = useState(false);
+  const [lagrerEndringer, setLagrerEndringer] = useState(false);
 
   // Hent dropdown-data for opptaksveier
   const dropdownData = useOpptaksVeiData();
@@ -376,18 +377,22 @@ export default function RegelsettDetailPage({ params }: RegelsettDetailPageProps
   };
 
   const saveChanges = async () => {
-    if (!editedRegelsett || !regelsett) return;
+    if (!editedRegelsett || !regelsett || lagrerEndringer) return;
 
+    setLagrerEndringer(true);
+    
     try {
-      // Save each modified opptaksvei
-      for (let i = 0; i < (editedRegelsett.opptaksVeier || []).length; i++) {
-        const editedVei = editedRegelsett.opptaksVeier![i];
+      // Batch all save operations without fetching in between
+      const savePromises = [];
+      const veierToSave = editedRegelsett.opptaksVeier || [];
+
+      for (const editedVei of veierToSave) {
         const originalVei = regelsett.opptaksVeier?.find((v) => v.id === editedVei.id);
 
         if (!originalVei || hasOpptaksVeiChanged(originalVei, editedVei)) {
           const kravIds = extractRequirementsFromExpression(editedVei.logicalExpression);
 
-          const response = await fetch(`/api/opptaksveier/${editedVei.id}`, {
+          const savePromise = fetch(`/api/opptaksveier/${editedVei.id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -400,18 +405,35 @@ export default function RegelsettDetailPage({ params }: RegelsettDetailPageProps
               aktiv: editedVei.aktiv,
               logicalExpression: editedVei.logicalExpression,
             }),
+          }).then(async response => {
+            if (!response.ok) {
+              const errorData = await response.json().catch(() => ({}));
+              throw new Error(`Feil ved lagring av opptaksvei "${editedVei.navn}": ${errorData.error || response.statusText}`);
+            }
+            return response;
           });
 
-          if (!response.ok) {
-            throw new Error('Feil ved lagring av opptaksvei');
-          }
+          savePromises.push(savePromise);
         }
       }
 
+      // Wait for all saves to complete before refreshing
+      if (savePromises.length > 0) {
+        await Promise.all(savePromises);
+        console.log(`Successfully saved ${savePromises.length} opptaksveier`);
+      } else {
+        console.log('No changes detected, skipping save');
+      }
+
+      // Only fetch fresh data after all saves are complete
       await fetchRegelsett();
       exitEditMode();
     } catch (error) {
       console.error('Feil ved lagring:', error);
+      // Show detailed error to user but don't exit edit mode
+      alert(`Feil ved lagring av endringer: ${error instanceof Error ? error.message : 'Ukjent feil'}\n\nVennligst prøv igjen.`);
+    } finally {
+      setLagrerEndringer(false);
     }
   };
 
@@ -558,11 +580,19 @@ export default function RegelsettDetailPage({ params }: RegelsettDetailPageProps
 
             {isEditMode ? (
               <div className="flex gap-2">
-                <Button onClick={saveChanges} className="bg-green-600 hover:bg-green-700">
+                <Button 
+                  onClick={saveChanges} 
+                  disabled={lagrerEndringer}
+                  className="bg-green-600 hover:bg-green-700"
+                >
                   <Save className="h-4 w-4 mr-2" />
-                  Lagre endringer
+                  {lagrerEndringer ? 'Lagrer...' : 'Lagre endringer'}
                 </Button>
-                <Button variant="outline" onClick={exitEditMode}>
+                <Button 
+                  variant="outline" 
+                  onClick={exitEditMode}
+                  disabled={lagrerEndringer}
+                >
                   <X className="h-4 w-4 mr-2" />
                   Avbryt
                 </Button>

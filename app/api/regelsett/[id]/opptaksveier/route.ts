@@ -77,7 +77,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       finalLogicalExpression = {
         type: 'GROUP' as const,
         operator: logicalNodeType as 'AND' | 'OR',
-        children: finalKravIds.map((kravId) => ({
+        children: finalKravIds.map((kravId: string) => ({
           type: 'REQUIREMENT' as const,
           requirementId: kravId,
           requirementName: `Krav ${kravId}`, // Will be updated when we validate
