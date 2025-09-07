@@ -26,13 +26,17 @@ Master i Historie - UiO (Heltid)
 └── 🛣️ Internasjonal Bachelor
     ├── 📋 Grunnlag: Bachelorgrad fra utenlandsk institusjon
     ├── ✅ Krav:
-    │   ├── Bachelorgrad (180 studiepoeng eller tilsvarende)
-    │   ├── Emnegruppe i historie (80 studiepoeng eller tilsvarende)
+    │   ├── Bachelorgrad (spesielle krav per land)
+    │   ├── En av følgende:
+    │   │   ├── Emnegruppe i historie (80 sp eller tilsvarende)
+    │   │   ├── Mellomfagseksamen i historie eller tilsvarende
+    │   │   └── INTER/EURO-studier med 60+ sp historie eller tilsvarende
     │   ├── Vektet karaktersnitt minimum C (3.7 eller tilsvarende)
     │   ├── Eldre historie (min 20 sp, eller 10 sp for betinget opptak)
     │   ├── Nyere historie (min 20 sp, eller 10 sp for betinget opptak)
     │   ├── Tilstrekkelige norskkunnskaper
-    │   └── Tilstrekkelige engelskkunnskaper
+    │   ├── Tilstrekkelige engelskkunnskaper
+    │   └── Ikke allerede ha master i historie fra UiO
     ├── 🎯 Kvoter:
     │   └── Ordinær Kvote Bachelor
     └── 📊 Rangering: Skjønnsmessig vurdering av innhold (saksbehandler gir poeng basert på faglig kvalitet)
@@ -46,6 +50,7 @@ Master i Historie - UiO (Heltid)
 - **INTER/EURO-studier**: Bachelor i Internasjonale studier eller Europastudier ved UiO med:
   - INTER1000 + INTER3090 eller EURO1000 + EURO3090
   - Minst 60 sp historie (20-30 sp på 1000-nivå, 30-40 sp på 2000-nivå)
+- **Utenlandsk bachelor**: Krav varierer per land - se GSU-listen hos HK-dir
 
 ### Krav til eldre og nyere historie
 - **Hovedregel**: Minimum 20 sp i BÅDE eldre OG nyere historie (ikke bare totalt 20)
