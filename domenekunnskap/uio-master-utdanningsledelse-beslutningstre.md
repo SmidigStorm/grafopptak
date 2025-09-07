@@ -5,32 +5,18 @@
 ```
 Master i Utdanningsledelse - UiO (Erfaringsbasert)
 │
-├── 🛣️ Norsk Bachelor
-│   ├── 📋 Grunnlag: Bachelorgrad fra norsk institusjon
-│   ├── ✅ Krav:
-│   │   ├── Bachelorgrad (180 studiepoeng)
-│   │   ├── Pedagogikk (minimum 30 sp eller tilsvarende)
-│   │   ├── Arbeidserfaring (min 2 år relevant 100% stilling)
-│   │   ├── Tilstrekkelige norskkunnskaper
-│   │   ├── Tilstrekkelige engelskkunnskaper
-│   │   └── Ikke allerede ha master i utdanningsledelse fra UiO
-│   ├── 🎯 Kvoter:
-│   │   └── Ordinær kvote
-│   └── 📊 Rangering: 
-│       ├── 1 poeng per år (100% stilling) relevant arbeidserfaring
-│       └── Inntil 2 ekstra poeng per år som formell leder i utdanningssektoren
-│
-└── 🛣️ Internasjonal Bachelor
-    ├── 📋 Grunnlag: Bachelorgrad fra utenlandsk institusjon
+└── 🛣️ Alle søkere (norsk/internasjonal bachelor)
+    ├── 📋 Grunnlag: Bachelorgrad (norsk eller utenlandsk)
     ├── ✅ Krav:
-    │   ├── Bachelorgrad (spesielle krav per land)
+    │   ├── Bachelorgrad (180 sp eller tilsvarende)
+    │   │   └── Utenlandsk bachelor må godkjennes (krav per land)
     │   ├── Pedagogikk (minimum 30 sp eller tilsvarende)
     │   ├── Arbeidserfaring (min 2 år relevant 100% stilling)
     │   ├── Tilstrekkelige norskkunnskaper
     │   ├── Tilstrekkelige engelskkunnskaper
     │   └── Ikke allerede ha master i utdanningsledelse fra UiO
     ├── 🎯 Kvoter:
-    │   └── Ordinær kvote
+    │   └── Ordinær kvote (50 plasser)
     └── 📊 Rangering: 
         ├── 1 poeng per år (100% stilling) relevant arbeidserfaring
         └── Inntil 2 ekstra poeng per år som formell leder i utdanningssektoren
@@ -105,8 +91,7 @@ Totalt **50 studieplasser**:
 
 | OpptaksVei | Tilgjengelige kvoter |
 |------------|---------------------|
-| Norsk Bachelor | Ordinær kvote |
-| Internasjonal Bachelor | Ordinær kvote |
+| Alle søkere (uavhengig av bakgrunn) | Ordinær kvote |
 
 **Note**: 
 - Alle søkere konkurrerer i samme kvote basert på yrkeserfaring
